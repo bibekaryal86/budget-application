@@ -1,10 +1,13 @@
-package budget.application.service;
+package budget.application.service.domain;
 
 import budget.application.db.repository.BaseRepository;
 import budget.application.db.repository.CategoryRepository;
 import budget.application.db.repository.TransactionItemRepository;
 import budget.application.model.dto.request.TransactionItemRequest;
+import budget.application.model.dto.response.TransactionItemResponse;
 import budget.application.model.entity.TransactionItem;
+import budget.application.service.util.ResponseMetadataUtils;
+import io.github.bibekaryal86.shdsvc.dtos.ResponseMetadata;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
@@ -19,25 +22,28 @@ public class TransactionItemService {
     this.categoryRepo = new CategoryRepository(bs);
   }
 
-  public TransactionItem create(TransactionItemRequest tir) throws SQLException {
+  public TransactionItemResponse create(TransactionItemRequest tir) throws SQLException {
     validate(tir);
-    TransactionItem ti =
+    TransactionItem tiIn =
         TransactionItem.builder()
             .transactionId(tir.transactionId())
             .categoryId(tir.categoryId())
             .label(tir.label())
             .amount(tir.amount())
             .build();
-    return repo.create(ti);
+    TransactionItem tiOut = repo.create(tiIn);
+    return new TransactionItemResponse(
+        List.of(tiOut), ResponseMetadataUtils.defaultInsertResponseMetadata());
   }
 
-  public List<TransactionItem> read(List<UUID> ids) throws SQLException {
-    return repo.read(ids);
+  public TransactionItemResponse read(List<UUID> ids) throws SQLException {
+    List<TransactionItem> tiList = repo.read(ids);
+    return new TransactionItemResponse(tiList, ResponseMetadata.emptyResponseMetadata());
   }
 
-  public TransactionItem update(UUID id, TransactionItemRequest tir) throws SQLException {
+  public TransactionItemResponse update(UUID id, TransactionItemRequest tir) throws SQLException {
     validate(tir);
-    TransactionItem ti =
+    TransactionItem tiIn =
         TransactionItem.builder()
             .id(id)
             .transactionId(tir.transactionId())
@@ -45,11 +51,15 @@ public class TransactionItemService {
             .label(tir.label())
             .amount(tir.amount())
             .build();
-    return repo.update(ti);
+    TransactionItem tiOut = repo.update(tiIn);
+    return new TransactionItemResponse(
+        List.of(tiOut), ResponseMetadataUtils.defaultUpdateResponseMetadata());
   }
 
-  public int delete(List<UUID> ids) throws SQLException {
-    return repo.delete(ids);
+  public TransactionItemResponse delete(List<UUID> ids) throws SQLException {
+    int deleteCount = repo.delete(ids);
+    return new TransactionItemResponse(
+        List.of(), ResponseMetadataUtils.defaultDeleteResponseMetadata(deleteCount));
   }
 
   private void validate(TransactionItemRequest tir) {

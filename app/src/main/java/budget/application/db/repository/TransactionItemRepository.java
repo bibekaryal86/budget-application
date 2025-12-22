@@ -3,6 +3,7 @@ package budget.application.db.repository;
 import budget.application.db.dao.TransactionItemDao;
 import budget.application.model.entity.TransactionItem;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -34,9 +35,15 @@ public class TransactionItemRepository {
     return dao.readByTransactionIds(txnIds);
   }
 
-  public void createItems(List<TransactionItem> items) throws SQLException {
-    for (TransactionItem item : items) {
-      dao.create(item);
+  public List<TransactionItem> createItems(List<TransactionItem> itemsIn) throws SQLException {
+    List<TransactionItem> itemsOut = new ArrayList<>();
+    for (TransactionItem item : itemsIn) {
+      itemsOut.add(dao.create(item));
     }
+    return itemsOut;
+  }
+
+  public int deleteByTransactionIds(List<UUID> txnIds) throws SQLException {
+    return dao.deleteByTransactionIds(txnIds);
   }
 }

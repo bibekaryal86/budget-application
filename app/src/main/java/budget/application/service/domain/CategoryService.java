@@ -1,10 +1,13 @@
-package budget.application.service;
+package budget.application.service.domain;
 
 import budget.application.db.repository.BaseRepository;
 import budget.application.db.repository.CategoryRepository;
 import budget.application.db.repository.CategoryTypeRepository;
 import budget.application.model.dto.request.CategoryRequest;
+import budget.application.model.dto.response.CategoryResponse;
 import budget.application.model.entity.Category;
+import budget.application.service.util.ResponseMetadataUtils;
+import io.github.bibekaryal86.shdsvc.dtos.ResponseMetadata;
 import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 import java.sql.SQLException;
 import java.util.List;
@@ -20,25 +23,32 @@ public class CategoryService {
     this.typeRepo = new CategoryTypeRepository(bs);
   }
 
-  public Category create(CategoryRequest cr) throws SQLException {
+  public CategoryResponse create(CategoryRequest cr) throws SQLException {
     validate(cr);
-    Category c = Category.builder().name(cr.name()).categoryTypeId(cr.categoryTypeId()).build();
-    return repo.create(c);
+    Category cIn = Category.builder().name(cr.name()).categoryTypeId(cr.categoryTypeId()).build();
+    Category cOut = repo.create(cIn);
+    return new CategoryResponse(
+        List.of(cOut), ResponseMetadataUtils.defaultInsertResponseMetadata());
   }
 
-  public List<Category> read(List<UUID> ids) throws SQLException {
-    return repo.read(ids);
+  public CategoryResponse read(List<UUID> ids) throws SQLException {
+    List<Category> cList = repo.read(ids);
+    return new CategoryResponse(cList, ResponseMetadata.emptyResponseMetadata());
   }
 
-  public Category update(UUID id, CategoryRequest cr) throws SQLException {
+  public CategoryResponse update(UUID id, CategoryRequest cr) throws SQLException {
     validate(cr);
-    Category c =
+    Category cIn =
         Category.builder().id(id).name(cr.name()).categoryTypeId(cr.categoryTypeId()).build();
-    return repo.update(c);
+    Category cOut = repo.update(cIn);
+    return new CategoryResponse(
+        List.of(cOut), ResponseMetadataUtils.defaultUpdateResponseMetadata());
   }
 
-  public int delete(List<UUID> ids) throws SQLException {
-    return repo.delete(ids);
+  public CategoryResponse delete(List<UUID> ids) throws SQLException {
+    int deleteCount = repo.delete(ids);
+    return new CategoryResponse(
+        List.of(), ResponseMetadataUtils.defaultDeleteResponseMetadata(deleteCount));
   }
 
   private void validate(CategoryRequest cr) {

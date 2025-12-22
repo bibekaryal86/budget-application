@@ -1,17 +1,23 @@
-package budget.application.service;
+package budget.application.service.domain;
 
 import budget.application.db.repository.BaseRepository;
 import budget.application.db.repository.CategoryRepository;
 import budget.application.db.repository.TransactionItemRepository;
 import budget.application.db.repository.TransactionRepository;
+import budget.application.model.dto.composite.TransactionWithItems;
 import budget.application.model.dto.request.TransactionItemRequest;
 import budget.application.model.dto.request.TransactionRequest;
+import budget.application.model.dto.response.TransactionResponse;
 import budget.application.model.entity.Transaction;
 import budget.application.model.entity.TransactionItem;
+import budget.application.service.util.ResponseMetadataUtils;
+import io.github.bibekaryal86.shdsvc.dtos.ResponseMetadata;
 import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class TransactionService {
 
@@ -25,7 +31,7 @@ public class TransactionService {
     this.categoryRepo = new CategoryRepository(bs);
   }
 
-  public Transaction create(TransactionRequest tr) throws SQLException {
+  public TransactionResponse create(TransactionRequest tr) throws SQLException {
     validate(tr);
     Transaction txnIn =
         Transaction.builder()
@@ -37,7 +43,7 @@ public class TransactionService {
 
     Transaction txnOut = txnRepo.create(txnIn);
 
-    List<TransactionItem> txnItems =
+    List<TransactionItem> txnItemsIn =
         tr.items().stream()
             .map(
                 item ->
@@ -48,15 +54,27 @@ public class TransactionService {
                         .amount(item.amount())
                         .build())
             .toList();
-    itemRepo.createItems(txnItems);
-    return txnOut;
+    List<TransactionItem> txnItemsOut = itemRepo.createItems(txnItemsIn);
+    return new TransactionResponse(
+        List.of(new TransactionWithItems(txnOut, txnItemsOut)),
+        ResponseMetadataUtils.defaultInsertResponseMetadata());
   }
 
-  public List<Transaction> read(List<UUID> ids) throws SQLException {
-    return txnRepo.read(ids);
+  public TransactionResponse read(List<UUID> ids) throws SQLException {
+    List<Transaction> txnsIn = txnRepo.read(ids);
+    List<UUID> txnIds = txnsIn.stream().map(Transaction::id).toList();
+    List<TransactionItem> items = itemRepo.readByTransactionIds(txnIds);
+    Map<UUID, List<TransactionItem>> txnItemsMap =
+        items.stream().collect(Collectors.groupingBy(TransactionItem::transactionId));
+    List<TransactionWithItems> txnWithItems =
+        txnsIn.stream()
+            .map(
+                txn -> new TransactionWithItems(txn, txnItemsMap.getOrDefault(txn.id(), List.of())))
+            .toList();
+    return new TransactionResponse(txnWithItems, ResponseMetadata.emptyResponseMetadata());
   }
 
-  public Transaction update(UUID id, TransactionRequest tr) throws SQLException {
+  public TransactionResponse update(UUID id, TransactionRequest tr) throws SQLException {
     validate(tr);
 
     Transaction txnIn =
@@ -72,10 +90,9 @@ public class TransactionService {
     Transaction txnOut = txnRepo.update(txnIn);
 
     // Replace items
-    List<TransactionItem> existing = itemRepo.readByTransactionIds(List.of(id));
-    itemRepo.delete(existing.stream().map(TransactionItem::id).toList());
+    itemRepo.deleteByTransactionIds(List.of(id));
 
-    List<TransactionItem> txnItems =
+    List<TransactionItem> txnItemsIn =
         tr.items().stream()
             .map(
                 item ->
@@ -86,15 +103,18 @@ public class TransactionService {
                         .amount(item.amount())
                         .build())
             .toList();
-    itemRepo.createItems(txnItems);
+    List<TransactionItem> txnItemsOut = itemRepo.createItems(txnItemsIn);
 
-    return txnOut;
+    return new TransactionResponse(
+        List.of(new TransactionWithItems(txnOut, txnItemsOut)),
+        ResponseMetadataUtils.defaultUpdateResponseMetadata());
   }
 
-  public int delete(List<UUID> ids) throws SQLException {
-    List<TransactionItem> items = itemRepo.readByTransactionIds(ids);
-    itemRepo.delete(items.stream().map(TransactionItem::id).toList());
-    return txnRepo.delete(ids);
+  public TransactionResponse delete(List<UUID> ids) throws SQLException {
+    itemRepo.deleteByTransactionIds(ids);
+    int deleteCount = txnRepo.delete(ids);
+    return new TransactionResponse(
+        List.of(), ResponseMetadataUtils.defaultDeleteResponseMetadata(deleteCount));
   }
 
   private void validate(TransactionRequest tr) {

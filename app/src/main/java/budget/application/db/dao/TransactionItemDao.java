@@ -73,4 +73,22 @@ public class TransactionItemDao extends BaseDao<TransactionItem> {
       }
     }
   }
+
+  public int deleteByTransactionIds(List<UUID> txnIds) throws SQLException {
+    if (CommonUtilities.isEmpty(txnIds)) {
+      return 0;
+    }
+
+    String sql =
+        "DELETE FROM "
+            + tableName()
+            + " WHERE transaction_id IN ("
+            + DaoUtils.placeholders(txnIds.size())
+            + ")";
+
+    try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+      DaoUtils.bindParams(stmt, txnIds);
+      return stmt.executeUpdate();
+    }
+  }
 }
