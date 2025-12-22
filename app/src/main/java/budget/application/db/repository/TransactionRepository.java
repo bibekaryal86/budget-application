@@ -2,8 +2,8 @@ package budget.application.db.repository;
 
 import budget.application.db.dao.TransactionDao;
 import budget.application.db.dao.TransactionItemDao;
-import budget.application.model.entities.Transaction;
-import budget.application.model.entities.TransactionItem;
+import budget.application.model.entity.Transaction;
+import budget.application.model.entity.TransactionItem;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
@@ -13,9 +13,9 @@ public class TransactionRepository {
   private final TransactionDao txnDao;
   private final TransactionItemDao itemDao;
 
-  public TransactionRepository(BaseRepository uow) {
-    this.txnDao = new TransactionDao(uow.connection());
-    this.itemDao = new TransactionItemDao(uow.connection());
+  public TransactionRepository(BaseRepository bs) {
+    this.txnDao = new TransactionDao(bs.connection());
+    this.itemDao = new TransactionItemDao(bs.connection());
   }
 
   public Transaction create(Transaction t) throws SQLException {

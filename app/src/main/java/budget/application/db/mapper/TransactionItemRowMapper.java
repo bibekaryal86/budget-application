@@ -1,6 +1,6 @@
 package budget.application.db.mapper;
 
-import budget.application.model.entities.TransactionItem;
+import budget.application.model.entity.TransactionItem;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.UUID;

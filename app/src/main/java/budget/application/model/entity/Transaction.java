@@ -1,4 +1,4 @@
-package budget.application.model.entities;
+package budget.application.model.entity;
 
 import java.time.LocalDateTime;
 import java.util.UUID;

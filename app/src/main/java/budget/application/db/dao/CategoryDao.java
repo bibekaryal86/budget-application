@@ -1,7 +1,7 @@
 package budget.application.db.dao;
 
 import budget.application.db.mapper.CategoryRowMapper;
-import budget.application.model.entities.Category;
+import budget.application.model.entity.Category;
 import java.sql.Connection;
 import java.time.LocalDateTime;
 import java.util.List;

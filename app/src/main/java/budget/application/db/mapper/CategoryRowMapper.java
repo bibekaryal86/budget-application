@@ -1,6 +1,6 @@
 package budget.application.db.mapper;
 
-import budget.application.model.entities.Category;
+import budget.application.model.entity.Category;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;

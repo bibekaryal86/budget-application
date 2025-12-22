@@ -1,7 +1,7 @@
 package budget.application.db.repository;
 
 import budget.application.db.dao.TransactionItemDao;
-import budget.application.model.entities.TransactionItem;
+import budget.application.model.entity.TransactionItem;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
@@ -10,8 +10,8 @@ public class TransactionItemRepository {
 
   private final TransactionItemDao dao;
 
-  public TransactionItemRepository(BaseRepository uow) {
-    this.dao = new TransactionItemDao(uow.connection());
+  public TransactionItemRepository(BaseRepository bs) {
+    this.dao = new TransactionItemDao(bs.connection());
   }
 
   public TransactionItem create(TransactionItem ti) throws SQLException {
@@ -28,5 +28,15 @@ public class TransactionItemRepository {
 
   public int delete(List<UUID> ids) throws SQLException {
     return dao.delete(ids);
+  }
+
+  public List<TransactionItem> readByTransactionId(UUID txnId) throws SQLException {
+    return dao.readByTransactionId(txnId);
+  }
+
+  public void createItems(List<TransactionItem> items) throws SQLException {
+    for (TransactionItem item : items) {
+      dao.create(item);
+    }
   }
 }
