@@ -1,4 +1,4 @@
-package budget.service.db.mapper;
+package budget.application.db.mapper;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;

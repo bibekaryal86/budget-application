@@ -1,7 +1,7 @@
-package budget.service.db.dao;
+package budget.application.db.dao;
 
-import budget.service.db.mapper.RowMapper;
-import budget.service.db.util.DaoUtils;
+import budget.application.db.mapper.RowMapper;
+import budget.application.db.util.DaoUtils;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;

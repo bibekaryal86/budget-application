@@ -1,7 +1,7 @@
-package budget.service.db.repository;
+package budget.application.db.repository;
 
-import budget.service.db.dao.CategoryDao;
-import budget.service.model.entities.Category;
+import budget.application.db.dao.CategoryDao;
+import budget.application.model.entities.Category;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;

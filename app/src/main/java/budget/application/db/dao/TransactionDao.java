@@ -1,7 +1,7 @@
-package budget.service.db.dao;
+package budget.application.db.dao;
 
-import budget.service.db.mapper.TransactionRowMapper;
-import budget.service.model.entities.Transaction;
+import budget.application.db.mapper.TransactionRowMapper;
+import budget.application.model.entities.Transaction;
 import java.sql.Connection;
 import java.time.LocalDateTime;
 import java.util.List;

@@ -1,4 +1,4 @@
-package budget.service.db.util;
+package budget.application.db.util;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;

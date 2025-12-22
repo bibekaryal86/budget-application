@@ -1,6 +1,6 @@
-package budget.service.db.mapper;
+package budget.application.db.mapper;
 
-import budget.service.model.entities.Transaction;
+import budget.application.model.entities.Transaction;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;

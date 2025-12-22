@@ -1,4 +1,4 @@
-package budget.service.model.entities;
+package budget.application.model.entities;
 
 import java.util.UUID;
 import lombok.Builder;

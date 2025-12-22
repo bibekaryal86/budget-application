@@ -1,7 +1,7 @@
-package budget.service.db.repository;
+package budget.application.db.repository;
 
-import budget.service.db.dao.TransactionItemDao;
-import budget.service.model.entities.TransactionItem;
+import budget.application.db.dao.TransactionItemDao;
+import budget.application.model.entities.TransactionItem;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;

@@ -45,11 +45,11 @@ dependencies {
 
 application {
     // Define the main class for the application.
-    mainClass = 'budget.service.App'
+    mainClass = 'budget.application.Main'
 }
 
 application {
-    mainClass = 'budget.service.App'
+    mainClass = 'budget.application.Main'
 }
 
 test {
@@ -61,7 +61,7 @@ jar {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
     manifest {
-        attributes "Main-Class": "budget.service.App"
+        attributes "Main-Class": "budget.application.Main"
     }
 
     from {
