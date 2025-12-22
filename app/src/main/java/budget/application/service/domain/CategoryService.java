@@ -9,49 +9,65 @@ import budget.application.model.entity.Category;
 import budget.application.service.util.ResponseMetadataUtils;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseMetadata;
 import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
 
 public class CategoryService {
 
-  private final CategoryRepository repo;
-  private final CategoryTypeRepository typeRepo;
+  private final Connection connection;
 
-  public CategoryService(BaseRepository bs) {
-    this.repo = new CategoryRepository(bs);
-    this.typeRepo = new CategoryTypeRepository(bs);
+  public CategoryService(Connection connection) {
+    this.connection = connection;
   }
 
   public CategoryResponse create(CategoryRequest cr) throws SQLException {
-    validate(cr);
-    Category cIn = Category.builder().name(cr.name()).categoryTypeId(cr.categoryTypeId()).build();
-    Category cOut = repo.create(cIn);
-    return new CategoryResponse(
-        List.of(cOut), ResponseMetadataUtils.defaultInsertResponseMetadata());
+    try (BaseRepository bs = new BaseRepository(connection)) {
+      CategoryRepository repo = new CategoryRepository(bs);
+      CategoryTypeRepository typeRepo = new CategoryTypeRepository(bs);
+
+      validate(cr, typeRepo);
+
+      Category cIn = Category.builder().name(cr.name()).categoryTypeId(cr.categoryTypeId()).build();
+      Category cOut = repo.create(cIn);
+
+      return new CategoryResponse(
+          List.of(cOut), ResponseMetadataUtils.defaultInsertResponseMetadata());
+    }
   }
 
   public CategoryResponse read(List<UUID> ids) throws SQLException {
-    List<Category> cList = repo.read(ids);
-    return new CategoryResponse(cList, ResponseMetadata.emptyResponseMetadata());
+    try (BaseRepository bs = new BaseRepository(connection)) {
+      CategoryRepository repo = new CategoryRepository(bs);
+      List<Category> cList = repo.read(ids);
+      return new CategoryResponse(cList, ResponseMetadata.emptyResponseMetadata());
+    }
   }
 
   public CategoryResponse update(UUID id, CategoryRequest cr) throws SQLException {
-    validate(cr);
-    Category cIn =
-        Category.builder().id(id).name(cr.name()).categoryTypeId(cr.categoryTypeId()).build();
-    Category cOut = repo.update(cIn);
-    return new CategoryResponse(
-        List.of(cOut), ResponseMetadataUtils.defaultUpdateResponseMetadata());
+    try (BaseRepository bs = new BaseRepository(connection)) {
+      CategoryRepository repo = new CategoryRepository(bs);
+      CategoryTypeRepository typeRepo = new CategoryTypeRepository(bs);
+      validate(cr, typeRepo);
+      Category cIn =
+          Category.builder().id(id).name(cr.name()).categoryTypeId(cr.categoryTypeId()).build();
+      Category cOut = repo.update(cIn);
+      return new CategoryResponse(
+          List.of(cOut), ResponseMetadataUtils.defaultUpdateResponseMetadata());
+    }
   }
 
   public CategoryResponse delete(List<UUID> ids) throws SQLException {
-    int deleteCount = repo.delete(ids);
-    return new CategoryResponse(
-        List.of(), ResponseMetadataUtils.defaultDeleteResponseMetadata(deleteCount));
+    try (BaseRepository bs = new BaseRepository(connection)) {
+      CategoryRepository repo = new CategoryRepository(bs);
+      int deleteCount = repo.delete(ids);
+      return new CategoryResponse(
+          List.of(), ResponseMetadataUtils.defaultDeleteResponseMetadata(deleteCount));
+    }
   }
 
-  private void validate(CategoryRequest cr) {
+  private void validate(CategoryRequest cr, CategoryTypeRepository typeRepo) {
     if (cr == null) {
       throw new IllegalArgumentException("Category request cannot be null...");
     }
