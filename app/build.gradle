@@ -6,8 +6,25 @@
  * This project uses @Incubating APIs which are subject to change.
  */
 
+buildscript {
+    dependencies {
+        classpath 'org.yaml:snakeyaml:2.5'
+    }
+}
+
 plugins {
     id 'application'
+    id 'java'
+    id 'io.freefair.lombok' version '9.1.0'
+    id 'com.diffplug.spotless' version '8.1.0'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
 }
 
 repositories {
@@ -15,16 +32,83 @@ repositories {
 }
 
 dependencies {
-    implementation libs.guava
-}
+    // from personal library
+    implementation 'io.github.bibekaryal86:shdsvc:1.0.12'
+    // others
+    implementation 'io.netty:netty-all:4.1.119.Final'
 
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(25)
-    }
+    implementation 'org.slf4j:slf4j-api:2.0.17'
+    implementation 'ch.qos.logback:logback-classic:1.5.22'
+
+    runtimeOnly 'org.postgresql:postgresql:42.7.8'
 }
 
 application {
     // Define the main class for the application.
     mainClass = 'budget.service.App'
+}
+
+application {
+    mainClass = 'budget.service.App'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+jar {
+    archiveFileName = 'budget-service.jar'
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+    manifest {
+        attributes "Main-Class": "budget.service.App"
+    }
+
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
+
+spotless {
+    java {
+        removeUnusedImports()
+        googleJavaFormat()
+    }
+}
+
+// everything below is for local development only
+import org.yaml.snakeyaml.Yaml
+
+def loadAppCredentialsEnvVariables() {
+    def file = file('../gcp/app-credentials.yaml')
+    if (file.exists()) {
+        def data = new Yaml().load(file.text)
+        def properties = new Properties()
+
+        if (data?.env_variables) {
+            data.env_variables.each { key, value ->
+                if (key != 'ENV_SERVER_PORT') {
+                    properties.setProperty(key, value)
+                }
+            }
+        }
+        return properties
+    } else {
+        println "Warning: app-credentials.yaml file not found!"
+        return new Properties()
+    }
+}
+
+def yamlProperties = loadAppCredentialsEnvVariables()
+
+run {
+    doFirst {
+        yamlProperties.each { key, value ->
+            if (key == 'SPRING_PROFILES_ACTIVE') {
+                environment key, 'sandbox'
+            } else {
+                environment key, value
+            }
+        }
+    }
 }

@@ -1,0 +1,18 @@
+runtime: java25
+env: standard
+instance_class: F1    # F1, the "free tier", does not meet JVM memory requirements
+handlers:
+  - url: .*
+    script: auto
+automatic_scaling:
+  min_instances: 1
+  max_instances: 1
+  min_idle_instances: 1
+  max_idle_instances: 1
+  min_pending_latency: 5000ms
+  max_pending_latency: 10000ms
+  max_concurrent_requests: 50
+env_variables:
+  TZ: America/Denver
+includes:
+  - app-credentials.yaml

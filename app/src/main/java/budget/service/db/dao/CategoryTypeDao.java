@@ -1,0 +1,45 @@
+package budget.service.db.dao;
+
+import budget.service.db.mapper.CategoryTypeRowMapper;
+import budget.service.model.entities.CategoryType;
+import java.sql.Connection;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
+
+public class CategoryTypeDao extends BaseDao<CategoryType> {
+
+  public CategoryTypeDao(Connection connection) {
+    super(connection, new CategoryTypeRowMapper());
+  }
+
+  @Override
+  protected String tableName() {
+    return "category_type";
+  }
+
+  @Override
+  protected List<String> insertColumns() {
+    return List.of("id", "name", "created_at", "updated_at");
+  }
+
+  @Override
+  protected List<Object> insertValues(CategoryType ct) {
+    return List.of(ct.id(), ct.name(), LocalDateTime.now(), LocalDateTime.now());
+  }
+
+  @Override
+  protected List<String> updateColumns() {
+    return List.of("name", "updated_at");
+  }
+
+  @Override
+  protected List<Object> updateValues(CategoryType ct) {
+    return List.of(ct.name(), LocalDateTime.now());
+  }
+
+  @Override
+  protected UUID getId(CategoryType ct) {
+    return ct.id();
+  }
+}
