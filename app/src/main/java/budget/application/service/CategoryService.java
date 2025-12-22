@@ -3,6 +3,7 @@ package budget.application.service;
 import budget.application.db.repository.BaseRepository;
 import budget.application.db.repository.CategoryRepository;
 import budget.application.db.repository.CategoryTypeRepository;
+import budget.application.model.dto.request.CategoryRequest;
 import budget.application.model.entity.Category;
 import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 import java.sql.SQLException;
@@ -19,8 +20,9 @@ public class CategoryService {
     this.typeRepo = new CategoryTypeRepository(bs);
   }
 
-  public Category create(Category c) throws SQLException {
-    validate(c);
+  public Category create(CategoryRequest cr) throws SQLException {
+    validate(cr);
+    Category c = Category.builder().name(cr.name()).categoryTypeId(cr.categoryTypeId()).build();
     return repo.create(c);
   }
 
@@ -28,7 +30,10 @@ public class CategoryService {
     return repo.read(ids);
   }
 
-  public Category update(Category c) throws SQLException {
+  public Category update(UUID id, CategoryRequest cr) throws SQLException {
+    validate(cr);
+    Category c =
+        Category.builder().id(id).name(cr.name()).categoryTypeId(cr.categoryTypeId()).build();
     return repo.update(c);
   }
 
@@ -36,18 +41,18 @@ public class CategoryService {
     return repo.delete(ids);
   }
 
-  private void validate(Category c) {
-    if (c == null) {
-      throw new IllegalArgumentException("Category cannot be null...");
+  private void validate(CategoryRequest cr) {
+    if (cr == null) {
+      throw new IllegalArgumentException("Category request cannot be null...");
     }
-    if (CommonUtilities.isEmpty(c.name())) {
+    if (CommonUtilities.isEmpty(cr.name())) {
       throw new IllegalArgumentException("Category name cannot be empty...");
     }
-    if (c.categoryTypeId() == null) {
+    if (cr.categoryTypeId() == null) {
       throw new IllegalArgumentException("Category type cannot be null...");
     }
-    if (typeRepo.readByIdNoEx(c.categoryTypeId()).isEmpty()) {
-      throw new IllegalArgumentException("Category type does not exist");
+    if (typeRepo.readByIdNoEx(cr.categoryTypeId()).isEmpty()) {
+      throw new IllegalArgumentException("Category type does not exist...");
     }
   }
 }

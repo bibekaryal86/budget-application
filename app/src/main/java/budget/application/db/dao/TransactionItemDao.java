@@ -1,7 +1,9 @@
 package budget.application.db.dao;
 
 import budget.application.db.mapper.TransactionItemRowMapper;
+import budget.application.db.util.DaoUtils;
 import budget.application.model.entity.TransactionItem;
+import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -47,10 +49,21 @@ public class TransactionItemDao extends BaseDao<TransactionItem> {
   }
 
   // --- Custom ---
-  public List<TransactionItem> readByTransactionId(UUID transactionId) throws SQLException {
-    String sql = "SELECT * FROM " + tableName() + " WHERE transaction_id = ?";
+  public List<TransactionItem> readByTransactionIds(List<UUID> txnIds) throws SQLException {
+    if (CommonUtilities.isEmpty(txnIds)) {
+      return List.of();
+    }
+
+    String sql =
+        "SELECT * FROM "
+            + tableName()
+            + " WHERE transaction_id IN ("
+            + DaoUtils.placeholders(txnIds.size())
+            + ")";
+
     try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-      stmt.setObject(1, transactionId);
+      DaoUtils.bindParams(stmt, txnIds);
+
       try (ResultSet rs = stmt.executeQuery()) {
         List<TransactionItem> results = new ArrayList<>();
         while (rs.next()) {

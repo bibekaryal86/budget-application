@@ -30,8 +30,8 @@ public class TransactionItemRepository {
     return dao.delete(ids);
   }
 
-  public List<TransactionItem> readByTransactionId(UUID txnId) throws SQLException {
-    return dao.readByTransactionId(txnId);
+  public List<TransactionItem> readByTransactionIds(List<UUID> txnIds) throws SQLException {
+    return dao.readByTransactionIds(txnIds);
   }
 
   public void createItems(List<TransactionItem> items) throws SQLException {

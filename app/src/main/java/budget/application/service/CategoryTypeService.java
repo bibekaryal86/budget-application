@@ -2,6 +2,7 @@ package budget.application.service;
 
 import budget.application.db.repository.BaseRepository;
 import budget.application.db.repository.CategoryTypeRepository;
+import budget.application.model.dto.request.CategoryTypeRequest;
 import budget.application.model.entity.CategoryType;
 import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 import java.sql.SQLException;
@@ -16,8 +17,9 @@ public class CategoryTypeService {
     this.repo = new CategoryTypeRepository(bs);
   }
 
-  public CategoryType create(CategoryType ct) throws SQLException {
-    validate(ct);
+  public CategoryType create(CategoryTypeRequest ctr) throws SQLException {
+    validate(ctr);
+    CategoryType ct = CategoryType.builder().name(ctr.name()).build();
     return repo.create(ct);
   }
 
@@ -25,7 +27,9 @@ public class CategoryTypeService {
     return repo.read(ids);
   }
 
-  public CategoryType update(CategoryType ct) throws SQLException {
+  public CategoryType update(UUID id, CategoryTypeRequest ctr) throws SQLException {
+    validate(ctr);
+    CategoryType ct = CategoryType.builder().id(id).name(ctr.name()).build();
     return repo.update(ct);
   }
 
@@ -33,11 +37,11 @@ public class CategoryTypeService {
     return repo.delete(ids);
   }
 
-  private void validate(CategoryType ct) {
-    if (ct == null) {
-      throw new IllegalArgumentException("Category type cannot be null...");
+  private void validate(CategoryTypeRequest ctr) {
+    if (ctr == null) {
+      throw new IllegalArgumentException("Category type request cannot be null...");
     }
-    if (CommonUtilities.isEmpty(ct.name())) {
+    if (CommonUtilities.isEmpty(ctr.name())) {
       throw new IllegalArgumentException("Category type name cannot be empty...");
     }
   }

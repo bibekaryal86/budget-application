@@ -4,6 +4,7 @@ import budget.application.db.dao.CategoryDao;
 import budget.application.model.entity.Category;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public class CategoryRepository {
@@ -20,6 +21,22 @@ public class CategoryRepository {
 
   public List<Category> read(List<UUID> ids) throws SQLException {
     return dao.read(ids);
+  }
+
+  public List<Category> readByIdsNoEx(List<UUID> ids) {
+    try {
+      return read(ids);
+    } catch (Exception e) {
+      return List.of();
+    }
+  }
+
+  public Optional<Category> readByIdNoEx(UUID id) {
+    try {
+      return read(List.of(id)).stream().findFirst();
+    } catch (Exception e) {
+      return Optional.empty();
+    }
   }
 
   public Category update(Category c) throws SQLException {
