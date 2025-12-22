@@ -12,7 +12,7 @@ public class TransactionRowMapper implements RowMapper<Transaction> {
     return Transaction.builder()
         .id(rs.getObject("id", UUID.class))
         .txnDate(rs.getObject("txn_date", LocalDateTime.class))
-        .description(rs.getString("description"))
+        .merchant(rs.getString("merchant"))
         .totalAmount(rs.getDouble("total_amount"))
         .notes(rs.getString("notes"))
         .createdAt(rs.getObject("created_at", LocalDateTime.class))

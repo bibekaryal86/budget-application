@@ -41,7 +41,8 @@ public abstract class BaseDao<T> {
     String cols = String.join(", ", insertColumns());
     String placeholders = DaoUtils.placeholders(insertColumns().size());
 
-    String sql = "INSERT INTO " + tableName() + " (" + cols + ") VALUES (" + placeholders + ")";
+    String sql =
+        "INSERT INTO " + tableName() + " (" + cols + ") VALUES (" + placeholders + ") RETURNING *";
 
     try (PreparedStatement stmt = connection.prepareStatement(sql)) {
       DaoUtils.bindParams(stmt, insertValues(entity));
@@ -94,7 +95,7 @@ public abstract class BaseDao<T> {
 
     String setClause = String.join(", ", cols.stream().map(c -> c + " = ?").toList());
 
-    String sql = "UPDATE " + tableName() + " SET " + setClause + " WHERE id = ?";
+    String sql = "UPDATE " + tableName() + " SET " + setClause + " WHERE id = ? RETURNING *";
 
     try (PreparedStatement stmt = connection.prepareStatement(sql)) {
       DaoUtils.bindParams(stmt, values);

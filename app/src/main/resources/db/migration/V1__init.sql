@@ -34,7 +34,7 @@ CREATE INDEX idx_category_name ON category(name);
 CREATE TABLE transaction (
     id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     txn_date        TIMESTAMP NOT NULL,
-    description     VARCHAR(255),
+    merchant        VARCHAR(255) NOT NULL,,
     total_amount    NUMERIC(12, 2) NOT NULL CHECK (total_amount >= 0),
     notes           TEXT,
     created_at      TIMESTAMP NOT NULL DEFAULT NOW(),

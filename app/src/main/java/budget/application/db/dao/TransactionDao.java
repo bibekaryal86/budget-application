@@ -20,30 +20,22 @@ public class TransactionDao extends BaseDao<Transaction> {
 
   @Override
   protected List<String> insertColumns() {
-    return List.of(
-        "id", "txn_date", "description", "total_amount", "notes", "created_at", "updated_at");
+    return List.of("txn_date", "merchant", "total_amount", "notes");
   }
 
   @Override
   protected List<Object> insertValues(Transaction t) {
-    return List.of(
-        t.id(),
-        t.txnDate(),
-        t.description(),
-        t.totalAmount(),
-        t.notes(),
-        LocalDateTime.now(),
-        LocalDateTime.now());
+    return List.of(t.txnDate(), t.merchant(), t.totalAmount(), t.notes());
   }
 
   @Override
   protected List<String> updateColumns() {
-    return List.of("txn_date", "description", "total_amount", "notes", "updated_at");
+    return List.of("txn_date", "merchant", "total_amount", "notes", "updated_at");
   }
 
   @Override
   protected List<Object> updateValues(Transaction t) {
-    return List.of(t.txnDate(), t.description(), t.totalAmount(), t.notes(), LocalDateTime.now());
+    return List.of(t.txnDate(), t.merchant(), t.totalAmount(), t.notes(), LocalDateTime.now());
   }
 
   @Override

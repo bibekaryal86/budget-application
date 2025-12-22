@@ -8,7 +8,7 @@ import lombok.Builder;
 public record Transaction(
     UUID id,
     LocalDateTime txnDate,
-    String description,
+    String merchant,
     double totalAmount,
     String notes,
     LocalDateTime createdAt,

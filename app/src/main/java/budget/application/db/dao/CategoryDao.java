@@ -20,12 +20,12 @@ public class CategoryDao extends BaseDao<Category> {
 
   @Override
   protected List<String> insertColumns() {
-    return List.of("id", "category_type_id", "name", "created_at", "updated_at");
+    return List.of("category_type_id", "name");
   }
 
   @Override
   protected List<Object> insertValues(Category c) {
-    return List.of(c.id(), c.categoryTypeId(), c.name(), LocalDateTime.now(), LocalDateTime.now());
+    return List.of(c.categoryTypeId(), c.name());
   }
 
   @Override

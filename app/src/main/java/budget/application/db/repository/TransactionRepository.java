@@ -35,13 +35,17 @@ public class TransactionRepository {
   }
 
   // Aggregate operations
-  public List<TransactionItem> readItems(UUID txnId) throws SQLException {
-    return itemDao.readByTransactionId(txnId);
-  }
-
   public void createItems(List<TransactionItem> items) throws SQLException {
     for (TransactionItem item : items) {
       itemDao.create(item);
     }
+  }
+
+  public List<TransactionItem> readItems(UUID txnId) throws SQLException {
+    return itemDao.readByTransactionId(txnId);
+  }
+
+  public int deleteItems(List<UUID> ids) throws SQLException {
+    return itemDao.delete(ids);
   }
 }
