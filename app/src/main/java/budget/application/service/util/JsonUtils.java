@@ -13,6 +13,8 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -34,13 +36,9 @@ public final class JsonUtils {
 
     JavaTimeModule timeModule = new JavaTimeModule();
     timeModule.addSerializer(
-        LocalDateTime.class,
-        new com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer(
-            DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+        LocalDateTime.class, new LocalDateTimeSerializer(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
     timeModule.addDeserializer(
-        LocalDateTime.class,
-        new com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer(
-            DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+        LocalDateTime.class, new LocalDateTimeDeserializer(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
     m.registerModule(timeModule);
 
     SimpleModule uuidModule = new SimpleModule();
@@ -65,8 +63,6 @@ public final class JsonUtils {
 
     return m;
   }
-
-  // ---- Public API ----
 
   public static String toJson(Object obj) {
     try {

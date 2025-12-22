@@ -1,6 +1,5 @@
 package budget.application.service.domain;
 
-import budget.application.db.repository.BaseRepository;
 import budget.application.db.repository.CategoryRepository;
 import budget.application.db.repository.CategoryTypeRepository;
 import budget.application.model.dto.request.CategoryRequest;
@@ -10,7 +9,6 @@ import budget.application.service.util.ResponseMetadataUtils;
 import budget.application.service.util.TransactionManager;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseMetadata;
 import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
-import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
@@ -24,53 +22,52 @@ public class CategoryService {
   }
 
   public CategoryResponse create(CategoryRequest cr) throws SQLException {
-      return tx.execute(bs -> {
+    return tx.execute(
+        bs -> {
           CategoryRepository repo = new CategoryRepository(bs);
           CategoryTypeRepository typeRepo = new CategoryTypeRepository(bs);
 
           validate(cr, typeRepo);
 
-          Category cIn = Category.builder().name(cr.name()).categoryTypeId(cr.categoryTypeId()).build();
-          Category cOut = null;
-          try {
-              cOut = repo.create(cIn);
-          } catch (SQLException e) {
-              throw new RuntimeException(e);
-          }
-
+          Category cIn =
+              Category.builder().name(cr.name()).categoryTypeId(cr.categoryTypeId()).build();
+          Category cOut = repo.create(cIn);
           return new CategoryResponse(
-                  List.of(cOut), ResponseMetadataUtils.defaultInsertResponseMetadata());
-      });
+              List.of(cOut), ResponseMetadataUtils.defaultInsertResponseMetadata());
+        });
   }
 
   public CategoryResponse read(List<UUID> ids) throws SQLException {
-    try (BaseRepository bs = new BaseRepository(connection)) {
-      CategoryRepository repo = new CategoryRepository(bs);
-      List<Category> cList = repo.read(ids);
-      return new CategoryResponse(cList, ResponseMetadata.emptyResponseMetadata());
-    }
+    return tx.execute(
+        bs -> {
+          CategoryRepository repo = new CategoryRepository(bs);
+          List<Category> cList = repo.read(ids);
+          return new CategoryResponse(cList, ResponseMetadata.emptyResponseMetadata());
+        });
   }
 
   public CategoryResponse update(UUID id, CategoryRequest cr) throws SQLException {
-    try (BaseRepository bs = new BaseRepository(connection)) {
-      CategoryRepository repo = new CategoryRepository(bs);
-      CategoryTypeRepository typeRepo = new CategoryTypeRepository(bs);
-      validate(cr, typeRepo);
-      Category cIn =
-          Category.builder().id(id).name(cr.name()).categoryTypeId(cr.categoryTypeId()).build();
-      Category cOut = repo.update(cIn);
-      return new CategoryResponse(
-          List.of(cOut), ResponseMetadataUtils.defaultUpdateResponseMetadata());
-    }
+    return tx.execute(
+        bs -> {
+          CategoryRepository repo = new CategoryRepository(bs);
+          CategoryTypeRepository typeRepo = new CategoryTypeRepository(bs);
+          validate(cr, typeRepo);
+          Category cIn =
+              Category.builder().id(id).name(cr.name()).categoryTypeId(cr.categoryTypeId()).build();
+          Category cOut = repo.update(cIn);
+          return new CategoryResponse(
+              List.of(cOut), ResponseMetadataUtils.defaultUpdateResponseMetadata());
+        });
   }
 
   public CategoryResponse delete(List<UUID> ids) throws SQLException {
-    try (BaseRepository bs = new BaseRepository(connection)) {
-      CategoryRepository repo = new CategoryRepository(bs);
-      int deleteCount = repo.delete(ids);
-      return new CategoryResponse(
-          List.of(), ResponseMetadataUtils.defaultDeleteResponseMetadata(deleteCount));
-    }
+    return tx.execute(
+        bs -> {
+          CategoryRepository repo = new CategoryRepository(bs);
+          int deleteCount = repo.delete(ids);
+          return new CategoryResponse(
+              List.of(), ResponseMetadataUtils.defaultDeleteResponseMetadata(deleteCount));
+        });
   }
 
   private void validate(CategoryRequest cr, CategoryTypeRepository typeRepo) {

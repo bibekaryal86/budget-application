@@ -1,6 +1,5 @@
 package budget.application.service.domain;
 
-import budget.application.db.repository.BaseRepository;
 import budget.application.db.repository.CategoryRepository;
 import budget.application.db.repository.TransactionItemRepository;
 import budget.application.db.repository.TransactionRepository;
@@ -11,10 +10,11 @@ import budget.application.model.dto.response.TransactionResponse;
 import budget.application.model.entity.Transaction;
 import budget.application.model.entity.TransactionItem;
 import budget.application.service.util.ResponseMetadataUtils;
+import budget.application.service.util.TransactionManager;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseMetadata;
 import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
-import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -22,117 +22,126 @@ import java.util.stream.Collectors;
 
 public class TransactionService {
 
-  private final Connection connection;
+  private final TransactionManager tx;
 
-  public TransactionService(Connection connection) {
-    this.connection = connection;
+  public TransactionService(TransactionManager tx) {
+    this.tx = tx;
   }
 
   public TransactionResponse create(TransactionRequest tr) throws SQLException {
-    try (BaseRepository bs = new BaseRepository(connection)) {
-      TransactionRepository txnRepo = new TransactionRepository(bs);
-      CategoryRepository categoryRepo = new CategoryRepository(bs);
-      TransactionItemRepository itemRepo = new TransactionItemRepository(bs);
+    return tx.execute(
+        bs -> {
+          TransactionRepository txnRepo = new TransactionRepository(bs);
+          CategoryRepository categoryRepo = new CategoryRepository(bs);
+          TransactionItemRepository itemRepo = new TransactionItemRepository(bs);
 
-      validate(tr, categoryRepo);
-      Transaction txnIn =
-          Transaction.builder()
-              .txnDate(tr.txnDate())
-              .merchant(tr.merchant())
-              .totalAmount(tr.totalAmount())
-              .notes(tr.notes())
-              .build();
+          validate(tr, categoryRepo);
+          Transaction txnIn =
+              Transaction.builder()
+                  .txnDate(tr.txnDate())
+                  .merchant(tr.merchant())
+                  .totalAmount(tr.totalAmount())
+                  .notes(tr.notes())
+                  .build();
 
-      Transaction txnOut = txnRepo.create(txnIn);
+          Transaction txnOut = txnRepo.create(txnIn);
 
-      List<TransactionItem> txnItemsIn =
-          tr.items().stream()
-              .map(
-                  item ->
-                      TransactionItem.builder()
-                          .transactionId(txnOut.id())
-                          .categoryId(item.categoryId())
-                          .label(item.label())
-                          .amount(item.amount())
-                          .build())
-              .toList();
-      List<TransactionItem> txnItemsOut = itemRepo.createItems(txnItemsIn);
-      return new TransactionResponse(
-          List.of(new TransactionWithItems(txnOut, txnItemsOut)),
-          ResponseMetadataUtils.defaultInsertResponseMetadata());
-    }
+          List<TransactionItem> txnItemsIn =
+              tr.items().stream()
+                  .map(
+                      item ->
+                          TransactionItem.builder()
+                              .transactionId(txnOut.id())
+                              .categoryId(item.categoryId())
+                              .label(item.label())
+                              .amount(item.amount())
+                              .build())
+                  .toList();
+          List<TransactionItem> txnItemsOut = itemRepo.createItems(txnItemsIn);
+          return new TransactionResponse(
+              List.of(new TransactionWithItems(txnOut, txnItemsOut)),
+              ResponseMetadataUtils.defaultInsertResponseMetadata());
+        });
   }
 
   public TransactionResponse read(List<UUID> ids) throws SQLException {
-    try (BaseRepository bs = new BaseRepository(connection)) {
-      TransactionRepository txnRepo = new TransactionRepository(bs);
-      TransactionItemRepository itemRepo = new TransactionItemRepository(bs);
-      List<Transaction> txnsIn = txnRepo.read(ids);
-      List<UUID> txnIds = txnsIn.stream().map(Transaction::id).toList();
-      List<TransactionItem> items = itemRepo.readByTransactionIds(txnIds);
-      Map<UUID, List<TransactionItem>> txnItemsMap =
-          items.stream().collect(Collectors.groupingBy(TransactionItem::transactionId));
-      List<TransactionWithItems> txnWithItems =
-          txnsIn.stream()
-              .map(
-                  txn ->
-                      new TransactionWithItems(txn, txnItemsMap.getOrDefault(txn.id(), List.of())))
-              .toList();
-      return new TransactionResponse(txnWithItems, ResponseMetadata.emptyResponseMetadata());
-    }
+    return tx.execute(
+        bs -> {
+          TransactionRepository txnRepo = new TransactionRepository(bs);
+          TransactionItemRepository itemRepo = new TransactionItemRepository(bs);
+          List<Transaction> txnsIn = txnRepo.read(ids);
+          List<UUID> txnIds = txnsIn.stream().map(Transaction::id).toList();
+          List<TransactionItem> items = itemRepo.readByTransactionIds(txnIds);
+          Map<UUID, List<TransactionItem>> txnItemsMap =
+              items.stream().collect(Collectors.groupingBy(TransactionItem::transactionId));
+          List<TransactionWithItems> txnWithItems =
+              txnsIn.stream()
+                  .map(
+                      txn ->
+                          new TransactionWithItems(
+                              txn, txnItemsMap.getOrDefault(txn.id(), List.of())))
+                  .toList();
+          return new TransactionResponse(txnWithItems, ResponseMetadata.emptyResponseMetadata());
+        });
   }
 
   public TransactionResponse update(UUID id, TransactionRequest tr) throws SQLException {
-    try (BaseRepository bs = new BaseRepository(connection)) {
-      TransactionRepository txnRepo = new TransactionRepository(bs);
-      TransactionItemRepository itemRepo = new TransactionItemRepository(bs);
-      CategoryRepository categoryRepo = new CategoryRepository(bs);
+    return tx.execute(
+        bs -> {
+          TransactionRepository txnRepo = new TransactionRepository(bs);
+          TransactionItemRepository itemRepo = new TransactionItemRepository(bs);
+          CategoryRepository categoryRepo = new CategoryRepository(bs);
 
-      validate(tr, categoryRepo);
+          validate(tr, categoryRepo);
 
-      Transaction txnIn =
-          Transaction.builder()
-              .id(id)
-              .txnDate(tr.txnDate())
-              .merchant(tr.merchant())
-              .totalAmount(tr.totalAmount())
-              .notes(tr.notes())
-              .build();
+          Transaction txnIn =
+              Transaction.builder()
+                  .id(id)
+                  .txnDate(tr.txnDate())
+                  .merchant(tr.merchant())
+                  .totalAmount(tr.totalAmount())
+                  .notes(tr.notes())
+                  .build();
 
-      // Update transaction
-      Transaction txnOut = txnRepo.update(txnIn);
+          // Update transaction
+          Transaction txnOut = txnRepo.update(txnIn);
+          List<TransactionItem> txnItemsOut = new ArrayList<>();
 
-      // Replace items
-      itemRepo.deleteByTransactionIds(List.of(id));
+          if (CommonUtilities.isEmpty(tr.items())) {
+            txnItemsOut = itemRepo.readByTransactionIds(List.of(id));
+          } else {
+            itemRepo.deleteByTransactionIds(List.of(id));
 
-      List<TransactionItem> txnItemsIn =
-          tr.items().stream()
-              .map(
-                  item ->
-                      TransactionItem.builder()
-                          .transactionId(id)
-                          .categoryId(item.categoryId())
-                          .label(item.label())
-                          .amount(item.amount())
-                          .build())
-              .toList();
-      List<TransactionItem> txnItemsOut = itemRepo.createItems(txnItemsIn);
+            List<TransactionItem> txnItemsIn =
+                tr.items().stream()
+                    .map(
+                        item ->
+                            TransactionItem.builder()
+                                .transactionId(id)
+                                .categoryId(item.categoryId())
+                                .label(item.label())
+                                .amount(item.amount())
+                                .build())
+                    .toList();
+            txnItemsOut = itemRepo.createItems(txnItemsIn);
+          }
 
-      return new TransactionResponse(
-          List.of(new TransactionWithItems(txnOut, txnItemsOut)),
-          ResponseMetadataUtils.defaultUpdateResponseMetadata());
-    }
+          return new TransactionResponse(
+              List.of(new TransactionWithItems(txnOut, txnItemsOut)),
+              ResponseMetadataUtils.defaultUpdateResponseMetadata());
+        });
   }
 
   public TransactionResponse delete(List<UUID> ids) throws SQLException {
-    try (BaseRepository bs = new BaseRepository(connection)) {
-      TransactionRepository txnRepo = new TransactionRepository(bs);
-      TransactionItemRepository itemRepo = new TransactionItemRepository(bs);
-      itemRepo.deleteByTransactionIds(ids);
-      int deleteCount = txnRepo.delete(ids);
-      return new TransactionResponse(
-          List.of(), ResponseMetadataUtils.defaultDeleteResponseMetadata(deleteCount));
-    }
+    return tx.execute(
+        bs -> {
+          TransactionRepository txnRepo = new TransactionRepository(bs);
+          TransactionItemRepository itemRepo = new TransactionItemRepository(bs);
+          itemRepo.deleteByTransactionIds(ids);
+          int deleteCount = txnRepo.delete(ids);
+          return new TransactionResponse(
+              List.of(), ResponseMetadataUtils.defaultDeleteResponseMetadata(deleteCount));
+        });
   }
 
   private void validate(TransactionRequest tr, CategoryRepository categoryRepo) {
