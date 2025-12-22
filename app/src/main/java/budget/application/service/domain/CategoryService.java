@@ -7,6 +7,7 @@ import budget.application.model.dto.request.CategoryRequest;
 import budget.application.model.dto.response.CategoryResponse;
 import budget.application.model.entity.Category;
 import budget.application.service.util.ResponseMetadataUtils;
+import budget.application.service.util.TransactionManager;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseMetadata;
 import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 import java.sql.Connection;
@@ -16,25 +17,30 @@ import java.util.UUID;
 
 public class CategoryService {
 
-  private final Connection connection;
+  private final TransactionManager tx;
 
-  public CategoryService(Connection connection) {
-    this.connection = connection;
+  public CategoryService(TransactionManager tx) {
+    this.tx = tx;
   }
 
   public CategoryResponse create(CategoryRequest cr) throws SQLException {
-    try (BaseRepository bs = new BaseRepository(connection)) {
-      CategoryRepository repo = new CategoryRepository(bs);
-      CategoryTypeRepository typeRepo = new CategoryTypeRepository(bs);
+      return tx.execute(bs -> {
+          CategoryRepository repo = new CategoryRepository(bs);
+          CategoryTypeRepository typeRepo = new CategoryTypeRepository(bs);
 
-      validate(cr, typeRepo);
+          validate(cr, typeRepo);
 
-      Category cIn = Category.builder().name(cr.name()).categoryTypeId(cr.categoryTypeId()).build();
-      Category cOut = repo.create(cIn);
+          Category cIn = Category.builder().name(cr.name()).categoryTypeId(cr.categoryTypeId()).build();
+          Category cOut = null;
+          try {
+              cOut = repo.create(cIn);
+          } catch (SQLException e) {
+              throw new RuntimeException(e);
+          }
 
-      return new CategoryResponse(
-          List.of(cOut), ResponseMetadataUtils.defaultInsertResponseMetadata());
-    }
+          return new CategoryResponse(
+                  List.of(cOut), ResponseMetadataUtils.defaultInsertResponseMetadata());
+      });
   }
 
   public CategoryResponse read(List<UUID> ids) throws SQLException {
