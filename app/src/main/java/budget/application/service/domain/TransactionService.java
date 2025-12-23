@@ -165,6 +165,28 @@ public class TransactionService {
         });
   }
 
+  public void reconcileAll() throws SQLException {
+    tx.executeVoid(
+        bs -> {
+          TransactionRepository txnRepo = new TransactionRepository(bs);
+          TransactionItemRepository itemRepo = new TransactionItemRepository(bs);
+          // Read all transactions
+          List<Transaction> allTxns = txnRepo.read(List.of());
+          for (Transaction txn : allTxns) {
+            UUID txnId = txn.id();
+            List<TransactionItem> items = itemRepo.readByTransactionIds(List.of(txnId));
+            double sum = items.stream().mapToDouble(TransactionItem::amount).sum();
+            if (Double.compare(sum, txn.totalAmount()) != 0) {
+              log.info(
+                  "[Reconciliation] MISMATCH for txn {} | total={} | sum(items)={}",
+                  txnId,
+                  txn.totalAmount(),
+                  sum);
+            }
+          }
+        });
+  }
+
   private void validate(TransactionRequest tr, CategoryRepository categoryRepo) {
     if (tr == null) {
       throw new IllegalArgumentException("Transaction request cannot be null...");

@@ -4,6 +4,7 @@ import budget.application.db.repository.TransactionItemRepository;
 import budget.application.db.repository.TransactionRepository;
 import budget.application.model.entity.Transaction;
 import budget.application.model.entity.TransactionItem;
+import budget.application.service.domain.TransactionService;
 import budget.application.service.util.TransactionManager;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -11,9 +12,9 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.UUID;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
 
@@ -21,26 +22,35 @@ import lombok.extern.slf4j.Slf4j;
 public class DailyTxnReconScheduler {
 
   private final DataSource dataSource;
-  private final Timer timer = new Timer("daily-txn-recon", true);
+  private final ScheduledExecutorService executor;
 
-  public DailyTxnReconScheduler(DataSource dataSource) {
+  public DailyTxnReconScheduler(DataSource dataSource, ScheduledExecutorService executor) {
     this.dataSource = dataSource;
+    this.executor = executor;
   }
 
   public void start(LocalTime runAt) {
     log.info("Starting daily txn recon scheduler at [{}]", runAt);
-    long delay = computeInitialDelay(runAt);
-    long period = 24 * 60 * 60 * 1000L;
+    long initialDelayMillis = computeInitialDelayMillis(runAt);
+    long periodMillis = Duration.ofDays(1).toMillis();
 
-    timer.scheduleAtFixedRate(
-        new TimerTask() {
-          @Override
-          public void run() {
-            runReconciliation();
-          }
-        },
-        delay,
-        period);
+    executor.scheduleAtFixedRate(
+        this::runSafe, initialDelayMillis, periodMillis, TimeUnit.MILLISECONDS);
+  }
+
+  private void runSafe() {
+    try {
+      run();
+    } catch (Exception ex) {
+      log.error("DailyTxnReconScheduler failed...", ex);
+    }
+  }
+
+  private void run() throws SQLException {
+    log.info("Running daily transaction reconciliation...");
+    TransactionManager txManager = new TransactionManager(getConnection());
+    TransactionService svc = new TransactionService(txManager);
+    svc.reconcileAll();
   }
 
   private void runReconciliation() {
@@ -89,15 +99,13 @@ public class DailyTxnReconScheduler {
     }
   }
 
-  private long computeInitialDelay(LocalTime runAt) {
+  private long computeInitialDelayMillis(LocalTime runAt) {
     LocalDateTime now = LocalDateTime.now();
     LocalDateTime nextRun =
         now.withHour(runAt.getHour()).withMinute(runAt.getMinute()).withSecond(0).withNano(0);
-
     if (nextRun.isBefore(now)) {
       nextRun = nextRun.plusDays(1);
     }
-
     return Duration.between(now, nextRun).toMillis();
   }
 }

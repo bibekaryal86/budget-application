@@ -6,9 +6,8 @@ package budget.application;
 import budget.application.db.util.DataSourceFactory;
 import budget.application.db.util.DatabaseHealthCheck;
 import budget.application.utilities.Constants;
-import budget.application.utilities.DailyTxnReconScheduler;
+import budget.application.utilities.ScheduleManager;
 import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -26,7 +25,29 @@ public class Main {
 
     var dbHealth = new DatabaseHealthCheck(dataSource).check();
     log.info("{}", dbHealth);
-    new DailyTxnReconScheduler(dataSource).start(LocalTime.of(2, 0));
+
+    ScheduleManager schedulerManager = new ScheduleManager(dataSource);
+    schedulerManager.start();
+
+    Runtime.getRuntime()
+        .addShutdownHook(
+            new Thread(
+                () -> {
+                  log.info("Shutdown initiated...");
+                  try {
+                    schedulerManager.shutdown();
+                  } catch (Exception e) {
+                    log.error("Error shutting down scheduler... ", e);
+                  }
+                  try {
+                    log.info("Stopping Netty server...");
+                    // TODO
+                  } catch (Exception e) {
+                    log.error("Error stopping Netty server... ", e);
+                  }
+                  log.info("Shutdown complete...");
+                },
+                "shutdown-hook"));
 
     log.info("Started Budget Service...");
   }
