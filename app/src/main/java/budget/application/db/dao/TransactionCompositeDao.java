@@ -21,8 +21,8 @@ public class TransactionCompositeDao {
     this.connection = connection;
   }
 
-  public List<TransactionResponseComposite.TransactionComposite> read(TransactionRequestComposite req)
-      throws SQLException {
+  public List<TransactionResponseComposite.TransactionComposite> read(
+      TransactionRequestComposite req) throws SQLException {
 
     String sql =
         """
@@ -91,11 +91,11 @@ public class TransactionCompositeDao {
         if (itemId != null) {
           TransactionResponseComposite.CategoryTypeComposite ct =
               new TransactionResponseComposite.CategoryTypeComposite(
-                      rs.getObject("category_type_id", UUID.class), rs.getString("category_type_name"));
+                  rs.getObject("category_type_id", UUID.class), rs.getString("category_type_name"));
 
           TransactionResponseComposite.CategoryComposite c =
               new TransactionResponseComposite.CategoryComposite(
-                      rs.getObject("category_id", UUID.class), rs.getString("category_name"), ct);
+                  rs.getObject("category_id", UUID.class), rs.getString("category_name"), ct);
 
           TransactionResponseComposite.TransactionItemComposite item =
               new TransactionResponseComposite.TransactionItemComposite(
@@ -118,10 +118,11 @@ public class TransactionCompositeDao {
     private final List<TransactionResponseComposite.TransactionItemComposite> items =
         new ArrayList<>();
 
-      TransactionCompositeBuilder(UUID id, LocalDate txnDate, String merchant, double totalAmount, String notes) {
+    TransactionCompositeBuilder(
+        UUID id, LocalDate txnDate, String merchant, double totalAmount, String notes) {
       this.id = id;
       this.txnDate = txnDate;
-          this.merchant = merchant;
+      this.merchant = merchant;
       this.totalAmount = totalAmount;
       this.notes = notes;
     }
@@ -130,7 +131,7 @@ public class TransactionCompositeDao {
       items.add(item);
     }
 
-      TransactionResponseComposite.TransactionComposite build() {
+    TransactionResponseComposite.TransactionComposite build() {
       return new TransactionResponseComposite.TransactionComposite(
           id, txnDate, merchant, totalAmount, notes, List.copyOf(items));
     }
