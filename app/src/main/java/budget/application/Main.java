@@ -3,12 +3,48 @@
  */
 package budget.application;
 
+import budget.application.db.util.DataSourceFactory;
+import budget.application.utilities.Constants;
+import budget.application.utilities.DailyTxnReconScheduler;
+import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import javax.sql.DataSource;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class Main {
-  public String getGreeting() {
-    return "Hello World!";
-  }
 
   public static void main(String[] args) {
-    System.out.println(new Main().getGreeting());
+    log.info("Starting Budget Service...");
+    Main.start();
+
+    DataSource dataSource = DataSourceFactory.create();
+    new DailyTxnReconScheduler(dataSource).start(LocalTime.of(2, 0));
+
+    log.info("Started Budget Service...");
+  }
+
+  private static void start() {
+    final List<String> envKeyNames = new ArrayList<>(Constants.ENV_KEY_NAMES);
+
+    if (Constants.IS_PRODUCTION) {
+      envKeyNames.addAll(Constants.ENV_KEY_NAMES_PROD);
+    } else {
+      envKeyNames.addAll(Constants.ENV_KEY_NAMES_SANDBOX);
+    }
+
+    final Map<String, String> properties = CommonUtilities.getSystemEnvProperties(envKeyNames);
+    final List<String> requiredEnvProperties =
+        envKeyNames.stream().filter(key -> !Constants.ENV_SERVER_PORT.equals(key)).toList();
+
+    final List<String> errors =
+        requiredEnvProperties.stream().filter(key -> properties.get(key) == null).toList();
+    if (!errors.isEmpty()) {
+      throw new IllegalStateException(
+          "One or more environment configurations could not be accessed...");
+    }
   }
 }

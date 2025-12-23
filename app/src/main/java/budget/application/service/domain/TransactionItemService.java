@@ -11,7 +11,9 @@ import io.github.bibekaryal86.shdsvc.dtos.ResponseMetadata;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class TransactionItemService {
 
   private final TransactionManager tx;
@@ -21,6 +23,7 @@ public class TransactionItemService {
   }
 
   public TransactionItemResponse create(TransactionItemRequest tir) throws SQLException {
+    log.debug("Create transaction item: TransactionItemRequest=[{}]", tir);
     return tx.execute(
         bs -> {
           TransactionItemRepository repo = new TransactionItemRepository(bs);
@@ -42,6 +45,7 @@ public class TransactionItemService {
   }
 
   public TransactionItemResponse read(List<UUID> ids) throws SQLException {
+    log.debug("Read transaction items: ids=[{}]", ids);
     return tx.execute(
         bs -> {
           TransactionItemRepository repo = new TransactionItemRepository(bs);
@@ -51,6 +55,7 @@ public class TransactionItemService {
   }
 
   public TransactionItemResponse update(UUID id, TransactionItemRequest tir) throws SQLException {
+    log.debug("Update transaction item: id=[{}], TransactionItemRequest=[{}]", id, tir);
     return tx.execute(
         bs -> {
           TransactionItemRepository repo = new TransactionItemRepository(bs);
@@ -71,6 +76,7 @@ public class TransactionItemService {
   }
 
   public TransactionItemResponse delete(List<UUID> ids) throws SQLException {
+    log.info("Delete transaction items: ids=[{}]", ids);
     return tx.execute(
         bs -> {
           TransactionItemRepository repo = new TransactionItemRepository(bs);

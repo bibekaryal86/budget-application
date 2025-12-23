@@ -35,12 +35,12 @@ public class TransactionItemDao extends BaseDao<TransactionItem> {
 
   @Override
   protected List<String> updateColumns() {
-    return List.of("transaction_id", "category_id", "label", "amount");
+    return List.of("category_id", "label", "amount");
   }
 
   @Override
   protected List<Object> updateValues(TransactionItem ti) {
-    return List.of(ti.transactionId(), ti.categoryId(), ti.label(), ti.amount());
+    return List.of(ti.categoryId(), ti.label(), ti.amount());
   }
 
   @Override

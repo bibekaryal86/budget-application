@@ -19,7 +19,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class TransactionService {
 
   private final TransactionManager tx;
@@ -29,6 +31,7 @@ public class TransactionService {
   }
 
   public TransactionResponse create(TransactionRequest tr) throws SQLException {
+    log.debug("Create transaction: TransactionRequest=[{}]", tr);
     return tx.execute(
         bs -> {
           TransactionRepository txnRepo = new TransactionRepository(bs);
@@ -45,6 +48,7 @@ public class TransactionService {
                   .build();
 
           Transaction txnOut = txnRepo.create(txnIn);
+          log.debug("Created transaction: Transaction=[{}]", txnOut);
 
           List<TransactionItem> txnItemsIn =
               tr.items().stream()
@@ -58,6 +62,8 @@ public class TransactionService {
                               .build())
                   .toList();
           List<TransactionItem> txnItemsOut = itemRepo.createItems(txnItemsIn);
+          log.debug("Created transaction items: TransactionItems=[{}]", txnItemsOut);
+
           return new TransactionResponse(
               List.of(new TransactionWithItems(txnOut, txnItemsOut)),
               ResponseMetadataUtils.defaultInsertResponseMetadata());
@@ -65,17 +71,18 @@ public class TransactionService {
   }
 
   public TransactionResponse read(List<UUID> ids) throws SQLException {
+    log.debug("Read transactions: ids=[{}]", ids);
     return tx.execute(
         bs -> {
           TransactionRepository txnRepo = new TransactionRepository(bs);
           TransactionItemRepository itemRepo = new TransactionItemRepository(bs);
-          List<Transaction> txnsIn = txnRepo.read(ids);
-          List<UUID> txnIds = txnsIn.stream().map(Transaction::id).toList();
+          List<Transaction> txns = txnRepo.read(ids);
+          List<UUID> txnIds = txns.stream().map(Transaction::id).toList();
           List<TransactionItem> items = itemRepo.readByTransactionIds(txnIds);
           Map<UUID, List<TransactionItem>> txnItemsMap =
               items.stream().collect(Collectors.groupingBy(TransactionItem::transactionId));
           List<TransactionWithItems> txnWithItems =
-              txnsIn.stream()
+              txns.stream()
                   .map(
                       txn ->
                           new TransactionWithItems(
@@ -86,6 +93,7 @@ public class TransactionService {
   }
 
   public TransactionResponse update(UUID id, TransactionRequest tr) throws SQLException {
+    log.debug("Update transaction: id=[{}], TransactionRequest=[{}]", id, tr);
     return tx.execute(
         bs -> {
           TransactionRepository txnRepo = new TransactionRepository(bs);
@@ -105,12 +113,17 @@ public class TransactionService {
 
           // Update transaction
           Transaction txnOut = txnRepo.update(txnIn);
-          List<TransactionItem> txnItemsOut = new ArrayList<>();
+          log.debug("Updated transaction: Transaction=[{}]", txnOut);
 
+          List<TransactionItem> txnItemsOut = new ArrayList<>();
           if (CommonUtilities.isEmpty(tr.items())) {
             txnItemsOut = itemRepo.readByTransactionIds(List.of(id));
           } else {
-            itemRepo.deleteByTransactionIds(List.of(id));
+            int deleteCount = itemRepo.deleteByTransactionIds(List.of(id));
+            log.debug(
+                "Deleted transaction items for transaction: txnId=[{}], deleteCount=[{}]",
+                id,
+                deleteCount);
 
             List<TransactionItem> txnItemsIn =
                 tr.items().stream()
@@ -124,6 +137,7 @@ public class TransactionService {
                                 .build())
                     .toList();
             txnItemsOut = itemRepo.createItems(txnItemsIn);
+            log.debug("Recreated transaction items: TransactionItems=[{}]", txnItemsOut);
           }
 
           return new TransactionResponse(
@@ -133,12 +147,19 @@ public class TransactionService {
   }
 
   public TransactionResponse delete(List<UUID> ids) throws SQLException {
+    log.info("Delete transactions: ids=[{}]", ids);
     return tx.execute(
         bs -> {
           TransactionRepository txnRepo = new TransactionRepository(bs);
           TransactionItemRepository itemRepo = new TransactionItemRepository(bs);
-          itemRepo.deleteByTransactionIds(ids);
+          int deleteCountTxnItems = itemRepo.deleteByTransactionIds(ids);
+          log.info(
+              "Deleted transaction items for transactions: ids=[{}], deleteCount=[{}]",
+              ids,
+              deleteCountTxnItems);
+
           int deleteCount = txnRepo.delete(ids);
+          log.info("Deleted transactions: ids=[{}], deleteCount=[{}]", ids, deleteCount);
           return new TransactionResponse(
               List.of(), ResponseMetadataUtils.defaultDeleteResponseMetadata(deleteCount));
         });

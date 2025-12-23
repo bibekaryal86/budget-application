@@ -39,6 +39,7 @@ dependencies {
 
     implementation 'org.slf4j:slf4j-api:2.0.17'
     implementation 'ch.qos.logback:logback-classic:1.5.22'
+    implementation 'com.zaxxer:HikariCP:7.0.2'
 
     runtimeOnly 'org.postgresql:postgresql:42.7.8'
 }

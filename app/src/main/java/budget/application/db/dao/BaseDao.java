@@ -52,7 +52,7 @@ public abstract class BaseDao<T> {
     return entity;
   }
 
-  // 2) READ (readAll or readByIds)
+  // 2) READ
   public List<T> read(List<UUID> ids) throws SQLException {
     if (ids == null || ids.isEmpty()) {
       return readAll();

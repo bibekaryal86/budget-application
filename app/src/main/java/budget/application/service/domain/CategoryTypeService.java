@@ -11,7 +11,9 @@ import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class CategoryTypeService {
 
   private final TransactionManager tx;
@@ -21,6 +23,7 @@ public class CategoryTypeService {
   }
 
   public CategoryTypeResponse create(CategoryTypeRequest ctr) throws SQLException {
+    log.debug("Create category type: CategoryTypeRequest=[{}]", ctr);
     return tx.execute(
         bs -> {
           CategoryTypeRepository repo = new CategoryTypeRepository(bs);
@@ -33,6 +36,7 @@ public class CategoryTypeService {
   }
 
   public CategoryTypeResponse read(List<UUID> ids) throws SQLException {
+    log.debug("Read category types: ids=[{}]", ids);
     return tx.execute(
         bs -> {
           CategoryTypeRepository repo = new CategoryTypeRepository(bs);
@@ -42,6 +46,7 @@ public class CategoryTypeService {
   }
 
   public CategoryTypeResponse update(UUID id, CategoryTypeRequest ctr) throws SQLException {
+    log.debug("Update category type: id=[{}], CategoryTypeRequest=[{}]", id, ctr);
     return tx.execute(
         bs -> {
           CategoryTypeRepository repo = new CategoryTypeRepository(bs);
@@ -54,6 +59,7 @@ public class CategoryTypeService {
   }
 
   public CategoryTypeResponse delete(List<UUID> ids) throws SQLException {
+    log.info("Delete category types: ids=[{}]", ids);
     return tx.execute(
         bs -> {
           CategoryTypeRepository repo = new CategoryTypeRepository(bs);
