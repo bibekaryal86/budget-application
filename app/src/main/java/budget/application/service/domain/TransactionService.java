@@ -3,7 +3,9 @@ package budget.application.service.domain;
 import budget.application.db.repository.CategoryRepository;
 import budget.application.db.repository.TransactionItemRepository;
 import budget.application.db.repository.TransactionRepository;
+import budget.application.model.dto.composite.PaginationResponse;
 import budget.application.model.dto.composite.TransactionWithItems;
+import budget.application.model.dto.request.PaginationRequest;
 import budget.application.model.dto.request.TransactionItemRequest;
 import budget.application.model.dto.request.TransactionRequest;
 import budget.application.model.dto.response.TransactionResponse;
@@ -171,18 +173,31 @@ public class TransactionService {
           TransactionRepository txnRepo = new TransactionRepository(bs);
           TransactionItemRepository itemRepo = new TransactionItemRepository(bs);
           // Read all transactions
-          List<Transaction> allTxns = txnRepo.read(List.of());
-          for (Transaction txn : allTxns) {
-            UUID txnId = txn.id();
-            List<TransactionItem> items = itemRepo.readByTransactionIds(List.of(txnId));
-            double sum = items.stream().mapToDouble(TransactionItem::amount).sum();
-            if (Double.compare(sum, txn.totalAmount()) != 0) {
-              log.info(
-                  "[Reconciliation] MISMATCH for txn {} | total={} | sum(items)={}",
-                  txnId,
-                  txn.totalAmount(),
-                  sum);
+          int pageNumber = 1;
+          int pageSize = 1000;
+
+          while (true) {
+            PaginationRequest pageReq = new PaginationRequest(pageNumber, pageSize);
+            PaginationResponse<Transaction> pagedTxns = txnRepo.readAll(pageReq);
+
+            List<Transaction> txns = pagedTxns.items();
+            if (txns.isEmpty()) {
+              break;
             }
+
+            for (Transaction txn : txns) {
+              UUID txnId = txn.id();
+              List<TransactionItem> items = itemRepo.readByTransactionIds(List.of(txnId));
+              double sum = items.stream().mapToDouble(TransactionItem::amount).sum();
+              if (Double.compare(sum, txn.totalAmount()) != 0) {
+                log.info(
+                    "MISMATCH for txn=[{}] | total=[{}] | sum(items)=[{}]",
+                    txnId,
+                    txn.totalAmount(),
+                    sum);
+              }
+            }
+            pageNumber++;
           }
         });
   }

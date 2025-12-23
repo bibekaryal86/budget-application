@@ -25,8 +25,9 @@ public class ScheduleManager {
   }
 
   public void start() {
-    dailyTxnReconScheduler.start(LocalTime.of(2, 0));
-    log.info("DailyTxnReconScheduler scheduled for 2:00 AM");
+    LocalTime startTime = LocalTime.of(2, 0);
+    dailyTxnReconScheduler.start(startTime);
+    log.info("DailyTxnReconScheduler scheduled for [{}]", startTime);
   }
 
   public void shutdown() {

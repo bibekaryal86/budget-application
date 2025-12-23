@@ -1,6 +1,8 @@
 package budget.application.db.repository;
 
 import budget.application.db.dao.TransactionDao;
+import budget.application.model.dto.composite.PaginationResponse;
+import budget.application.model.dto.request.PaginationRequest;
 import budget.application.model.entity.Transaction;
 import java.sql.SQLException;
 import java.util.List;
@@ -20,6 +22,10 @@ public class TransactionRepository {
 
   public List<Transaction> read(List<UUID> ids) throws SQLException {
     return txnDao.read(ids);
+  }
+
+  public PaginationResponse<Transaction> readAll(PaginationRequest pr) throws SQLException {
+    return txnDao.readAll(pr);
   }
 
   public Transaction update(Transaction t) throws SQLException {

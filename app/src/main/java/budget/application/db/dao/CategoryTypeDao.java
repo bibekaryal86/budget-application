@@ -43,8 +43,8 @@ public class CategoryTypeDao extends BaseDao<CategoryType> {
     return ct.id();
   }
 
-    @Override
-    protected String orderByClause() {
-        return "name ASC";
-    }
+  @Override
+  protected String orderByClause() {
+    return "name ASC";
+  }
 }
