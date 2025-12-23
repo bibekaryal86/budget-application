@@ -4,6 +4,7 @@
 package budget.application;
 
 import budget.application.db.util.DataSourceFactory;
+import budget.application.db.util.DatabaseHealthCheck;
 import budget.application.utilities.Constants;
 import budget.application.utilities.DailyTxnReconScheduler;
 import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
@@ -19,15 +20,18 @@ public class Main {
 
   public static void main(String[] args) {
     log.info("Starting Budget Service...");
-    Main.start();
+    Main.checkEnvProperties();
 
     DataSource dataSource = DataSourceFactory.create();
+
+    var dbHealth = new DatabaseHealthCheck(dataSource).check();
+    log.info("{}", dbHealth);
     new DailyTxnReconScheduler(dataSource).start(LocalTime.of(2, 0));
 
     log.info("Started Budget Service...");
   }
 
-  private static void start() {
+  private static void checkEnvProperties() {
     final List<String> envKeyNames = new ArrayList<>(Constants.ENV_KEY_NAMES);
 
     if (Constants.IS_PRODUCTION) {

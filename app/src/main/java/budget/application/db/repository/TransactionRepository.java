@@ -42,7 +42,7 @@ public class TransactionRepository {
   }
 
   public List<TransactionItem> readItems(UUID txnId) throws SQLException {
-    return itemDao.readByTransactionId(txnId);
+    return itemDao.readByTransactionIds(List.of(txnId));
   }
 
   public int deleteItems(List<UUID> ids) throws SQLException {
