@@ -48,7 +48,12 @@ public class TransactionItemDao extends BaseDao<TransactionItem> {
     return ti.id();
   }
 
-  // --- Custom ---
+    @Override
+    protected String orderByClause() {
+        return "transaction_id ASC";
+    }
+
+    // --- Custom ---
   public List<TransactionItem> readByTransactionIds(List<UUID> txnIds) throws SQLException {
     if (CommonUtilities.isEmpty(txnIds)) {
       return List.of();

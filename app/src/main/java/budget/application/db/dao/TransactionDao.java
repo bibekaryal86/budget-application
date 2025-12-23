@@ -42,4 +42,9 @@ public class TransactionDao extends BaseDao<Transaction> {
   protected UUID getId(Transaction t) {
     return t.id();
   }
+
+    @Override
+    protected String orderByClause() {
+        return "txn_date DESC";
+    }
 }

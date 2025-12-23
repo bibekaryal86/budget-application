@@ -34,6 +34,8 @@ public abstract class BaseDao<T> {
 
   protected abstract UUID getId(T entity);
 
+  protected abstract String orderByClause();
+
   // ---- GENERIC CRUD ----
 
   // 1) CREATE
@@ -62,7 +64,7 @@ public abstract class BaseDao<T> {
   }
 
   private List<T> readAll() throws SQLException {
-    String sql = "SELECT * FROM " + tableName();
+    String sql = "SELECT * FROM " + tableName() + " ORDER BY " + orderByClause();
 
     try (PreparedStatement stmt = connection.prepareStatement(sql);
         ResultSet rs = stmt.executeQuery()) {

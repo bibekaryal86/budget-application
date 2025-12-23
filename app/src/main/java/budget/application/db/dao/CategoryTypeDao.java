@@ -42,4 +42,9 @@ public class CategoryTypeDao extends BaseDao<CategoryType> {
   protected UUID getId(CategoryType ct) {
     return ct.id();
   }
+
+    @Override
+    protected String orderByClause() {
+        return "name ASC";
+    }
 }
