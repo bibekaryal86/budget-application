@@ -1,6 +1,5 @@
 package budget.application.server.utils;
 
-import budget.application.service.util.JsonUtils;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseMetadata;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseWithMetadata;
 import io.netty.buffer.Unpooled;
@@ -19,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class ServerUtils {
+  private ServerUtils() {}
 
   public static void sendResponse(
       ChannelHandlerContext ctx, HttpResponseStatus status, Object body) {

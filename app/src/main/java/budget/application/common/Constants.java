@@ -1,4 +1,4 @@
-package budget.application.utilities;
+package budget.application.common;
 
 import io.github.bibekaryal86.shdsvc.dtos.AuthToken;
 import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Objects;
 
 public class Constants {
+  private Constants() {}
 
   public static final boolean IS_PRODUCTION;
 

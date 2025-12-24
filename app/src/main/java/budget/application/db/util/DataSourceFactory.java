@@ -1,6 +1,6 @@
 package budget.application.db.util;
 
-import budget.application.utilities.Constants;
+import budget.application.common.Constants;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;

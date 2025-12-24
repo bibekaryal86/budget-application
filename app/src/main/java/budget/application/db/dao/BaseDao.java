@@ -3,8 +3,6 @@ package budget.application.db.dao;
 import budget.application.db.mapper.RowMapper;
 import budget.application.db.util.DaoUtils;
 import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
-import lombok.extern.slf4j.Slf4j;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -12,6 +10,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public abstract class BaseDao<T> {
@@ -20,7 +19,8 @@ public abstract class BaseDao<T> {
   protected final RowMapper<T> mapper;
   protected final String requestId;
 
-  protected BaseDao(final String requestId, final Connection connection, final RowMapper<T> mapper) {
+  protected BaseDao(
+      final String requestId, final Connection connection, final RowMapper<T> mapper) {
     this.connection = connection;
     this.mapper = mapper;
     this.requestId = requestId;
@@ -46,7 +46,12 @@ public abstract class BaseDao<T> {
 
   // 1) CREATE
   public T create(T entity) throws SQLException {
-      log.debug("[{}] Creating [{}] with InsertColumns=[{}], InsertValues=[{}]", requestId, tableName(), insertColumns(), insertValues(entity));
+    log.debug(
+        "[{}] Creating [{}] with InsertColumns=[{}], InsertValues=[{}]",
+        requestId,
+        tableName(),
+        insertColumns(),
+        insertValues(entity));
     String cols = String.join(", ", insertColumns());
     String placeholders = DaoUtils.placeholders(insertColumns().size());
 
@@ -64,7 +69,11 @@ public abstract class BaseDao<T> {
 
   // 2) READ
   public List<T> read(List<UUID> ids) throws SQLException {
-      log.debug("[{}] Reading [{}] with Ids=[{}]", requestId, tableName(), CommonUtilities.isEmpty(ids) ? "ALL" : ids.toString());
+    log.debug(
+        "[{}] Reading [{}] with Ids=[{}]",
+        requestId,
+        tableName(),
+        CommonUtilities.isEmpty(ids) ? "ALL" : ids.toString());
     if (CommonUtilities.isEmpty(ids)) {
       return readAll();
     } else {
@@ -75,7 +84,7 @@ public abstract class BaseDao<T> {
   private List<T> readAll() throws SQLException {
     String sql = "SELECT * FROM " + tableName() + " ORDER BY " + orderByClause();
 
-      log.debug("[{}] Read All SQL=[{}] ", requestId, sql);
+    log.debug("[{}] Read All SQL=[{}] ", requestId, sql);
     try (PreparedStatement stmt = connection.prepareStatement(sql);
         ResultSet rs = stmt.executeQuery()) {
 
@@ -89,7 +98,7 @@ public abstract class BaseDao<T> {
     String sql =
         "SELECT * FROM " + tableName() + " WHERE id IN (" + DaoUtils.placeholders(ids.size()) + ")";
 
-      log.debug("[{}] Read By Ids SQL=[{}] ", requestId, sql);
+    log.debug("[{}] Read By Ids SQL=[{}] ", requestId, sql);
     try (PreparedStatement stmt = connection.prepareStatement(sql)) {
       DaoUtils.bindParams(stmt, ids);
 
@@ -106,11 +115,16 @@ public abstract class BaseDao<T> {
     List<String> cols = updateColumns();
     List<Object> values = updateValues(entity);
 
-      log.debug("[{}] Updating [{}] with UpdateColumns=[{}], UpdateValues=[{}]", requestId, tableName(), cols, values);
+    log.debug(
+        "[{}] Updating [{}] with UpdateColumns=[{}], UpdateValues=[{}]",
+        requestId,
+        tableName(),
+        cols,
+        values);
     String setClause = String.join(", ", cols.stream().map(c -> c + " = ?").toList());
 
     String sql = "UPDATE " + tableName() + " SET " + setClause + " WHERE id = ? RETURNING *";
-      log.debug("[{}] Update SQL=[{}]", requestId, sql);
+    log.debug("[{}] Update SQL=[{}]", requestId, sql);
     try (PreparedStatement stmt = connection.prepareStatement(sql)) {
       DaoUtils.bindParams(stmt, values);
       stmt.setObject(values.size() + 1, getId(entity));
@@ -122,11 +136,11 @@ public abstract class BaseDao<T> {
 
   // 4) DELETE
   public int delete(List<UUID> ids) throws SQLException {
+    log.debug("[{}] Deleting [{}] with Ids=[{}]", requestId, tableName(), ids);
     if (ids == null || ids.isEmpty()) return 0;
-// TODO add logs
     String sql =
         "DELETE FROM " + tableName() + " WHERE id IN (" + DaoUtils.placeholders(ids.size()) + ")";
-
+    log.debug("[{}] Delete SQL=[{}]", requestId, sql);
     try (PreparedStatement stmt = connection.prepareStatement(sql)) {
       DaoUtils.bindParams(stmt, ids);
       return stmt.executeUpdate();

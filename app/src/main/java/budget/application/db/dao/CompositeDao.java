@@ -12,18 +12,23 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class CompositeDao {
 
   private final Connection connection;
+  private final String requestId;
 
-  public CompositeDao(Connection connection) {
+  public CompositeDao(String requestId, Connection connection) {
     this.connection = connection;
+    this.requestId = requestId;
   }
 
-  public List<CompositeResponse.TransactionComposite> read(CompositeRequest cr)
+  public List<CompositeResponse.TransactionComposite> compositeTransactions(CompositeRequest cr)
       throws SQLException {
-    CompositeRequest.TransactionRequest req = cr.transactionRequest();
+    log.debug("[{}] Composite Transactions Request=[{}]", requestId, cr);
+    CompositeRequest.TransactionRequest crtr = cr.transactionRequest();
 
     String sql =
         """
@@ -65,13 +70,14 @@ public class CompositeDao {
 
             ORDER BY t.txn_date DESC, t.id, ti.id
             """;
+    log.debug("[{}] Composite Transactions SQL=[{}]", requestId, sql);
 
     PreparedStatement stmt = connection.prepareStatement(sql);
-    stmt.setObject(1, req.merchant());
-    stmt.setObject(2, req.categoryId());
-    stmt.setObject(3, req.categoryTypeId());
-    stmt.setObject(4, req.beginDate());
-    stmt.setObject(5, req.endDate());
+    stmt.setObject(1, crtr.merchant());
+    stmt.setObject(2, crtr.categoryId());
+    stmt.setObject(3, crtr.categoryTypeId());
+    stmt.setObject(4, crtr.beginDate());
+    stmt.setObject(5, crtr.endDate());
 
     Map<UUID, TransactionCompositeBuilder> txnMap = new LinkedHashMap<>();
 

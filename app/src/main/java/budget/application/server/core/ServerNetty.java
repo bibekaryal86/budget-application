@@ -1,8 +1,8 @@
 package budget.application.server.core;
 
+import budget.application.common.Constants;
 import budget.application.server.handlers.ExceptionHandler;
 import budget.application.server.handlers.NotFoundHandler;
-import budget.application.utilities.Constants;
 import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;

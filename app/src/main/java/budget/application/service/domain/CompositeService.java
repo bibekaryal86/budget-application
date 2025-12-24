@@ -26,9 +26,9 @@ public class CompositeService {
     log.debug("[{}] Composite transactions: CompositeRequest=[{}]", requestId, cr);
     return tx.execute(
         bs -> {
-          CompositeRepository repo = new CompositeRepository(bs);
+          CompositeRepository repo = new CompositeRepository(requestId, bs);
           List<CompositeResponse.TransactionComposite> data =
-              repo.read(normalizeCompositeTransactionRequest(cr));
+              repo.readCompositeTransactions(normalizeCompositeTransactionRequest(cr));
           return new CompositeResponse(data, ResponseMetadata.emptyResponseMetadata());
         });
   }
@@ -40,18 +40,18 @@ public class CompositeService {
     LocalDate monthStart = currentMonth.atDay(1);
     LocalDate monthEnd = currentMonth.atEndOfMonth();
 
-    CompositeRequest.TransactionRequest tr = cr.transactionRequest();
+    CompositeRequest.TransactionRequest crtr = cr.transactionRequest();
 
-    if (tr == null) {
+    if (crtr == null) {
       return new CompositeRequest(
           new CompositeRequest.TransactionRequest(monthStart, monthEnd, null, null, null));
     }
 
-    LocalDate beginDate = tr.beginDate() != null ? tr.beginDate() : monthStart;
-    LocalDate endDate = tr.endDate() != null ? tr.endDate() : monthEnd;
+    LocalDate beginDate = crtr.beginDate() != null ? crtr.beginDate() : monthStart;
+    LocalDate endDate = crtr.endDate() != null ? crtr.endDate() : monthEnd;
 
     return new CompositeRequest(
         new CompositeRequest.TransactionRequest(
-            beginDate, endDate, tr.merchant(), tr.categoryId(), tr.categoryTypeId()));
+            beginDate, endDate, crtr.merchant(), crtr.categoryId(), crtr.categoryTypeId()));
   }
 }

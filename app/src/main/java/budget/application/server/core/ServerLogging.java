@@ -1,6 +1,6 @@
 package budget.application.server.core;
 
-import budget.application.utilities.Constants;
+import budget.application.common.Constants;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;

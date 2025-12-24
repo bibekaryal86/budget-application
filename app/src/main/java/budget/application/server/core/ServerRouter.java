@@ -1,12 +1,13 @@
 package budget.application.server.core;
 
+import budget.application.common.Constants;
 import budget.application.server.handlers.AppTestsHandler;
 import budget.application.server.handlers.CategoryHandler;
 import budget.application.server.handlers.CategoryTypeHandler;
 import budget.application.server.handlers.CompositeHandler;
 import budget.application.server.handlers.TransactionHandler;
 import budget.application.server.handlers.TransactionItemHandler;
-import budget.application.utilities.Constants;
+import budget.application.server.utils.ApiPaths;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.FullHttpRequest;
@@ -36,39 +37,39 @@ public class ServerRouter extends SimpleChannelInboundHandler<FullHttpRequest> {
     final String requestId = ctx.channel().attr(Constants.REQUEST_ID).get();
     String path = req.uri();
 
-    if (path.startsWith("/petssvc/tests/")) {
+    if (path.startsWith(ApiPaths.APP_TESTS)) {
       log.info("[{}] Routing to AppTestsHandler: [{}]", requestId, path);
       appTestsHandler.channelRead(ctx, req.retain());
       return;
     }
 
-    if (path.startsWith("/petssvc/api/v1/category-types")) {
-      log.info("[{}] Routing to CategoryTypeHandler: [{}]", requestId, path);
-      categoryTypeHandler.channelRead(ctx, req.retain());
-      return;
-    }
-
-    if (path.startsWith("/petssvc/api/v1/categories")) {
+    if (path.startsWith(ApiPaths.CATEGORIES_V1)) {
       log.info("[{}] Routing to CategoryHandler: [{}]", requestId, path);
       categoryHandler.channelRead(ctx, req.retain());
       return;
     }
 
-    if (path.startsWith("/petssvc/api/v1/transaction-items")) {
-      log.info("[{}] Routing to TransactionItemHandler: [{}]", requestId, path);
-      transactionItemHandler.channelRead(ctx, req.retain());
+    if (path.startsWith(ApiPaths.CATEGORY_TYPES_V1)) {
+      log.info("[{}] Routing to CategoryTypeHandler: [{}]", requestId, path);
+      categoryTypeHandler.channelRead(ctx, req.retain());
       return;
     }
 
-    if (path.startsWith("/petssvc/api/v1/transactions")) {
+    if (path.startsWith(ApiPaths.COMPOSITES_V1)) {
+      log.info("[{}] Routing to CompositeHandler: [{}]", requestId, path);
+      compositeHandler.channelRead(ctx, req.retain());
+      return;
+    }
+
+    if (path.startsWith(ApiPaths.TRANSACTIONS_V1)) {
       log.info("[{}] Routing to TransactionHandler: [{}]", requestId, path);
       transactionHandler.channelRead(ctx, req.retain());
       return;
     }
 
-    if (path.startsWith("/petssvc/api/v1/composites")) {
-      log.info("[{}] Routing to CompositeHandler: [{}]", requestId, path);
-      compositeHandler.channelRead(ctx, req.retain());
+    if (path.startsWith(ApiPaths.TRANSACTION_ITEMS_V1)) {
+      log.info("[{}] Routing to TransactionItemHandler: [{}]", requestId, path);
+      transactionItemHandler.channelRead(ctx, req.retain());
       return;
     }
 

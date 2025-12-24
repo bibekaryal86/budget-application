@@ -1,4 +1,4 @@
-package budget.application.utilities;
+package budget.application.scheduler;
 
 import budget.application.service.domain.TransactionService;
 import java.sql.SQLException;

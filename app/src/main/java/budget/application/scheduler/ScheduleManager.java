@@ -1,4 +1,4 @@
-package budget.application.utilities;
+package budget.application.scheduler;
 
 import java.time.LocalTime;
 import java.util.concurrent.Executors;

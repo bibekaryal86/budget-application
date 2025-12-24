@@ -1,10 +1,11 @@
 package budget.application.server.handlers;
 
+import budget.application.common.Constants;
 import budget.application.model.dto.request.TransactionItemRequest;
 import budget.application.model.dto.response.TransactionItemResponse;
+import budget.application.server.utils.ApiPaths;
 import budget.application.server.utils.ServerUtils;
 import budget.application.service.domain.TransactionItemService;
-import budget.application.utilities.Constants;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.FullHttpRequest;
@@ -18,8 +19,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class TransactionItemHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
 
-  private static final String PREFIX = "/petssvc/api/v1/transaction-items";
-
   private final TransactionItemService service;
 
   public TransactionItemHandler(DataSource dataSource) {
@@ -32,41 +31,41 @@ public class TransactionItemHandler extends SimpleChannelInboundHandler<FullHttp
     String path = req.uri();
     HttpMethod method = req.method();
 
-    if (!path.startsWith(PREFIX)) {
+    if (!path.startsWith(ApiPaths.TRANSACTION_ITEMS_V1)) {
       ctx.fireChannelRead(req.retain());
       return;
     }
     log.info("[{}] Request: Method=[{}] Path=[{}]", requestId, method, path);
 
-    // CREATE: POST /petssvc/api/v1/category-types
-    if (path.equals(PREFIX) && method.equals(HttpMethod.POST)) {
+    // CREATE: POST /petssvc/api/v1/transaction-items
+    if (path.equals(ApiPaths.TRANSACTION_ITEMS_V1) && method.equals(HttpMethod.POST)) {
       handleCreate(requestId, ctx, req);
       return;
     }
 
-    // READ ALL: GET /petssvc/api/v1/category-types
-    if (path.equals(PREFIX) && method.equals(HttpMethod.GET)) {
+    // READ ALL: GET /petssvc/api/v1/transaction-items
+    if (path.equals(ApiPaths.TRANSACTION_ITEMS_V1) && method.equals(HttpMethod.GET)) {
       handleReadAll(requestId, ctx);
       return;
     }
 
-    // READ ONE: GET /petssvc/api/v1/category-types/{id}
-    if (path.startsWith(PREFIX + "/") && method.equals(HttpMethod.GET)) {
-      String id = path.substring((PREFIX + "/").length());
+    // READ ONE: GET /petssvc/api/v1/transaction-items/{id}
+    if (path.startsWith(ApiPaths.TRANSACTION_ITEMS_V1_WITH_ID) && method.equals(HttpMethod.GET)) {
+      String id = path.substring((ApiPaths.TRANSACTION_ITEMS_V1_WITH_ID).length());
       handleReadOne(requestId, ctx, ServerUtils.getId(id));
       return;
     }
 
-    // UPDATE: PUT /petssvc/api/v1/category-types/{id}
-    if (path.startsWith(PREFIX + "/") && method.equals(HttpMethod.PUT)) {
-      String id = path.substring((PREFIX + "/").length());
+    // UPDATE: PUT /petssvc/api/v1/transaction-items/{id}
+    if (path.startsWith(ApiPaths.TRANSACTION_ITEMS_V1_WITH_ID) && method.equals(HttpMethod.PUT)) {
+      String id = path.substring((ApiPaths.TRANSACTION_ITEMS_V1_WITH_ID).length());
       handleUpdate(requestId, ctx, req, ServerUtils.getId(id));
       return;
     }
 
-    // DELETE: DELETE /petssvc/api/v1/category-types/{id}
-    if (path.startsWith(PREFIX + "/") && method.equals(HttpMethod.DELETE)) {
-      String id = path.substring((PREFIX + "/").length());
+    // DELETE: DELETE /petssvc/api/v1/transaction-items/{id}
+    if (path.startsWith(ApiPaths.TRANSACTION_ITEMS_V1_WITH_ID) && method.equals(HttpMethod.DELETE)) {
+      String id = path.substring((ApiPaths.TRANSACTION_ITEMS_V1_WITH_ID).length());
       handleDelete(requestId, ctx, ServerUtils.getId(id));
       return;
     }

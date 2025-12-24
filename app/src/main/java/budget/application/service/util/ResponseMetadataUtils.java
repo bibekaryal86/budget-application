@@ -4,6 +4,7 @@ import io.github.bibekaryal86.shdsvc.dtos.ResponseMetadata;
 import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 
 public class ResponseMetadataUtils {
+  private ResponseMetadataUtils() {}
 
   public static ResponseMetadata defaultInsertResponseMetadata() {
     return new ResponseMetadata(

@@ -10,12 +10,12 @@ public class CompositeRepository {
 
   private final CompositeDao dao;
 
-  public CompositeRepository(BaseRepository bs) {
-    this.dao = new CompositeDao(bs.connection());
+  public CompositeRepository(String requestId, BaseRepository bs) {
+    this.dao = new CompositeDao(requestId, bs.connection());
   }
 
-  public List<CompositeResponse.TransactionComposite> read(CompositeRequest req)
+  public List<CompositeResponse.TransactionComposite> readCompositeTransactions(CompositeRequest cr)
       throws SQLException {
-    return dao.read(req);
+    return dao.compositeTransactions(cr);
   }
 }

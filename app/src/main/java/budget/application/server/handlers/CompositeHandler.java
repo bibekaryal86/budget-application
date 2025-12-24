@@ -1,10 +1,11 @@
 package budget.application.server.handlers;
 
+import budget.application.common.Constants;
 import budget.application.model.dto.request.CompositeRequest;
 import budget.application.model.dto.response.CompositeResponse;
+import budget.application.server.utils.ApiPaths;
 import budget.application.server.utils.ServerUtils;
 import budget.application.service.domain.CompositeService;
-import budget.application.utilities.Constants;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.FullHttpRequest;
@@ -15,8 +16,6 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class CompositeHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
-
-  private static final String PREFIX = "/petssvc/api/v1/composites";
 
   private final CompositeService service;
 
@@ -30,15 +29,15 @@ public class CompositeHandler extends SimpleChannelInboundHandler<FullHttpReques
     String path = req.uri();
     HttpMethod method = req.method();
 
-    if (!path.startsWith(PREFIX)) {
+    if (!path.startsWith(ApiPaths.COMPOSITES_V1)) {
       ctx.fireChannelRead(req.retain());
       return;
     }
     log.info("[{}] Request: Method=[{}] Path=[{}]", requestId, method, path);
 
     // Transactions: POST /petssvc/api/v1/composites/transactions
-    if (path.equals(PREFIX + "transactions") && method.equals(HttpMethod.POST)) {
-      handleCreate(requestId, ctx, req);
+    if (path.equals(ApiPaths.COMPOSITE_V1_TRANSACTIONS) && method.equals(HttpMethod.POST)) {
+      handleCompositeTransactions(requestId, ctx, req);
       return;
     }
 
@@ -47,7 +46,7 @@ public class CompositeHandler extends SimpleChannelInboundHandler<FullHttpReques
   }
 
   // CREATE
-  private void handleCreate(String requestId, ChannelHandlerContext ctx, FullHttpRequest req)
+  private void handleCompositeTransactions(String requestId, ChannelHandlerContext ctx, FullHttpRequest req)
       throws Exception {
     CompositeRequest request = ServerUtils.getRequestBody(req, CompositeRequest.class);
     CompositeResponse response = service.compositeTransactions(requestId, request);
