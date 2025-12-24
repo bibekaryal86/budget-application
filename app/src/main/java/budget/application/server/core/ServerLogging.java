@@ -12,8 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 public class ServerLogging extends ChannelDuplexHandler {
 
   @Override
-  public void channelRead(final ChannelHandlerContext channelHandlerContext, final Object object)
-      throws Exception {
+  public void channelRead(final ChannelHandlerContext ctx, final Object object) throws Exception {
     if (object instanceof FullHttpRequest fullHttpRequest) {
       final String requestId = UUID.randomUUID().toString();
 
@@ -29,16 +28,14 @@ public class ServerLogging extends ChannelDuplexHandler {
           requestContentLength);
 
       // set requestId in channel handler context for later use
-      channelHandlerContext.channel().attr(Constants.REQUEST_ID).set(requestId);
+      ctx.channel().attr(Constants.REQUEST_ID).set(requestId);
     }
-    super.channelRead(channelHandlerContext, object);
+    super.channelRead(ctx, object);
   }
 
   @Override
   public void write(
-      final ChannelHandlerContext channelHandlerContext,
-      final Object object,
-      final ChannelPromise channelPromise)
+      final ChannelHandlerContext ctx, final Object object, final ChannelPromise channelPromise)
       throws Exception {
     if (object instanceof FullHttpResponse fullHttpResponse) {
       final String responseContentLength =
@@ -46,7 +43,7 @@ public class ServerLogging extends ChannelDuplexHandler {
               .headers()
               .get(HttpHeaderNames.CONTENT_LENGTH, Constants.CONTENT_LENGTH_DEFAULT);
       final HttpResponseStatus responseStatus = fullHttpResponse.status();
-      final String requestId = channelHandlerContext.channel().attr(Constants.REQUEST_ID).get();
+      final String requestId = ctx.channel().attr(Constants.REQUEST_ID).get();
 
       log.info(
           "[{}] Response OUT: Status=[{}], ContentLength=[{}]",
@@ -54,6 +51,6 @@ public class ServerLogging extends ChannelDuplexHandler {
           responseStatus,
           responseContentLength);
     }
-    super.write(channelHandlerContext, object, channelPromise);
+    super.write(ctx, object, channelPromise);
   }
 }
