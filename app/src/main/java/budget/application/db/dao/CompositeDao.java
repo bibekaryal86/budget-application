@@ -1,7 +1,7 @@
 package budget.application.db.dao;
 
-import budget.application.model.dto.request.TransactionRequestComposite;
-import budget.application.model.dto.response.TransactionResponseComposite;
+import budget.application.model.dto.request.CompositeRequest;
+import budget.application.model.dto.response.CompositeResponse;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -13,16 +13,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-public class TransactionCompositeDao {
+public class CompositeDao {
 
   private final Connection connection;
 
-  public TransactionCompositeDao(Connection connection) {
+  public CompositeDao(Connection connection) {
     this.connection = connection;
   }
 
-  public List<TransactionResponseComposite.TransactionComposite> read(
-      TransactionRequestComposite req) throws SQLException {
+  public List<CompositeResponse.TransactionComposite> read(CompositeRequest cr)
+      throws SQLException {
+    CompositeRequest.TransactionRequest req = cr.transactionRequest();
 
     String sql =
         """
@@ -89,16 +90,16 @@ public class TransactionCompositeDao {
 
         UUID itemId = rs.getObject("item_id", UUID.class);
         if (itemId != null) {
-          TransactionResponseComposite.CategoryTypeComposite ct =
-              new TransactionResponseComposite.CategoryTypeComposite(
+          CompositeResponse.CategoryTypeComposite ct =
+              new CompositeResponse.CategoryTypeComposite(
                   rs.getObject("category_type_id", UUID.class), rs.getString("category_type_name"));
 
-          TransactionResponseComposite.CategoryComposite c =
-              new TransactionResponseComposite.CategoryComposite(
+          CompositeResponse.CategoryComposite c =
+              new CompositeResponse.CategoryComposite(
                   rs.getObject("category_id", UUID.class), rs.getString("category_name"), ct);
 
-          TransactionResponseComposite.TransactionItemComposite item =
-              new TransactionResponseComposite.TransactionItemComposite(
+          CompositeResponse.TransactionItemComposite item =
+              new CompositeResponse.TransactionItemComposite(
                   itemId, rs.getDouble("item_amount"), c);
 
           txnMap.get(txnId).addItem(item);
@@ -115,8 +116,7 @@ public class TransactionCompositeDao {
     private final String merchant;
     private final double totalAmount;
     private final String notes;
-    private final List<TransactionResponseComposite.TransactionItemComposite> items =
-        new ArrayList<>();
+    private final List<CompositeResponse.TransactionItemComposite> items = new ArrayList<>();
 
     TransactionCompositeBuilder(
         UUID id, LocalDate txnDate, String merchant, double totalAmount, String notes) {
@@ -127,12 +127,12 @@ public class TransactionCompositeDao {
       this.notes = notes;
     }
 
-    void addItem(TransactionResponseComposite.TransactionItemComposite item) {
+    void addItem(CompositeResponse.TransactionItemComposite item) {
       items.add(item);
     }
 
-    TransactionResponseComposite.TransactionComposite build() {
-      return new TransactionResponseComposite.TransactionComposite(
+    CompositeResponse.TransactionComposite build() {
+      return new CompositeResponse.TransactionComposite(
           id, txnDate, merchant, totalAmount, notes, List.copyOf(items));
     }
   }
