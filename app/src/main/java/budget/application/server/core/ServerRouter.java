@@ -7,9 +7,8 @@ import budget.application.utilities.Constants;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.FullHttpRequest;
-import lombok.extern.slf4j.Slf4j;
-
 import javax.sql.DataSource;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class ServerRouter extends SimpleChannelInboundHandler<FullHttpRequest> {
@@ -29,24 +28,24 @@ public class ServerRouter extends SimpleChannelInboundHandler<FullHttpRequest> {
     String path = req.uri();
 
     if (path.startsWith("/petssvc/api/v1/category-types")) {
-        log.info("[{}] Routing to CategoryTypeHandler: {}", requestId, path);
+      log.info("[{}] Routing to CategoryTypeHandler: {}", requestId, path);
       categoryTypeHandler.channelRead(ctx, req.retain());
       return;
     }
 
     if (path.startsWith("/petssvc/api/v1/categories")) {
-        log.info("[{}] Routing to CategoryHandler: {}", requestId, path);
+      log.info("[{}] Routing to CategoryHandler: {}", requestId, path);
       categoryHandler.channelRead(ctx, req.retain());
       return;
     }
 
     if (path.startsWith("/petssvc/api/v1/transaction-items")) {
-        log.info("[{}] Routing to TransactionItemHandler: {}", requestId, path);
+      log.info("[{}] Routing to TransactionItemHandler: {}", requestId, path);
       transactionItemHandler.channelRead(ctx, req.retain());
       return;
     }
 
-      log.info("[{}] Handler Not Found in ServerRouter: {}", requestId, path);
+    log.info("[{}] Handler Not Found in ServerRouter: {}", requestId, path);
     ctx.fireChannelRead(req.retain());
   }
 }

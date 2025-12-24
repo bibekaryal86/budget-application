@@ -4,6 +4,7 @@ import budget.application.model.dto.request.CategoryRequest;
 import budget.application.model.dto.response.CategoryResponse;
 import budget.application.server.utils.ServerUtils;
 import budget.application.service.domain.CategoryService;
+import budget.application.utilities.Constants;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.FullHttpRequest;
@@ -27,6 +28,7 @@ public class CategoryHandler extends SimpleChannelInboundHandler<FullHttpRequest
 
   @Override
   protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest req) throws Exception {
+    String requestId = ctx.channel().attr(Constants.REQUEST_ID).get();
     String path = req.uri();
     HttpMethod method = req.method();
 
@@ -34,75 +36,77 @@ public class CategoryHandler extends SimpleChannelInboundHandler<FullHttpRequest
       ctx.fireChannelRead(req.retain());
       return;
     }
-    // TODO logging
-    log.info("Request: {} {}", method, path);
+    log.info("[{}] Request: Method=[{}] Path=[{}]", requestId, method, path);
 
     // CREATE: POST /petssvc/api/v1/category-types
     if (path.equals(PREFIX) && method.equals(HttpMethod.POST)) {
-      handleCreate(ctx, req);
+      handleCreate(requestId, ctx, req);
       return;
     }
 
     // READ ALL: GET /petssvc/api/v1/category-types
     if (path.equals(PREFIX) && method.equals(HttpMethod.GET)) {
-      handleReadAll(ctx);
+      handleReadAll(requestId, ctx);
       return;
     }
 
     // READ ONE: GET /petssvc/api/v1/category-types/{id}
     if (path.startsWith(PREFIX + "/") && method.equals(HttpMethod.GET)) {
       String id = path.substring((PREFIX + "/").length());
-      handleReadOne(ctx, ServerUtils.getId(id));
+      handleReadOne(requestId, ctx, ServerUtils.getId(id));
       return;
     }
 
     // UPDATE: PUT /petssvc/api/v1/category-types/{id}
     if (path.startsWith(PREFIX + "/") && method.equals(HttpMethod.PUT)) {
       String id = path.substring((PREFIX + "/").length());
-      handleUpdate(ctx, req, ServerUtils.getId(id));
+      handleUpdate(requestId, ctx, req, ServerUtils.getId(id));
       return;
     }
 
     // DELETE: DELETE /petssvc/api/v1/category-types/{id}
     if (path.startsWith(PREFIX + "/") && method.equals(HttpMethod.DELETE)) {
       String id = path.substring((PREFIX + "/").length());
-      handleDelete(ctx, ServerUtils.getId(id));
+      handleDelete(requestId, ctx, ServerUtils.getId(id));
       return;
     }
 
+    log.info("[{}] Action Not Found: Method=[{}] Path=[{}]", requestId, method, path);
     ctx.fireChannelRead(req.retain());
   }
 
   // CREATE
-  private void handleCreate(ChannelHandlerContext ctx, FullHttpRequest req) throws Exception {
+  private void handleCreate(String requestId, ChannelHandlerContext ctx, FullHttpRequest req)
+      throws Exception {
     CategoryRequest request = ServerUtils.getRequestBody(req, CategoryRequest.class);
-    CategoryResponse response = service.create(request);
+    CategoryResponse response = service.create(requestId, request);
     ServerUtils.sendResponse(ctx, HttpResponseStatus.CREATED, response);
   }
 
   // READ ALL
-  private void handleReadAll(ChannelHandlerContext ctx) throws Exception {
-    CategoryResponse response = service.read(List.of());
+  private void handleReadAll(String requestId, ChannelHandlerContext ctx) throws Exception {
+    CategoryResponse response = service.read(requestId, List.of());
     ServerUtils.sendResponse(ctx, HttpResponseStatus.CREATED, response);
   }
 
   // READ ONE
-  private void handleReadOne(ChannelHandlerContext ctx, UUID id) throws Exception {
-    CategoryResponse response = service.read(List.of(id));
+  private void handleReadOne(String requestId, ChannelHandlerContext ctx, UUID id)
+      throws Exception {
+    CategoryResponse response = service.read(requestId, List.of(id));
     ServerUtils.sendResponse(ctx, HttpResponseStatus.CREATED, response);
   }
 
   // UPDATE
-  private void handleUpdate(ChannelHandlerContext ctx, FullHttpRequest req, UUID id)
-      throws Exception {
+  private void handleUpdate(
+      String requestId, ChannelHandlerContext ctx, FullHttpRequest req, UUID id) throws Exception {
     CategoryRequest request = ServerUtils.getRequestBody(req, CategoryRequest.class);
-    CategoryResponse response = service.update(id, request);
+    CategoryResponse response = service.update(requestId, id, request);
     ServerUtils.sendResponse(ctx, HttpResponseStatus.OK, response);
   }
 
   // DELETE
-  private void handleDelete(ChannelHandlerContext ctx, UUID id) throws Exception {
-    CategoryResponse response = service.delete(List.of(id));
+  private void handleDelete(String requestId, ChannelHandlerContext ctx, UUID id) throws Exception {
+    CategoryResponse response = service.delete(requestId, List.of(id));
     ServerUtils.sendResponse(ctx, HttpResponseStatus.OK, response);
   }
 }

@@ -23,14 +23,15 @@ public class TransactionItemService {
     this.tx = new TransactionManager(dataSource);
   }
 
-  public TransactionItemResponse create(TransactionItemRequest tir) throws SQLException {
-    log.debug("Create transaction item: TransactionItemRequest=[{}]", tir);
+  public TransactionItemResponse create(String requestId, TransactionItemRequest tir)
+      throws SQLException {
+    log.debug("[{}] Create transaction item: TransactionItemRequest=[{}]", requestId, tir);
     return tx.execute(
         bs -> {
           TransactionItemRepository repo = new TransactionItemRepository(bs);
           CategoryRepository categoryRepo = new CategoryRepository(bs);
 
-          validate(tir, categoryRepo);
+          validate(requestId, tir, categoryRepo);
 
           TransactionItem tiIn =
               TransactionItem.builder()
@@ -45,8 +46,8 @@ public class TransactionItemService {
         });
   }
 
-  public TransactionItemResponse read(List<UUID> ids) throws SQLException {
-    log.debug("Read transaction items: ids=[{}]", ids);
+  public TransactionItemResponse read(String requestId, List<UUID> ids) throws SQLException {
+    log.debug("[{}] Read transaction items: ids=[{}]", requestId, ids);
     return tx.execute(
         bs -> {
           TransactionItemRepository repo = new TransactionItemRepository(bs);
@@ -55,13 +56,15 @@ public class TransactionItemService {
         });
   }
 
-  public TransactionItemResponse update(UUID id, TransactionItemRequest tir) throws SQLException {
-    log.debug("Update transaction item: id=[{}], TransactionItemRequest=[{}]", id, tir);
+  public TransactionItemResponse update(String requestId, UUID id, TransactionItemRequest tir)
+      throws SQLException {
+    log.debug(
+        "[{}] Update transaction item: id=[{}], TransactionItemRequest=[{}]", requestId, id, tir);
     return tx.execute(
         bs -> {
           TransactionItemRepository repo = new TransactionItemRepository(bs);
           CategoryRepository categoryRepo = new CategoryRepository(bs);
-          validate(tir, categoryRepo);
+          validate(requestId, tir, categoryRepo);
           TransactionItem tiIn =
               TransactionItem.builder()
                   .id(id)
@@ -76,8 +79,8 @@ public class TransactionItemService {
         });
   }
 
-  public TransactionItemResponse delete(List<UUID> ids) throws SQLException {
-    log.info("Delete transaction items: ids=[{}]", ids);
+  public TransactionItemResponse delete(String requestId, List<UUID> ids) throws SQLException {
+    log.info("[{}] Delete transaction items: ids=[{}]", requestId, ids);
     return tx.execute(
         bs -> {
           TransactionItemRepository repo = new TransactionItemRepository(bs);
@@ -88,21 +91,27 @@ public class TransactionItemService {
         });
   }
 
-  private void validate(TransactionItemRequest tir, CategoryRepository categoryRepo) {
+  private void validate(
+      String requestId, TransactionItemRequest tir, CategoryRepository categoryRepo) {
     if (tir == null) {
-      throw new IllegalArgumentException("Transaction item cannot be null...");
+      throw new IllegalArgumentException(
+          String.format("[%s] Transaction item cannot be null...", requestId));
     }
     if (tir.transactionId() == null) {
-      throw new IllegalArgumentException("Transaction item transaction cannot be null...");
+      throw new IllegalArgumentException(
+          String.format("[%s] Transaction item transaction cannot be null...", requestId));
     }
     if (tir.categoryId() == null) {
-      throw new IllegalArgumentException("Transaction item category cannot be null...");
+      throw new IllegalArgumentException(
+          String.format("[%s] Transaction item category cannot be null...", requestId));
     }
     if (tir.amount() <= 0) {
-      throw new IllegalArgumentException("Transaction item amount cannot be negative...");
+      throw new IllegalArgumentException(
+          String.format("[%s] Transaction item amount cannot be negative...", requestId));
     }
     if (categoryRepo.readByIdNoEx(tir.categoryId()).isEmpty()) {
-      throw new IllegalArgumentException("Category type does not exist...");
+      throw new IllegalArgumentException(
+          String.format("[%s] Category type does not exist...", requestId));
     }
   }
 }

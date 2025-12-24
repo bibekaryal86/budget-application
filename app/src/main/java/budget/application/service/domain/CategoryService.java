@@ -24,14 +24,14 @@ public class CategoryService {
     this.tx = new TransactionManager(dataSource);
   }
 
-  public CategoryResponse create(CategoryRequest cr) throws SQLException {
-    log.debug("Create category: CategoryRequest=[{}]", cr);
+  public CategoryResponse create(String requestId, CategoryRequest cr) throws SQLException {
+    log.debug("[{}] Create category: CategoryRequest=[{}]", requestId, cr);
     return tx.execute(
         bs -> {
           CategoryRepository repo = new CategoryRepository(bs);
           CategoryTypeRepository typeRepo = new CategoryTypeRepository(bs);
 
-          validate(cr, typeRepo);
+          validate(requestId, cr, typeRepo);
 
           Category cIn =
               Category.builder().name(cr.name()).categoryTypeId(cr.categoryTypeId()).build();
@@ -41,8 +41,8 @@ public class CategoryService {
         });
   }
 
-  public CategoryResponse read(List<UUID> ids) throws SQLException {
-    log.debug("Read categories: ids=[{}]", ids);
+  public CategoryResponse read(String requestId, List<UUID> ids) throws SQLException {
+    log.debug("[{}] Read categories: ids=[{}]", requestId, ids);
     return tx.execute(
         bs -> {
           CategoryRepository repo = new CategoryRepository(bs);
@@ -51,13 +51,14 @@ public class CategoryService {
         });
   }
 
-  public CategoryResponse update(UUID id, CategoryRequest cr) throws SQLException {
-    log.debug("Update category: id=[{}], CategoryRequest=[{}]", id, cr);
+  public CategoryResponse update(String requestId, UUID id, CategoryRequest cr)
+      throws SQLException {
+    log.debug("[{}] Update category: id=[{}], CategoryRequest=[{}]", requestId, id, cr);
     return tx.execute(
         bs -> {
           CategoryRepository repo = new CategoryRepository(bs);
           CategoryTypeRepository typeRepo = new CategoryTypeRepository(bs);
-          validate(cr, typeRepo);
+          validate(requestId, cr, typeRepo);
           Category cIn =
               Category.builder().id(id).name(cr.name()).categoryTypeId(cr.categoryTypeId()).build();
           Category cOut = repo.update(cIn);
@@ -66,8 +67,8 @@ public class CategoryService {
         });
   }
 
-  public CategoryResponse delete(List<UUID> ids) throws SQLException {
-    log.info("Delete categories: ids=[{}]", ids);
+  public CategoryResponse delete(String requestId, List<UUID> ids) throws SQLException {
+    log.info("[{}] Delete categories: ids=[{}]", requestId, ids);
     return tx.execute(
         bs -> {
           CategoryRepository repo = new CategoryRepository(bs);
@@ -77,18 +78,22 @@ public class CategoryService {
         });
   }
 
-  private void validate(CategoryRequest cr, CategoryTypeRepository typeRepo) {
+  private void validate(String requestId, CategoryRequest cr, CategoryTypeRepository typeRepo) {
     if (cr == null) {
-      throw new IllegalArgumentException("Category request cannot be null...");
+      throw new IllegalArgumentException(
+          String.format("[%s] Category request cannot be null...", requestId));
     }
     if (CommonUtilities.isEmpty(cr.name())) {
-      throw new IllegalArgumentException("Category name cannot be empty...");
+      throw new IllegalArgumentException(
+          String.format("[%s] Category name cannot be empty...", requestId));
     }
     if (cr.categoryTypeId() == null) {
-      throw new IllegalArgumentException("Category type cannot be null...");
+      throw new IllegalArgumentException(
+          String.format("[%s] Category type cannot be null...", requestId));
     }
     if (typeRepo.readByIdNoEx(cr.categoryTypeId()).isEmpty()) {
-      throw new IllegalArgumentException("Category type does not exist...");
+      throw new IllegalArgumentException(
+          String.format("[%s] Category type does not exist...", requestId));
     }
   }
 }
