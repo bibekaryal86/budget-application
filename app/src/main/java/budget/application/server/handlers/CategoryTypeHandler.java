@@ -51,22 +51,22 @@ public class CategoryTypeHandler extends SimpleChannelInboundHandler<FullHttpReq
 
     // READ ONE: GET /petssvc/api/v1/category-types/{id}
     if (path.startsWith(ApiPaths.CATEGORY_TYPES_V1_WITH_ID) && method.equals(HttpMethod.GET)) {
-      String id = path.substring((ApiPaths.CATEGORY_TYPES_V1_WITH_ID).length());
-      handleReadOne(requestId, ctx, ServerUtils.getId(id));
+      UUID id = ServerUtils.getId(path, ApiPaths.CATEGORY_TYPES_V1_WITH_ID);
+      handleReadOne(requestId, ctx, id);
       return;
     }
 
     // UPDATE: PUT /petssvc/api/v1/category-types/{id}
     if (path.startsWith(ApiPaths.CATEGORY_TYPES_V1_WITH_ID) && method.equals(HttpMethod.PUT)) {
-      String id = path.substring((ApiPaths.CATEGORY_TYPES_V1_WITH_ID).length());
-      handleUpdate(requestId, ctx, req, ServerUtils.getId(id));
+      UUID id = ServerUtils.getId(path, ApiPaths.CATEGORY_TYPES_V1_WITH_ID);
+      handleUpdate(requestId, ctx, req, id);
       return;
     }
 
     // DELETE: DELETE /petssvc/api/v1/category-types/{id}
     if (path.startsWith(ApiPaths.CATEGORY_TYPES_V1_WITH_ID) && method.equals(HttpMethod.DELETE)) {
-      String id = path.substring((ApiPaths.CATEGORY_TYPES_V1_WITH_ID).length());
-      handleDelete(requestId, ctx, ServerUtils.getId(id));
+      UUID id = ServerUtils.getId(path, ApiPaths.CATEGORY_TYPES_V1_WITH_ID);
+      handleDelete(requestId, ctx, id);
       return;
     }
 
