@@ -1,9 +1,9 @@
 package budget.application.server.handlers;
 
-import budget.application.model.dto.request.CategoryTypeRequest;
-import budget.application.model.dto.response.CategoryTypeResponse;
+import budget.application.model.dto.request.CategoryRequest;
+import budget.application.model.dto.response.CategoryResponse;
 import budget.application.server.utils.ServerUtils;
-import budget.application.service.domain.CategoryTypeService;
+import budget.application.service.domain.CategoryService;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.FullHttpRequest;
@@ -15,13 +15,13 @@ import java.util.List;
 import java.util.UUID;
 
 @Slf4j
-public class CategoryTypeHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
+public class CategoryHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
 
-    private static final String PREFIX = "/petssvc/api/v1/category-types";
+    private static final String PREFIX = "/petssvc/api/v1/categories";
 
-    private final CategoryTypeService service;
+    private final CategoryService service;
 
-    public CategoryTypeHandler(CategoryTypeService service) {
+    public CategoryHandler(CategoryService service) {
         this.service = service;
     }
 
@@ -75,33 +75,33 @@ public class CategoryTypeHandler extends SimpleChannelInboundHandler<FullHttpReq
 
     // CREATE
     private void handleCreate(ChannelHandlerContext ctx, FullHttpRequest req) throws Exception {
-        CategoryTypeRequest request = ServerUtils.getRequestBody(req, CategoryTypeRequest.class);
-        CategoryTypeResponse response = service.create(request);
+        CategoryRequest request = ServerUtils.getRequestBody(req, CategoryRequest.class);
+        CategoryResponse response = service.create(request);
         ServerUtils.sendResponse(ctx, HttpResponseStatus.CREATED, response);
     }
 
     // READ ALL
     private void handleReadAll(ChannelHandlerContext ctx) throws Exception {
-        CategoryTypeResponse response = service.read(List.of());
+        CategoryResponse response = service.read(List.of());
         ServerUtils.sendResponse(ctx, HttpResponseStatus.CREATED, response);
     }
 
     // READ ONE
     private void handleReadOne(ChannelHandlerContext ctx, UUID id) throws Exception {
-        CategoryTypeResponse response = service.read(List.of(id));
+        CategoryResponse response = service.read(List.of(id));
         ServerUtils.sendResponse(ctx, HttpResponseStatus.CREATED, response);
     }
 
     // UPDATE
     private void handleUpdate(ChannelHandlerContext ctx, FullHttpRequest req, UUID id) throws Exception {
-        CategoryTypeRequest request = ServerUtils.getRequestBody(req, CategoryTypeRequest.class);
-        CategoryTypeResponse response = service.update(id, request);
+        CategoryRequest request = ServerUtils.getRequestBody(req, CategoryRequest.class);
+        CategoryResponse response = service.update(id, request);
         ServerUtils.sendResponse(ctx, HttpResponseStatus.OK, response);
     }
 
     // DELETE
     private void handleDelete(ChannelHandlerContext ctx, UUID id) throws Exception {
-        CategoryTypeResponse response = service.delete(List.of(id));
+        CategoryResponse response = service.delete(List.of(id));
         ServerUtils.sendResponse(ctx, HttpResponseStatus.OK, response);
     }
 }

@@ -1,48 +1,47 @@
 package budget.application.server.utils;
 
-import io.github.bibekaryal86.shdsvc.dtos.ResponseMetadata;
-import io.github.bibekaryal86.shdsvc.dtos.ResponseWithMetadata;
-import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
+import budget.application.service.util.JsonUtils;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
+import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
+import io.netty.util.CharsetUtil;
+import lombok.extern.slf4j.Slf4j;
 
+import java.util.UUID;
+
+@Slf4j
 public class ServerUtils {
-  public static void sendResponse(
-      final FullHttpResponse fullHttpResponse, final ChannelHandlerContext channelHandlerContext) {
-    channelHandlerContext.writeAndFlush(fullHttpResponse).addListener(ChannelFutureListener.CLOSE);
+
+  public static void sendResponse(ChannelHandlerContext ctx, HttpResponseStatus status, Object body) {
+      String jsonBody = JsonUtils.toJson(body);
+      FullHttpResponse response = new DefaultFullHttpResponse( HttpVersion.HTTP_1_1, status,
+              Unpooled.copiedBuffer(jsonBody, CharsetUtil.UTF_8) );
+      response.headers().set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_JSON);
+      response.headers().set(HttpHeaderNames.CONTENT_LENGTH, jsonBody.length());
+      ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
   }
 
-  public static void sendResponse(
-      ChannelHandlerContext channelHandlerContext, HttpResponseStatus status, String errMsg) {
-    ResponseMetadata.ResponseStatusInfo responseStatusInfo;
+  public static UUID getId(String id) {
+      try {
+          return UUID.fromString(id);
+      } catch (Exception e) {
+          throw new IllegalArgumentException("Invalid Id Provided...");
+      }
+  }
 
-    if (CommonUtilities.isEmpty(errMsg)) {
-      responseStatusInfo = ResponseMetadata.emptyResponseStatusInfo();
-    } else {
-      responseStatusInfo = new ResponseMetadata.ResponseStatusInfo(errMsg);
+    public static <T> T getRequestBody(FullHttpRequest req, Class<T> type) {
+      try {
+          return JsonUtils.fromJson(req.content().toString(CharsetUtil.UTF_8), type);
+      } catch (Exception e) {
+          log.error("Error parsing request body: [{}]", e.getMessage());
+          return null;
+      }
     }
-
-    ResponseMetadata responseMetadata =
-        new ResponseMetadata(
-            responseStatusInfo,
-            ResponseMetadata.emptyResponseCrudInfo(),
-            ResponseMetadata.emptyResponsePageInfo());
-
-    byte[] jsonResponse =
-        CommonUtilities.writeValueAsBytesNoEx(new ResponseWithMetadata(responseMetadata));
-    FullHttpResponse fullHttpResponse =
-        new DefaultFullHttpResponse(
-            HttpVersion.HTTP_1_1, status, Unpooled.wrappedBuffer(jsonResponse));
-    fullHttpResponse.headers().set(HttpHeaderNames.CONTENT_LENGTH, jsonResponse.length);
-    fullHttpResponse.headers().set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_JSON);
-
-    channelHandlerContext.writeAndFlush(fullHttpResponse).addListener(ChannelFutureListener.CLOSE);
-  }
 }
