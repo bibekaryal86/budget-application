@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -28,8 +29,8 @@ public class TransactionService {
 
   private final TransactionManager tx;
 
-  public TransactionService(TransactionManager tx) {
-    this.tx = tx;
+  public TransactionService(DataSource dataSource) {
+    this.tx = new TransactionManager(dataSource);
   }
 
   public TransactionResponse create(TransactionRequest tr) throws SQLException {

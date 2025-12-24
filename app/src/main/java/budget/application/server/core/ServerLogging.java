@@ -12,32 +12,30 @@ import lombok.extern.slf4j.Slf4j;
 public class ServerLogging extends ChannelDuplexHandler {
 
   @Override
-  public void channelRead(final ChannelHandlerContext ctx, final Object object) throws Exception {
-    if (object instanceof FullHttpRequest fullHttpRequest) {
+  public void channelRead(final ChannelHandlerContext ctx, final Object obj) throws Exception {
+    if (obj instanceof FullHttpRequest req) {
       final String requestId = UUID.randomUUID().toString();
 
       final String requestContentLength =
-          fullHttpRequest
-              .headers()
-              .get(HttpHeaderNames.CONTENT_LENGTH, Constants.CONTENT_LENGTH_DEFAULT);
+          req.headers().get(HttpHeaderNames.CONTENT_LENGTH, Constants.CONTENT_LENGTH_DEFAULT);
       log.info(
           "[{}] Request IN: Method=[{}], Uri=[{}], ContentLength=[{}]",
           requestId,
-          fullHttpRequest.method(),
-          fullHttpRequest.uri(),
+          req.method(),
+          req.uri(),
           requestContentLength);
 
       // set requestId in channel handler context for later use
       ctx.channel().attr(Constants.REQUEST_ID).set(requestId);
     }
-    super.channelRead(ctx, object);
+    super.channelRead(ctx, obj);
   }
 
   @Override
   public void write(
-      final ChannelHandlerContext ctx, final Object object, final ChannelPromise channelPromise)
+      final ChannelHandlerContext ctx, final Object obj, final ChannelPromise channelPromise)
       throws Exception {
-    if (object instanceof FullHttpResponse fullHttpResponse) {
+    if (obj instanceof FullHttpResponse fullHttpResponse) {
       final String responseContentLength =
           fullHttpResponse
               .headers()
@@ -51,6 +49,6 @@ public class ServerLogging extends ChannelDuplexHandler {
           responseStatus,
           responseContentLength);
     }
-    super.write(ctx, object, channelPromise);
+    super.write(ctx, obj, channelPromise);
   }
 }

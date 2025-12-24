@@ -11,6 +11,7 @@ import io.github.bibekaryal86.shdsvc.dtos.ResponseMetadata;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
+import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -18,8 +19,8 @@ public class TransactionItemService {
 
   private final TransactionManager tx;
 
-  public TransactionItemService(TransactionManager tx) {
-    this.tx = tx;
+  public TransactionItemService(DataSource dataSource) {
+    this.tx = new TransactionManager(dataSource);
   }
 
   public TransactionItemResponse create(TransactionItemRequest tir) throws SQLException {

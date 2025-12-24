@@ -3,26 +3,20 @@ package budget.application.server.core;
 import budget.application.server.handlers.CategoryHandler;
 import budget.application.server.handlers.CategoryTypeHandler;
 import budget.application.server.handlers.TransactionItemHandler;
-import budget.application.service.domain.CategoryService;
-import budget.application.service.domain.CategoryTypeService;
-import budget.application.service.domain.TransactionItemService;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.FullHttpRequest;
+import javax.sql.DataSource;
 
 public class ServerRouter extends SimpleChannelInboundHandler<FullHttpRequest> {
-
   private final CategoryTypeHandler categoryTypeHandler;
   private final CategoryHandler categoryHandler;
   private final TransactionItemHandler transactionItemHandler;
 
-  public ServerRouter(
-      CategoryTypeService categoryTypeService,
-      CategoryService categoryService,
-      TransactionItemService transactionItemService) {
-    this.categoryTypeHandler = new CategoryTypeHandler(categoryTypeService);
-    this.categoryHandler = new CategoryHandler(categoryService);
-    this.transactionItemHandler = new TransactionItemHandler(transactionItemService);
+  public ServerRouter(DataSource dataSource) {
+    this.categoryTypeHandler = new CategoryTypeHandler(dataSource);
+    this.categoryHandler = new CategoryHandler(dataSource);
+    this.transactionItemHandler = new TransactionItemHandler(dataSource);
   }
 
   @Override

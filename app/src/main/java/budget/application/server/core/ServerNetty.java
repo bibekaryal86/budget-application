@@ -13,10 +13,17 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
+import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class ServerNetty {
+
+  final DataSource dataSource;
+
+  public ServerNetty(DataSource dataSource) {
+    this.dataSource = dataSource;
+  }
 
   public void start() throws Exception {
     final EventLoopGroup bossGroup = new NioEventLoopGroup(Constants.BOSS_GROUP_THREADS);
@@ -38,7 +45,7 @@ public class ServerNetty {
                       .addLast(new HttpObjectAggregator(Constants.MAX_CONTENT_LENGTH))
                       .addLast(new ServerLogging())
                       .addLast(new ServerSecurity())
-                      .addLast(new ServerRouter())
+                      .addLast(new ServerRouter(dataSource))
                       .addLast(new NotFoundHandler());
                 }
               });

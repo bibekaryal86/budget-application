@@ -5,6 +5,7 @@ package budget.application;
 
 import budget.application.db.util.DataSourceFactory;
 import budget.application.db.util.DatabaseHealthCheck;
+import budget.application.server.core.ServerNetty;
 import budget.application.utilities.Constants;
 import budget.application.utilities.ScheduleManager;
 import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
@@ -17,7 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class Main {
 
-  public static void main(String[] args) {
+  public static void main(String[] args) throws Exception {
     log.info("Starting Budget Service...");
     Main.checkEnvProperties();
 
@@ -25,6 +26,9 @@ public class Main {
 
     var dbHealth = new DatabaseHealthCheck(dataSource).check();
     log.info("{}", dbHealth);
+
+    ServerNetty serverNetty = new ServerNetty(dataSource);
+    serverNetty.start();
 
     ScheduleManager schedulerManager = new ScheduleManager(dataSource);
     schedulerManager.start();

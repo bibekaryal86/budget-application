@@ -3,13 +3,14 @@ package budget.application.service.util;
 import budget.application.db.repository.BaseRepository;
 import java.sql.Connection;
 import java.sql.SQLException;
+import javax.sql.DataSource;
 
 public class TransactionManager {
 
   private final Connection connection;
 
-  public TransactionManager(Connection connection) {
-    this.connection = connection;
+  public TransactionManager(DataSource dataSource) {
+    this.connection = getConnection(dataSource);
   }
 
   /** Execute a function inside a transaction. Allows throwing SQLException inside the lambda. */
@@ -39,5 +40,14 @@ public class TransactionManager {
   @FunctionalInterface
   public interface SqlVoidWork {
     void apply(BaseRepository bs) throws SQLException;
+  }
+
+  // ---- Utilities ----
+  private Connection getConnection(DataSource dataSource) {
+    try {
+      return dataSource.getConnection();
+    } catch (SQLException e) {
+      throw new RuntimeException("Unable to get DB connection", e);
+    }
   }
 }

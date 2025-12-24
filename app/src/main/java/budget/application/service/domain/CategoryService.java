@@ -12,6 +12,7 @@ import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
+import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -19,8 +20,8 @@ public class CategoryService {
 
   private final TransactionManager tx;
 
-  public CategoryService(TransactionManager tx) {
-    this.tx = tx;
+  public CategoryService(DataSource dataSource) {
+    this.tx = new TransactionManager(dataSource);
   }
 
   public CategoryResponse create(CategoryRequest cr) throws SQLException {

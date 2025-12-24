@@ -11,6 +11,7 @@ import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import java.util.List;
 import java.util.UUID;
+import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -20,8 +21,8 @@ public class CategoryTypeHandler extends SimpleChannelInboundHandler<FullHttpReq
 
   private final CategoryTypeService service;
 
-  public CategoryTypeHandler(CategoryTypeService service) {
-    this.service = service;
+  public CategoryTypeHandler(DataSource dataSource) {
+    this.service = new CategoryTypeService(dataSource);
   }
 
   @Override

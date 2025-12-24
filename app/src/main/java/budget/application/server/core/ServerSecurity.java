@@ -14,21 +14,21 @@ import lombok.extern.slf4j.Slf4j;
 public class ServerSecurity extends ChannelDuplexHandler {
 
   @Override
-  public void channelRead(final ChannelHandlerContext ctx, final Object object) throws Exception {
-    if (object instanceof FullHttpRequest fullHttpRequest) {
+  public void channelRead(final ChannelHandlerContext ctx, final Object obj) throws Exception {
+    if (obj instanceof FullHttpRequest req) {
       final String requestId = ctx.channel().attr(Constants.REQUEST_ID).get();
-      final String requestUri = fullHttpRequest.uri();
+      final String requestUri = req.uri();
 
       final boolean isNoAuth = isNoAuthCheck(requestUri);
       if (isNoAuth) {
         log.debug("[{}] No Auth Request...", requestId);
-        super.channelRead(ctx, fullHttpRequest);
+        super.channelRead(ctx, req);
         return;
       }
 
-      String authHeader = fullHttpRequest.headers().get(HttpHeaderNames.AUTHORIZATION);
+      String authHeader = req.headers().get(HttpHeaderNames.AUTHORIZATION);
       if (CommonUtilities.isEmpty(authHeader)) {
-        authHeader = fullHttpRequest.headers().get(HttpHeaderNames.AUTHORIZATION.toLowerCase());
+        authHeader = req.headers().get(HttpHeaderNames.AUTHORIZATION.toLowerCase());
       }
 
       if (CommonUtilities.isEmpty(authHeader)) {
@@ -45,7 +45,7 @@ public class ServerSecurity extends ChannelDuplexHandler {
       }
     }
 
-    super.channelRead(ctx, object);
+    super.channelRead(ctx, obj);
   }
 
   private boolean isNoAuthCheck(final String requestUri) {

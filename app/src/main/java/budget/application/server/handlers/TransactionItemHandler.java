@@ -11,6 +11,7 @@ import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import java.util.List;
 import java.util.UUID;
+import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -20,8 +21,8 @@ public class TransactionItemHandler extends SimpleChannelInboundHandler<FullHttp
 
   private final TransactionItemService service;
 
-  public TransactionItemHandler(TransactionItemService service) {
-    this.service = service;
+  public TransactionItemHandler(DataSource dataSource) {
+    this.service = new TransactionItemService(dataSource);
   }
 
   @Override

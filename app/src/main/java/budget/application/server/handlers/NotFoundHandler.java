@@ -1,6 +1,7 @@
 package budget.application.server.handlers;
 
 import budget.application.server.utils.ServerUtils;
+import budget.application.utilities.Constants;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseWithMetadata;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -11,8 +12,10 @@ public class NotFoundHandler extends SimpleChannelInboundHandler<FullHttpRequest
 
   @Override
   protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest req) throws Exception {
+    final String requestId = ctx.channel().attr(Constants.REQUEST_ID).get();
     ResponseWithMetadata response =
-        ServerUtils.getResponseWithMetadata("The requested resource does not exist...");
+        ServerUtils.getResponseWithMetadata(
+            String.format("[%s] The requested resource does not exist...", requestId));
     ServerUtils.sendResponse(ctx, HttpResponseStatus.NOT_FOUND, response);
   }
 }
