@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.UUID;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import javax.sql.DataSource;
@@ -13,11 +14,11 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class DailyTxnReconScheduler {
 
-  private final DataSource dataSource;
   private final ScheduledExecutorService executor;
+  private final TransactionService svc;
 
   public DailyTxnReconScheduler(DataSource dataSource, ScheduledExecutorService executor) {
-    this.dataSource = dataSource;
+    this.svc = new TransactionService(dataSource);
     this.executor = executor;
   }
 
@@ -39,9 +40,9 @@ public class DailyTxnReconScheduler {
   }
 
   private void run() throws SQLException {
-    log.info("Running daily transaction reconciliation...");
-    TransactionService svc = new TransactionService(dataSource);
-    svc.reconcileAll();
+    String requestId = UUID.randomUUID().toString();
+    log.info("[{}] Running daily transaction reconciliation...", requestId);
+    svc.reconcileAll(requestId);
   }
 
   private long computeInitialDelayMillis(LocalTime runAt) {
