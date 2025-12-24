@@ -1,5 +1,6 @@
 package budget.application.server.core;
 
+import budget.application.server.handlers.AppTestsHandler;
 import budget.application.server.handlers.CategoryHandler;
 import budget.application.server.handlers.CategoryTypeHandler;
 import budget.application.server.handlers.TransactionItemHandler;
@@ -12,11 +13,13 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class ServerRouter extends SimpleChannelInboundHandler<FullHttpRequest> {
+  private final AppTestsHandler appTestsHandler;
   private final CategoryTypeHandler categoryTypeHandler;
   private final CategoryHandler categoryHandler;
   private final TransactionItemHandler transactionItemHandler;
 
   public ServerRouter(DataSource dataSource) {
+    this.appTestsHandler = new AppTestsHandler();
     this.categoryTypeHandler = new CategoryTypeHandler(dataSource);
     this.categoryHandler = new CategoryHandler(dataSource);
     this.transactionItemHandler = new TransactionItemHandler(dataSource);
@@ -26,6 +29,12 @@ public class ServerRouter extends SimpleChannelInboundHandler<FullHttpRequest> {
   protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest req) throws Exception {
     final String requestId = ctx.channel().attr(Constants.REQUEST_ID).get();
     String path = req.uri();
+
+    if (path.startsWith("/petssvc/tests/")) {
+      log.info("[{}] Routing to AppTestsHandler: {}", requestId, path);
+      appTestsHandler.channelRead(ctx, req.retain());
+      return;
+    }
 
     if (path.startsWith("/petssvc/api/v1/category-types")) {
       log.info("[{}] Routing to CategoryTypeHandler: {}", requestId, path);

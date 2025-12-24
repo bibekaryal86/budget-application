@@ -1,5 +1,6 @@
 package budget.application.server.core;
 
+import budget.application.server.handlers.ExceptionHandler;
 import budget.application.server.handlers.NotFoundHandler;
 import budget.application.utilities.Constants;
 import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
@@ -46,6 +47,7 @@ public class ServerNetty {
                       .addLast(new ServerLogging())
                       .addLast(new ServerSecurity())
                       .addLast(new ServerRouter(dataSource))
+                      .addLast(new ExceptionHandler())
                       .addLast(new NotFoundHandler());
                 }
               });

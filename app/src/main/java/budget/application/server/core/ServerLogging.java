@@ -15,6 +15,8 @@ public class ServerLogging extends ChannelDuplexHandler {
   public void channelRead(final ChannelHandlerContext ctx, final Object obj) throws Exception {
     if (obj instanceof FullHttpRequest req) {
       final String requestId = UUID.randomUUID().toString();
+      // set requestId in channel handler context for later use
+      ctx.channel().attr(Constants.REQUEST_ID).set(requestId);
 
       final String requestContentLength =
           req.headers().get(HttpHeaderNames.CONTENT_LENGTH, Constants.CONTENT_LENGTH_DEFAULT);
@@ -24,9 +26,6 @@ public class ServerLogging extends ChannelDuplexHandler {
           req.method(),
           req.uri(),
           requestContentLength);
-
-      // set requestId in channel handler context for later use
-      ctx.channel().attr(Constants.REQUEST_ID).set(requestId);
     }
     super.channelRead(ctx, obj);
   }

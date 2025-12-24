@@ -7,15 +7,15 @@ import javax.sql.DataSource;
 
 public class TransactionManager {
 
-  private final Connection connection;
+  private final DataSource dataSource;
 
   public TransactionManager(DataSource dataSource) {
-    this.connection = getConnection(dataSource);
+    this.dataSource = dataSource;
   }
 
   /** Execute a function inside a transaction. Allows throwing SQLException inside the lambda. */
   public <T> T execute(SqlWork<T> work) throws SQLException {
-    try (BaseRepository bs = new BaseRepository(connection)) {
+    try (BaseRepository bs = new BaseRepository(getConnection())) {
       T result = work.apply(bs);
       bs.commit();
       return result;
@@ -24,7 +24,7 @@ public class TransactionManager {
 
   /** Execute a void operation inside a transaction. */
   public void executeVoid(SqlVoidWork work) throws SQLException {
-    try (BaseRepository bs = new BaseRepository(connection)) {
+    try (BaseRepository bs = new BaseRepository(getConnection())) {
       work.apply(bs);
       bs.commit();
     }
@@ -43,9 +43,9 @@ public class TransactionManager {
   }
 
   // ---- Utilities ----
-  private Connection getConnection(DataSource dataSource) {
+  private Connection getConnection() {
     try {
-      return dataSource.getConnection();
+      return this.dataSource.getConnection();
     } catch (SQLException e) {
       throw new RuntimeException("Unable to get DB connection", e);
     }
