@@ -3,6 +3,8 @@ package budget.application.server.core;
 import budget.application.server.handlers.AppTestsHandler;
 import budget.application.server.handlers.CategoryHandler;
 import budget.application.server.handlers.CategoryTypeHandler;
+import budget.application.server.handlers.CompositeHandler;
+import budget.application.server.handlers.TransactionHandler;
 import budget.application.server.handlers.TransactionItemHandler;
 import budget.application.utilities.Constants;
 import io.netty.channel.ChannelHandlerContext;
@@ -17,12 +19,16 @@ public class ServerRouter extends SimpleChannelInboundHandler<FullHttpRequest> {
   private final CategoryTypeHandler categoryTypeHandler;
   private final CategoryHandler categoryHandler;
   private final TransactionItemHandler transactionItemHandler;
+  private final TransactionHandler transactionHandler;
+  private final CompositeHandler compositeHandler;
 
   public ServerRouter(DataSource dataSource) {
     this.appTestsHandler = new AppTestsHandler();
     this.categoryTypeHandler = new CategoryTypeHandler(dataSource);
     this.categoryHandler = new CategoryHandler(dataSource);
     this.transactionItemHandler = new TransactionItemHandler(dataSource);
+    this.transactionHandler = new TransactionHandler(dataSource);
+    this.compositeHandler = new CompositeHandler(dataSource);
   }
 
   @Override
@@ -51,6 +57,18 @@ public class ServerRouter extends SimpleChannelInboundHandler<FullHttpRequest> {
     if (path.startsWith("/petssvc/api/v1/transaction-items")) {
       log.info("[{}] Routing to TransactionItemHandler: {}", requestId, path);
       transactionItemHandler.channelRead(ctx, req.retain());
+      return;
+    }
+
+    if (path.startsWith("/petssvc/api/v1/transactions")) {
+      log.info("[{}] Routing to TransactionHandler: {}", requestId, path);
+      transactionHandler.channelRead(ctx, req.retain());
+      return;
+    }
+
+    if (path.startsWith("/petssvc/api/v1/composites")) {
+      log.info("[{}] Routing to CompositeHandler: {}", requestId, path);
+      compositeHandler.channelRead(ctx, req.retain());
       return;
     }
 
