@@ -33,15 +33,15 @@ public class TransactionService {
     this.tx = new TransactionManager(dataSource);
   }
 
-  public TransactionResponse create(TransactionRequest tr) throws SQLException {
-    log.debug("Create transaction: TransactionRequest=[{}]", tr);
+  public TransactionResponse create(String requestId, TransactionRequest tr) throws SQLException {
+    log.debug("[{}] Create transaction: TransactionRequest=[{}]", requestId, tr);
     return tx.execute(
         bs -> {
           TransactionRepository txnRepo = new TransactionRepository(bs);
           CategoryRepository categoryRepo = new CategoryRepository(bs);
           TransactionItemRepository itemRepo = new TransactionItemRepository(bs);
 
-          validate(tr, categoryRepo);
+          validate(requestId, tr, categoryRepo);
           Transaction txnIn =
               Transaction.builder()
                   .txnDate(tr.txnDate())
@@ -51,7 +51,7 @@ public class TransactionService {
                   .build();
 
           Transaction txnOut = txnRepo.create(txnIn);
-          log.debug("Created transaction: Transaction=[{}]", txnOut);
+          log.debug("[{}] Created transaction: Transaction=[{}]", requestId, txnOut);
 
           List<TransactionItem> txnItemsIn =
               tr.items().stream()
@@ -65,7 +65,8 @@ public class TransactionService {
                               .build())
                   .toList();
           List<TransactionItem> txnItemsOut = itemRepo.createItems(txnItemsIn);
-          log.debug("Created transaction items: TransactionItems=[{}]", txnItemsOut);
+          log.debug(
+              "[{}] Created transaction items: TransactionItems=[{}]", requestId, txnItemsOut);
 
           return new TransactionResponse(
               List.of(new TransactionWithItems(txnOut, txnItemsOut)),
@@ -73,8 +74,8 @@ public class TransactionService {
         });
   }
 
-  public TransactionResponse read(List<UUID> ids) throws SQLException {
-    log.debug("Read transactions: ids=[{}]", ids);
+  public TransactionResponse read(String requestId, List<UUID> ids) throws SQLException {
+    log.debug("[{}] Read transactions: ids=[{}]", requestId, ids);
     return tx.execute(
         bs -> {
           TransactionRepository txnRepo = new TransactionRepository(bs);
@@ -95,15 +96,16 @@ public class TransactionService {
         });
   }
 
-  public TransactionResponse update(UUID id, TransactionRequest tr) throws SQLException {
-    log.debug("Update transaction: id=[{}], TransactionRequest=[{}]", id, tr);
+  public TransactionResponse update(String requestId, UUID id, TransactionRequest tr)
+      throws SQLException {
+    log.debug("[{}] Update transaction: id=[{}], TransactionRequest=[{}]", requestId, id, tr);
     return tx.execute(
         bs -> {
           TransactionRepository txnRepo = new TransactionRepository(bs);
           TransactionItemRepository itemRepo = new TransactionItemRepository(bs);
           CategoryRepository categoryRepo = new CategoryRepository(bs);
 
-          validate(tr, categoryRepo);
+          validate(requestId, tr, categoryRepo);
 
           Transaction txnIn =
               Transaction.builder()
@@ -116,7 +118,7 @@ public class TransactionService {
 
           // Update transaction
           Transaction txnOut = txnRepo.update(txnIn);
-          log.debug("Updated transaction: Transaction=[{}]", txnOut);
+          log.debug("[{}] Updated transaction: Transaction=[{}]", requestId, txnOut);
 
           List<TransactionItem> txnItemsOut = new ArrayList<>();
           if (CommonUtilities.isEmpty(tr.items())) {
@@ -124,7 +126,8 @@ public class TransactionService {
           } else {
             int deleteCount = itemRepo.deleteByTransactionIds(List.of(id));
             log.debug(
-                "Deleted transaction items for transaction: txnId=[{}], deleteCount=[{}]",
+                "[{}] Deleted transaction items for transaction: txnId=[{}], deleteCount=[{}]",
+                requestId,
                 id,
                 deleteCount);
 
@@ -140,7 +143,8 @@ public class TransactionService {
                                 .build())
                     .toList();
             txnItemsOut = itemRepo.createItems(txnItemsIn);
-            log.debug("Recreated transaction items: TransactionItems=[{}]", txnItemsOut);
+            log.debug(
+                "[{}] Recreated transaction items: TransactionItems=[{}]", requestId, txnItemsOut);
           }
 
           return new TransactionResponse(
@@ -149,26 +153,29 @@ public class TransactionService {
         });
   }
 
-  public TransactionResponse delete(List<UUID> ids) throws SQLException {
-    log.info("Delete transactions: ids=[{}]", ids);
+  public TransactionResponse delete(String requestId, List<UUID> ids) throws SQLException {
+    log.info("[{}] Delete transactions: ids=[{}]", requestId, ids);
     return tx.execute(
         bs -> {
           TransactionRepository txnRepo = new TransactionRepository(bs);
           TransactionItemRepository itemRepo = new TransactionItemRepository(bs);
           int deleteCountTxnItems = itemRepo.deleteByTransactionIds(ids);
           log.info(
-              "Deleted transaction items for transactions: ids=[{}], deleteCount=[{}]",
+              "[{}] Deleted transaction items for transactions: ids=[{}], deleteCount=[{}]",
+              requestId,
               ids,
               deleteCountTxnItems);
 
           int deleteCount = txnRepo.delete(ids);
-          log.info("Deleted transactions: ids=[{}], deleteCount=[{}]", ids, deleteCount);
+          log.info(
+              "[{}] Deleted transactions: ids=[{}], deleteCount=[{}]", requestId, ids, deleteCount);
           return new TransactionResponse(
               List.of(), ResponseMetadataUtils.defaultDeleteResponseMetadata(deleteCount));
         });
   }
 
-  public void reconcileAll() throws SQLException {
+  public void reconcileAll(String requestId) throws SQLException {
+    log.info("[{}] Reconciling all transactions...", requestId);
     tx.executeVoid(
         bs -> {
           TransactionRepository txnRepo = new TransactionRepository(bs);
@@ -192,7 +199,8 @@ public class TransactionService {
               double sum = items.stream().mapToDouble(TransactionItem::amount).sum();
               if (Double.compare(sum, txn.totalAmount()) != 0) {
                 log.info(
-                    "MISMATCH for txn=[{}] | total=[{}] | sum(items)=[{}]",
+                    "[{}] MISMATCH for txn=[{}] | total=[{}] | sum(items)=[{}]",
+                    requestId,
                     txnId,
                     txn.totalAmount(),
                     sum);
@@ -203,26 +211,32 @@ public class TransactionService {
         });
   }
 
-  private void validate(TransactionRequest tr, CategoryRepository categoryRepo) {
+  private void validate(String requestId, TransactionRequest tr, CategoryRepository categoryRepo) {
     if (tr == null) {
-      throw new IllegalArgumentException("Transaction request cannot be null...");
+      throw new IllegalArgumentException(
+          String.format("[%s] Transaction request cannot be null...", requestId));
     }
     if (CommonUtilities.isEmpty(tr.merchant())) {
-      throw new IllegalArgumentException("Transaction merchant cannot be empty...");
+      throw new IllegalArgumentException(
+          String.format("[%s] Transaction merchant cannot be empty...", requestId));
     }
     if (tr.totalAmount() <= 0) {
-      throw new IllegalArgumentException("Transaction total cannot be negative...");
+      throw new IllegalArgumentException(
+          String.format("[%s] Transaction total cannot be negative...", requestId));
     }
     if (CommonUtilities.isEmpty(tr.items())) {
-      throw new IllegalArgumentException("Transaction must have at least one item...");
+      throw new IllegalArgumentException(
+          String.format("[%s] Transaction must have at least one item...", requestId));
     }
     double sum = tr.items().stream().mapToDouble(TransactionItemRequest::amount).sum();
     if (Double.compare(sum, tr.totalAmount()) != 0) {
-      throw new IllegalArgumentException("Total amount does not match sum of items");
+      throw new IllegalArgumentException(
+          String.format("[%s] Total amount does not match sum of items", requestId));
     }
     List<UUID> tiIds = tr.items().stream().map(TransactionItemRequest::categoryId).toList();
     if (categoryRepo.readByIdsNoEx(tiIds).size() != tiIds.size()) {
-      throw new IllegalArgumentException("One or more category IDs do not exist");
+      throw new IllegalArgumentException(
+          String.format("[%s] One or more category IDs do not exist", requestId));
     }
   }
 }
