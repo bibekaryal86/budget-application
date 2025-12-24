@@ -43,12 +43,6 @@ public class Main {
                   } catch (Exception e) {
                     log.error("Error shutting down scheduler... ", e);
                   }
-                  try {
-                    log.info("Stopping Netty server...");
-                    // TODO
-                  } catch (Exception e) {
-                    log.error("Error stopping Netty server... ", e);
-                  }
                   log.info("Shutdown complete...");
                 },
                 "shutdown-hook"));
