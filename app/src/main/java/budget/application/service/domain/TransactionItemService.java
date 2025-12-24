@@ -28,8 +28,8 @@ public class TransactionItemService {
     log.debug("[{}] Create transaction item: TransactionItemRequest=[{}]", requestId, tir);
     return tx.execute(
         bs -> {
-          TransactionItemRepository repo = new TransactionItemRepository(bs);
-          CategoryRepository categoryRepo = new CategoryRepository(bs);
+          TransactionItemRepository repo = new TransactionItemRepository(requestId, bs);
+          CategoryRepository categoryRepo = new CategoryRepository(requestId, bs);
 
           validate(requestId, tir, categoryRepo);
 
@@ -47,10 +47,10 @@ public class TransactionItemService {
   }
 
   public TransactionItemResponse read(String requestId, List<UUID> ids) throws SQLException {
-    log.debug("[{}] Read transaction items: ids=[{}]", requestId, ids);
+    log.debug("[{}] Read transaction items: Ids=[{}]", requestId, ids);
     return tx.execute(
         bs -> {
-          TransactionItemRepository repo = new TransactionItemRepository(bs);
+          TransactionItemRepository repo = new TransactionItemRepository(requestId, bs);
           List<TransactionItem> tiList = repo.read(ids);
           return new TransactionItemResponse(tiList, ResponseMetadata.emptyResponseMetadata());
         });
@@ -59,11 +59,11 @@ public class TransactionItemService {
   public TransactionItemResponse update(String requestId, UUID id, TransactionItemRequest tir)
       throws SQLException {
     log.debug(
-        "[{}] Update transaction item: id=[{}], TransactionItemRequest=[{}]", requestId, id, tir);
+        "[{}] Update transaction item: Id=[{}], TransactionItemRequest=[{}]", requestId, id, tir);
     return tx.execute(
         bs -> {
-          TransactionItemRepository repo = new TransactionItemRepository(bs);
-          CategoryRepository categoryRepo = new CategoryRepository(bs);
+          TransactionItemRepository repo = new TransactionItemRepository(requestId, bs);
+          CategoryRepository categoryRepo = new CategoryRepository(requestId, bs);
           validate(requestId, tir, categoryRepo);
           TransactionItem tiIn =
               TransactionItem.builder()
@@ -80,10 +80,10 @@ public class TransactionItemService {
   }
 
   public TransactionItemResponse delete(String requestId, List<UUID> ids) throws SQLException {
-    log.info("[{}] Delete transaction items: ids=[{}]", requestId, ids);
+    log.info("[{}] Delete transaction items: Ids=[{}]", requestId, ids);
     return tx.execute(
         bs -> {
-          TransactionItemRepository repo = new TransactionItemRepository(bs);
+          TransactionItemRepository repo = new TransactionItemRepository(requestId, bs);
 
           int deleteCount = repo.delete(ids);
           return new TransactionItemResponse(

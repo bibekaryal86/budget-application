@@ -12,8 +12,8 @@ public class TransactionRepository {
 
   private final TransactionDao txnDao;
 
-  public TransactionRepository(BaseRepository bs) {
-    this.txnDao = new TransactionDao(bs.connection());
+  public TransactionRepository(String requestId, BaseRepository bs) {
+    this.txnDao = new TransactionDao(requestId, bs.connection());
   }
 
   public Transaction create(Transaction t) throws SQLException {

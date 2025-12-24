@@ -15,8 +15,8 @@ import java.util.UUID;
 
 public class TransactionDao extends BaseDao<Transaction> {
 
-  public TransactionDao(Connection connection) {
-    super(connection, new TransactionRowMapper());
+  public TransactionDao(String requestId, Connection connection) {
+    super(requestId, connection, new TransactionRowMapper());
   }
 
   @Override

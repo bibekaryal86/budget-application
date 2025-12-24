@@ -11,8 +11,8 @@ public class TransactionItemRepository {
 
   private final TransactionItemDao dao;
 
-  public TransactionItemRepository(BaseRepository bs) {
-    this.dao = new TransactionItemDao(bs.connection());
+  public TransactionItemRepository(String requestId, BaseRepository bs) {
+    this.dao = new TransactionItemDao(requestId, bs.connection());
   }
 
   public TransactionItem create(TransactionItem ti) throws SQLException {

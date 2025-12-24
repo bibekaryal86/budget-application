@@ -11,8 +11,8 @@ public class CategoryTypeRepository {
 
   private final CategoryTypeDao dao;
 
-  public CategoryTypeRepository(BaseRepository bs) {
-    this.dao = new CategoryTypeDao(bs.connection());
+  public CategoryTypeRepository(String requestId, BaseRepository bs) {
+    this.dao = new CategoryTypeDao(requestId, bs.connection());
   }
 
   public CategoryType create(CategoryType ct) throws SQLException {

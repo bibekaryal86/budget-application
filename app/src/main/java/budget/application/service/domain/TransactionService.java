@@ -37,9 +37,9 @@ public class TransactionService {
     log.debug("[{}] Create transaction: TransactionRequest=[{}]", requestId, tr);
     return tx.execute(
         bs -> {
-          TransactionRepository txnRepo = new TransactionRepository(bs);
-          CategoryRepository categoryRepo = new CategoryRepository(bs);
-          TransactionItemRepository itemRepo = new TransactionItemRepository(bs);
+          TransactionRepository txnRepo = new TransactionRepository(requestId, bs);
+          CategoryRepository categoryRepo = new CategoryRepository(requestId, bs);
+          TransactionItemRepository itemRepo = new TransactionItemRepository(requestId, bs);
 
           validate(requestId, tr, categoryRepo);
           Transaction txnIn =
@@ -75,11 +75,11 @@ public class TransactionService {
   }
 
   public TransactionResponse read(String requestId, List<UUID> ids) throws SQLException {
-    log.debug("[{}] Read transactions: ids=[{}]", requestId, ids);
+    log.debug("[{}] Read transactions: Ids=[{}]", requestId, ids);
     return tx.execute(
         bs -> {
-          TransactionRepository txnRepo = new TransactionRepository(bs);
-          TransactionItemRepository itemRepo = new TransactionItemRepository(bs);
+          TransactionRepository txnRepo = new TransactionRepository(requestId, bs);
+          TransactionItemRepository itemRepo = new TransactionItemRepository(requestId, bs);
           List<Transaction> txns = txnRepo.read(ids);
           List<UUID> txnIds = txns.stream().map(Transaction::id).toList();
           List<TransactionItem> items = itemRepo.readByTransactionIds(txnIds);
@@ -98,12 +98,12 @@ public class TransactionService {
 
   public TransactionResponse update(String requestId, UUID id, TransactionRequest tr)
       throws SQLException {
-    log.debug("[{}] Update transaction: id=[{}], TransactionRequest=[{}]", requestId, id, tr);
+    log.debug("[{}] Update transaction: Id=[{}], TransactionRequest=[{}]", requestId, id, tr);
     return tx.execute(
         bs -> {
-          TransactionRepository txnRepo = new TransactionRepository(bs);
-          TransactionItemRepository itemRepo = new TransactionItemRepository(bs);
-          CategoryRepository categoryRepo = new CategoryRepository(bs);
+          TransactionRepository txnRepo = new TransactionRepository(requestId, bs);
+          TransactionItemRepository itemRepo = new TransactionItemRepository(requestId, bs);
+          CategoryRepository categoryRepo = new CategoryRepository(requestId, bs);
 
           validate(requestId, tr, categoryRepo);
 
@@ -154,21 +154,21 @@ public class TransactionService {
   }
 
   public TransactionResponse delete(String requestId, List<UUID> ids) throws SQLException {
-    log.info("[{}] Delete transactions: ids=[{}]", requestId, ids);
+    log.info("[{}] Delete transactions: Ids=[{}]", requestId, ids);
     return tx.execute(
         bs -> {
-          TransactionRepository txnRepo = new TransactionRepository(bs);
-          TransactionItemRepository itemRepo = new TransactionItemRepository(bs);
+          TransactionRepository txnRepo = new TransactionRepository(requestId, bs);
+          TransactionItemRepository itemRepo = new TransactionItemRepository(requestId, bs);
           int deleteCountTxnItems = itemRepo.deleteByTransactionIds(ids);
           log.info(
-              "[{}] Deleted transaction items for transactions: ids=[{}], deleteCount=[{}]",
+              "[{}] Deleted transaction items for transactions: Ids=[{}], deleteCount=[{}]",
               requestId,
               ids,
               deleteCountTxnItems);
 
           int deleteCount = txnRepo.delete(ids);
           log.info(
-              "[{}] Deleted transactions: ids=[{}], deleteCount=[{}]", requestId, ids, deleteCount);
+              "[{}] Deleted transactions: Ids=[{}], deleteCount=[{}]", requestId, ids, deleteCount);
           return new TransactionResponse(
               List.of(), ResponseMetadataUtils.defaultDeleteResponseMetadata(deleteCount));
         });
@@ -178,8 +178,8 @@ public class TransactionService {
     log.info("[{}] Reconciling all transactions...", requestId);
     tx.executeVoid(
         bs -> {
-          TransactionRepository txnRepo = new TransactionRepository(bs);
-          TransactionItemRepository itemRepo = new TransactionItemRepository(bs);
+          TransactionRepository txnRepo = new TransactionRepository(requestId, bs);
+          TransactionItemRepository itemRepo = new TransactionItemRepository(requestId, bs);
           // Read all transactions
           int pageNumber = 1;
           int pageSize = 1000;

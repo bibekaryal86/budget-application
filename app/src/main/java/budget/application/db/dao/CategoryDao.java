@@ -9,8 +9,8 @@ import java.util.UUID;
 
 public class CategoryDao extends BaseDao<Category> {
 
-  public CategoryDao(Connection connection) {
-    super(connection, new CategoryRowMapper());
+  public CategoryDao(String requestId, Connection connection) {
+    super(requestId, connection, new CategoryRowMapper());
   }
 
   @Override

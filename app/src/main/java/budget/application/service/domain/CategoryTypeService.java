@@ -28,7 +28,7 @@ public class CategoryTypeService {
     log.debug("[{}] Create category type: CategoryTypeRequest=[{}]", requestId, ctr);
     return tx.execute(
         bs -> {
-          CategoryTypeRepository repo = new CategoryTypeRepository(bs);
+          CategoryTypeRepository repo = new CategoryTypeRepository(requestId, bs);
           validate(requestId, ctr);
           CategoryType ctIn = CategoryType.builder().name(ctr.name()).build();
           CategoryType ctOut = repo.create(ctIn);
@@ -38,10 +38,10 @@ public class CategoryTypeService {
   }
 
   public CategoryTypeResponse read(String requestId, List<UUID> ids) throws SQLException {
-    log.debug("[{}] Read category types: ids=[{}]", requestId, ids);
+    log.debug("[{}] Read category types: Ids=[{}]", requestId, ids);
     return tx.execute(
         bs -> {
-          CategoryTypeRepository repo = new CategoryTypeRepository(bs);
+          CategoryTypeRepository repo = new CategoryTypeRepository(requestId, bs);
           List<CategoryType> ctList = repo.read(ids);
           return new CategoryTypeResponse(ctList, ResponseMetadata.emptyResponseMetadata());
         });
@@ -49,10 +49,10 @@ public class CategoryTypeService {
 
   public CategoryTypeResponse update(String requestId, UUID id, CategoryTypeRequest ctr)
       throws SQLException {
-    log.debug("[{}] Update category type: id=[{}], CategoryTypeRequest=[{}]", requestId, id, ctr);
+    log.debug("[{}] Update category type: Id=[{}], CategoryTypeRequest=[{}]", requestId, id, ctr);
     return tx.execute(
         bs -> {
-          CategoryTypeRepository repo = new CategoryTypeRepository(bs);
+          CategoryTypeRepository repo = new CategoryTypeRepository(requestId, bs);
           validate(requestId, ctr);
           CategoryType ctIn = CategoryType.builder().id(id).name(ctr.name()).build();
           CategoryType ctOut = repo.update(ctIn);
@@ -62,10 +62,10 @@ public class CategoryTypeService {
   }
 
   public CategoryTypeResponse delete(String requestId, List<UUID> ids) throws SQLException {
-    log.info("[{}] Delete category types: ids=[{}]", requestId, ids);
+    log.info("[{}] Delete category types: Ids=[{}]", requestId, ids);
     return tx.execute(
         bs -> {
-          CategoryTypeRepository repo = new CategoryTypeRepository(bs);
+          CategoryTypeRepository repo = new CategoryTypeRepository(requestId, bs);
           int deleteCount = repo.delete(ids);
           return new CategoryTypeResponse(
               List.of(), ResponseMetadataUtils.defaultDeleteResponseMetadata(deleteCount));
