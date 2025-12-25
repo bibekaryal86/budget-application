@@ -61,10 +61,14 @@ public abstract class BaseDao<T> {
     log.debug("[{}] Create SQL=[{}]", requestId, sql);
     try (PreparedStatement stmt = connection.prepareStatement(sql)) {
       DaoUtils.bindParams(stmt, insertValues(entity));
-      stmt.executeUpdate();
+      try (ResultSet rs = stmt.executeQuery()) {
+        if (rs.next()) {
+          return mapper.map(rs);
+        }
+      }
     }
 
-    return entity;
+    return null;
   }
 
   // 2) READ
@@ -128,10 +132,15 @@ public abstract class BaseDao<T> {
     try (PreparedStatement stmt = connection.prepareStatement(sql)) {
       DaoUtils.bindParams(stmt, values);
       stmt.setObject(values.size() + 1, getId(entity));
-      stmt.executeUpdate();
+
+        try (ResultSet rs = stmt.executeQuery()) {
+            if (rs.next()) {
+                return mapper.map(rs);
+            }
+        }
     }
 
-    return entity;
+    return null;
   }
 
   // 4) DELETE

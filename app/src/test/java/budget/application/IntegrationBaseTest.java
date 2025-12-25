@@ -74,4 +74,27 @@ public abstract class IntegrationBaseTest {
 
     return HttpClient.newHttpClient().send(req, HttpResponse.BodyHandlers.ofString());
   }
+
+  protected HttpResponse<String> httpPut(String path, String json) throws Exception {
+    HttpRequest req =
+        HttpRequest.newBuilder()
+            .uri(URI.create("http://localhost:" + port + path))
+            .header("Content-Type", "application/json")
+            .header("Authorization", "Basic " + basicAuthCredentialsForTest)
+            .PUT(HttpRequest.BodyPublishers.ofString(json))
+            .build();
+
+    return HttpClient.newHttpClient().send(req, HttpResponse.BodyHandlers.ofString());
+  }
+
+  protected HttpResponse<String> httpDelete(String path) throws Exception {
+    HttpRequest req =
+        HttpRequest.newBuilder()
+            .header("Authorization", "Basic " + basicAuthCredentialsForTest)
+            .uri(URI.create("http://localhost:" + port + path))
+            .DELETE()
+            .build();
+
+    return HttpClient.newHttpClient().send(req, HttpResponse.BodyHandlers.ofString());
+  }
 }

@@ -24,12 +24,12 @@ public class ExceptionHandler extends ChannelInboundHandlerAdapter {
   }
 
   private HttpResponseStatus getHttpStatus(Throwable cause) {
-      if (cause instanceof Exceptions.BadRequestException) {
-          return HttpResponseStatus.BAD_REQUEST;
-      }
-      if (cause instanceof Exceptions.NotFoundException) {
-          return HttpResponseStatus.NOT_FOUND;
-      }
-      return HttpResponseStatus.INTERNAL_SERVER_ERROR;
+    if (cause instanceof Exceptions.BadRequestException) {
+      return HttpResponseStatus.BAD_REQUEST;
+    }
+    if (cause instanceof Exceptions.NotFoundException) {
+      return HttpResponseStatus.NOT_FOUND;
+    }
+    return HttpResponseStatus.INTERNAL_SERVER_ERROR;
   }
 }
