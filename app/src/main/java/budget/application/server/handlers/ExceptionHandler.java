@@ -1,6 +1,7 @@
 package budget.application.server.handlers;
 
 import budget.application.common.Constants;
+import budget.application.common.Exceptions;
 import budget.application.server.utils.ServerUtils;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseWithMetadata;
 import io.netty.channel.ChannelHandlerContext;
@@ -19,7 +20,16 @@ public class ExceptionHandler extends ChannelInboundHandlerAdapter {
     ResponseWithMetadata response =
         ServerUtils.getResponseWithMetadata(
             String.format("[%s] [%s]--[%s]", requestId, className, message));
-    ServerUtils.sendResponse(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR, response);
-    ctx.close();
+    ServerUtils.sendResponse(ctx, getHttpStatus(cause), response);
+  }
+
+  private HttpResponseStatus getHttpStatus(Throwable cause) {
+      if (cause instanceof Exceptions.BadRequestException) {
+          return HttpResponseStatus.BAD_REQUEST;
+      }
+      if (cause instanceof Exceptions.NotFoundException) {
+          return HttpResponseStatus.NOT_FOUND;
+      }
+      return HttpResponseStatus.INTERNAL_SERVER_ERROR;
   }
 }

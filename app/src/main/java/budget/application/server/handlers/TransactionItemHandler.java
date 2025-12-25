@@ -51,14 +51,14 @@ public class TransactionItemHandler extends SimpleChannelInboundHandler<FullHttp
 
     // READ ONE: GET /petssvc/api/v1/transaction-items/{id}
     if (path.startsWith(ApiPaths.TRANSACTION_ITEMS_V1_WITH_ID) && method.equals(HttpMethod.GET)) {
-      UUID id = ServerUtils.getId(path, ApiPaths.TRANSACTION_ITEMS_V1_WITH_ID);
+      UUID id = ServerUtils.getRequestId(path, ApiPaths.TRANSACTION_ITEMS_V1_WITH_ID);
       handleReadOne(requestId, ctx, id);
       return;
     }
 
     // UPDATE: PUT /petssvc/api/v1/transaction-items/{id}
     if (path.startsWith(ApiPaths.TRANSACTION_ITEMS_V1_WITH_ID) && method.equals(HttpMethod.PUT)) {
-      UUID id = ServerUtils.getId(path, ApiPaths.TRANSACTION_ITEMS_V1_WITH_ID);
+      UUID id = ServerUtils.getRequestId(path, ApiPaths.TRANSACTION_ITEMS_V1_WITH_ID);
       handleUpdate(requestId, ctx, req, id);
       return;
     }
@@ -66,7 +66,7 @@ public class TransactionItemHandler extends SimpleChannelInboundHandler<FullHttp
     // DELETE: DELETE /petssvc/api/v1/transaction-items/{id}
     if (path.startsWith(ApiPaths.TRANSACTION_ITEMS_V1_WITH_ID)
         && method.equals(HttpMethod.DELETE)) {
-      UUID id = ServerUtils.getId(path, ApiPaths.TRANSACTION_ITEMS_V1_WITH_ID);
+      UUID id = ServerUtils.getRequestId(path, ApiPaths.TRANSACTION_ITEMS_V1_WITH_ID);
       handleDelete(requestId, ctx, id);
       return;
     }

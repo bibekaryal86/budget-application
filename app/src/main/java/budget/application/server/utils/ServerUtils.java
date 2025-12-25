@@ -31,7 +31,7 @@ public class ServerUtils {
     ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
   }
 
-  public static UUID getId(String path, String prefix) {
+  public static UUID getRequestId(String path, String prefix) {
     try {
       String id = path.substring((prefix).length());
       return UUID.fromString(id);
