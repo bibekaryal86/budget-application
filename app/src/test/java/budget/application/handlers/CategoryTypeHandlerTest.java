@@ -8,6 +8,7 @@ import budget.application.server.utils.JsonUtils;
 import budget.application.service.util.ResponseMetadataUtils;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseWithMetadata;
 import java.net.http.HttpResponse;
+import java.util.UUID;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -82,27 +83,48 @@ public class CategoryTypeHandlerTest extends IntegrationBaseTest {
     Assertions.assertEquals(401, resp.statusCode());
   }
 
-    @Test
-    void testCategoryTypesBadRequest() throws Exception {
-        HttpResponse<String> resp = httpPost(ApiPaths.CATEGORY_TYPES_V1, "", Boolean.TRUE);
-        Assertions.assertEquals(400, resp.statusCode());
-        Assertions.assertTrue(resp.body().contains("Category type request cannot be null..."));
+  @Test
+  void testCategoryTypesBadRequest() throws Exception {
+    HttpResponse<String> resp = httpPost(ApiPaths.CATEGORY_TYPES_V1, "", Boolean.TRUE);
+    Assertions.assertEquals(400, resp.statusCode());
+    Assertions.assertTrue(resp.body().contains("Category type request cannot be null..."));
 
-        CategoryTypeRequest req = new CategoryTypeRequest("");
-        resp = httpPost(ApiPaths.CATEGORY_TYPES_V1, JsonUtils.toJson(req), Boolean.TRUE);
-        Assertions.assertEquals(400, resp.statusCode());
-        Assertions.assertTrue(resp.body().contains("Category type name cannot be empty..."));
+    CategoryTypeRequest req = new CategoryTypeRequest("");
+    resp = httpPost(ApiPaths.CATEGORY_TYPES_V1, JsonUtils.toJson(req), Boolean.TRUE);
+    Assertions.assertEquals(400, resp.statusCode());
+    Assertions.assertTrue(resp.body().contains("Category type name cannot be empty..."));
 
-        resp = httpGet(ApiPaths.CATEGORY_TYPES_V1_WITH_ID + "invalid-uuid", Boolean.TRUE);
-        Assertions.assertEquals(400, resp.statusCode());
-        Assertions.assertTrue(resp.body().contains("Invalid Id Provided..."));
+    resp = httpGet(ApiPaths.CATEGORY_TYPES_V1_WITH_ID + "invalid-uuid", Boolean.TRUE);
+    Assertions.assertEquals(400, resp.statusCode());
+    Assertions.assertTrue(resp.body().contains("Invalid Id Provided..."));
 
-        resp = httpPut(ApiPaths.CATEGORY_TYPES_V1_WITH_ID + "invalid-uuid", "", Boolean.TRUE);
-        Assertions.assertEquals(400, resp.statusCode());
-        Assertions.assertTrue(resp.body().contains("Invalid Id Provided..."));
+    resp =
+        httpGet(
+            ApiPaths.CATEGORY_TYPES_V1_WITH_ID + UUID.randomUUID() + "/something-else",
+            Boolean.TRUE);
+    Assertions.assertEquals(400, resp.statusCode());
+    Assertions.assertTrue(resp.body().contains("Invalid Id Provided..."));
 
-        resp = httpDelete(ApiPaths.CATEGORY_TYPES_V1_WITH_ID + "invalid-uuid", Boolean.TRUE);
-        Assertions.assertEquals(400, resp.statusCode());
-        Assertions.assertTrue(resp.body().contains("Invalid Id Provided..."));
-    }
+    resp = httpPut(ApiPaths.CATEGORY_TYPES_V1_WITH_ID + "invalid-uuid", "", Boolean.TRUE);
+    Assertions.assertEquals(400, resp.statusCode());
+    Assertions.assertTrue(resp.body().contains("Invalid Id Provided..."));
+
+    resp = httpDelete(ApiPaths.CATEGORY_TYPES_V1_WITH_ID + "invalid-uuid", Boolean.TRUE);
+    Assertions.assertEquals(400, resp.statusCode());
+    Assertions.assertTrue(resp.body().contains("Invalid Id Provided..."));
+  }
+
+  @Test
+  void testUnknownTestsPathFallsThrough() throws Exception {
+    HttpResponse<String> resp =
+        httpGet(ApiPaths.CATEGORY_TYPES_V1 + "/something-else", Boolean.TRUE);
+    ResponseWithMetadata response = JsonUtils.fromJson(resp.body(), ResponseWithMetadata.class);
+    Assertions.assertEquals(404, resp.statusCode());
+    Assertions.assertTrue(
+        response
+            .getResponseMetadata()
+            .responseStatusInfo()
+            .errMsg()
+            .contains("The requested resource does not exist..."));
+  }
 }
