@@ -34,15 +34,15 @@ CREATE INDEX idx_category_name ON category(name);
 CREATE TABLE transaction (
     id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     txn_date        TIMESTAMP NOT NULL,
-    merchant        VARCHAR(255) NOT NULL,,
+    merchant        VARCHAR(255) NOT NULL,
     total_amount    NUMERIC(12, 2) NOT NULL CHECK (total_amount >= 0),
     notes           TEXT,
     created_at      TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at      TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX idx_transaction_date ON transaction(date);
-CREATE INDEX idx_transaction_description ON transaction(description);
+CREATE INDEX idx_transaction_date ON transaction(txn_date);
+CREATE INDEX idx_transaction_merchant ON transaction(merchant);
 
 -- ============================================
 -- 4. Transaction Items (Line Items)

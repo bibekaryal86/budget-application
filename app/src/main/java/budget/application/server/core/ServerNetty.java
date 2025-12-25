@@ -5,6 +5,7 @@ import budget.application.server.handlers.ExceptionHandler;
 import budget.application.server.handlers.NotFoundHandler;
 import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
@@ -14,6 +15,7 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
+import java.net.InetSocketAddress;
 import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
 
@@ -21,14 +23,17 @@ import lombok.extern.slf4j.Slf4j;
 public class ServerNetty {
 
   final DataSource dataSource;
+  private Channel serverChannel;
+  private EventLoopGroup bossGroup;
+  private EventLoopGroup workerGroup;
 
   public ServerNetty(DataSource dataSource) {
     this.dataSource = dataSource;
   }
 
   public void start() throws Exception {
-    final EventLoopGroup bossGroup = new NioEventLoopGroup(Constants.BOSS_GROUP_THREADS);
-    final EventLoopGroup workerGroup = new NioEventLoopGroup(Constants.WORKER_GROUP_THREADS);
+    bossGroup = new NioEventLoopGroup(Constants.BOSS_GROUP_THREADS);
+    EventLoopGroup workerGroup = new NioEventLoopGroup(Constants.WORKER_GROUP_THREADS);
 
     try {
       final ServerBootstrap serverBootstrap = new ServerBootstrap();
@@ -57,13 +62,41 @@ public class ServerNetty {
               CommonUtilities.getSystemEnvProperty(
                   Constants.ENV_SERVER_PORT, Constants.ENV_PORT_DEFAULT));
       final ChannelFuture channelFuture = serverBootstrap.bind(serverPort).sync();
-
-      log.info("Budget Server Started on Port [{}]...", serverPort);
-      channelFuture.channel().closeFuture().sync();
-    } finally {
-      workerGroup.shutdownGracefully();
-      bossGroup.shutdownGracefully();
-      log.info("Budget Server Stopped...");
+      serverChannel = channelFuture.channel();
+      log.info("Budget Server Started on Port [{}]...", getBoundPort());
+      if (!isTestMode()) {
+        serverChannel.closeFuture().sync();
+      }
+    } catch (Exception ex) {
+      log.error("Budget Server Start Exception", ex);
+      throw new RuntimeException(ex);
     }
+  }
+
+  public void stop() {
+    try {
+      if (serverChannel != null) {
+        serverChannel.close().sync();
+      }
+    } catch (InterruptedException ignored) {
+    }
+    if (workerGroup != null) {
+      workerGroup.shutdownGracefully();
+    }
+    if (bossGroup != null) {
+      bossGroup.shutdownGracefully();
+    }
+    log.info("Budget Server Stopped...");
+  }
+
+  public int getBoundPort() {
+    if (serverChannel == null) {
+      throw new IllegalStateException("Server not started yet...");
+    }
+    return ((InetSocketAddress) serverChannel.localAddress()).getPort();
+  }
+
+  private boolean isTestMode() {
+    return "true".equals(System.getProperty("TEST_MODE"));
   }
 }

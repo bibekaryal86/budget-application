@@ -39,6 +39,6 @@ public class AppTestsHandler extends SimpleChannelInboundHandler<FullHttpRequest
   // TESTS PING
   private void handlePing(String requestId, ChannelHandlerContext ctx) {
     Map<String, String> response = Map.of("ping", String.format("[%s] successful", requestId));
-    ServerUtils.sendResponse(ctx, HttpResponseStatus.CREATED, response);
+    ServerUtils.sendResponse(ctx, HttpResponseStatus.OK, response);
   }
 }

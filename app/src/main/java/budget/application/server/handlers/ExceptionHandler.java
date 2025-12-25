@@ -19,7 +19,7 @@ public class ExceptionHandler extends ChannelInboundHandlerAdapter {
     ResponseWithMetadata response =
         ServerUtils.getResponseWithMetadata(
             String.format("[%s] [%s]--[%s]", requestId, className, message));
-    ServerUtils.sendResponse(ctx, HttpResponseStatus.NOT_FOUND, response);
+    ServerUtils.sendResponse(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR, response);
     ctx.close();
   }
 }

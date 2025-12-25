@@ -85,14 +85,14 @@ public class TransactionHandler extends SimpleChannelInboundHandler<FullHttpRequ
   // READ ALL
   private void handleReadAll(String requestId, ChannelHandlerContext ctx) throws Exception {
     TransactionResponse response = service.read(requestId, List.of());
-    ServerUtils.sendResponse(ctx, HttpResponseStatus.CREATED, response);
+    ServerUtils.sendResponse(ctx, HttpResponseStatus.OK, response);
   }
 
   // READ ONE
   private void handleReadOne(String requestId, ChannelHandlerContext ctx, UUID id)
       throws Exception {
     TransactionResponse response = service.read(requestId, List.of(id));
-    ServerUtils.sendResponse(ctx, HttpResponseStatus.CREATED, response);
+    ServerUtils.sendResponse(ctx, HttpResponseStatus.OK, response);
   }
 
   // UPDATE

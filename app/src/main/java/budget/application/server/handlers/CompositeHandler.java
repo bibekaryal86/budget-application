@@ -50,6 +50,6 @@ public class CompositeHandler extends SimpleChannelInboundHandler<FullHttpReques
       String requestId, ChannelHandlerContext ctx, FullHttpRequest req) throws Exception {
     CompositeRequest request = ServerUtils.getRequestBody(req, CompositeRequest.class);
     CompositeResponse response = service.compositeTransactions(requestId, request);
-    ServerUtils.sendResponse(ctx, HttpResponseStatus.CREATED, response);
+    ServerUtils.sendResponse(ctx, HttpResponseStatus.OK, response);
   }
 }
