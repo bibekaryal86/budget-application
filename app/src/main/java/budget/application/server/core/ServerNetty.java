@@ -97,6 +97,7 @@ public class ServerNetty {
   }
 
   private boolean isTestMode() {
-    return "true".equals(System.getProperty("TEST_MODE"));
+    return Constants.TESTING_ENV.equals(
+        CommonUtilities.getSystemEnvProperty(Constants.SPRING_PROFILES_ACTIVE));
   }
 }

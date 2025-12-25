@@ -54,7 +54,7 @@ public class Constants {
   public static final String THIS_APP_NAME_ENV_DETAILS = "petsservice";
   public static final String ENV_PORT_DEFAULT = "8101";
   public static final String PRODUCTION_ENV = "production";
-  public static final String DEVELOPMENT_ENV = "development";
+  public static final String TESTING_ENV = "test_mode";
 
   public static final AttributeKey<String> REQUEST_ID = AttributeKey.valueOf("REQUEST_ID");
   public static final AttributeKey<AuthToken> AUTH_TOKEN = AttributeKey.valueOf("AUTH_TOKEN");
