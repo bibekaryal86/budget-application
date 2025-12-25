@@ -103,13 +103,13 @@ public class CategoryService {
       throw new Exceptions.BadRequestException(
           String.format("[%s] Category request cannot be null...", requestId));
     }
-    if (CommonUtilities.isEmpty(cr.name())) {
-      throw new Exceptions.BadRequestException(
-          String.format("[%s] Category name cannot be empty...", requestId));
-    }
     if (cr.categoryTypeId() == null) {
       throw new Exceptions.BadRequestException(
           String.format("[%s] Category type cannot be null...", requestId));
+    }
+    if (CommonUtilities.isEmpty(cr.name())) {
+      throw new Exceptions.BadRequestException(
+          String.format("[%s] Category name cannot be empty...", requestId));
     }
     if (typeRepo.readByIdNoEx(cr.categoryTypeId()).isEmpty()) {
       throw new Exceptions.BadRequestException(
