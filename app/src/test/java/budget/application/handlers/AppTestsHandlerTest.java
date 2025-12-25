@@ -19,7 +19,7 @@ public class AppTestsHandlerTest extends IntegrationBaseTest {
 
   @Test
   void testUnknownTestsPathFallsThrough() throws Exception {
-    HttpResponse<String> resp = httpGet("/tests/unknown", Boolean.FALSE);
+    HttpResponse<String> resp = httpGet("/tests/unknown", Boolean.TRUE);
     ResponseWithMetadata response = JsonUtils.fromJson(resp.body(), ResponseWithMetadata.class);
     Assertions.assertEquals(404, resp.statusCode());
     Assertions.assertTrue(

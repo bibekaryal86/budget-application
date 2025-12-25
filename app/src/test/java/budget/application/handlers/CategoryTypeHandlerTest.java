@@ -67,4 +67,42 @@ public class CategoryTypeHandlerTest extends IntegrationBaseTest {
             .errMsg()
             .contains("[CategoryType] Not found for"));
   }
+
+  @Test
+  void testCategoryTypesUnauthorized() throws Exception {
+    HttpResponse<String> resp = httpPost(ApiPaths.CATEGORY_TYPES_V1, "", Boolean.FALSE);
+    Assertions.assertEquals(401, resp.statusCode());
+    resp = httpGet(ApiPaths.CATEGORY_TYPES_V1, Boolean.FALSE);
+    Assertions.assertEquals(401, resp.statusCode());
+    resp = httpGet(ApiPaths.CATEGORY_TYPES_V1_WITH_ID + "some-id", Boolean.FALSE);
+    Assertions.assertEquals(401, resp.statusCode());
+    resp = httpPut(ApiPaths.CATEGORY_TYPES_V1_WITH_ID + "some-id", "", Boolean.FALSE);
+    Assertions.assertEquals(401, resp.statusCode());
+    resp = httpDelete(ApiPaths.CATEGORY_TYPES_V1_WITH_ID + "some-id", Boolean.FALSE);
+    Assertions.assertEquals(401, resp.statusCode());
+  }
+
+    @Test
+    void testCategoryTypesBadRequest() throws Exception {
+        HttpResponse<String> resp = httpPost(ApiPaths.CATEGORY_TYPES_V1, "", Boolean.TRUE);
+        Assertions.assertEquals(400, resp.statusCode());
+        Assertions.assertTrue(resp.body().contains("Category type request cannot be null..."));
+
+        CategoryTypeRequest req = new CategoryTypeRequest("");
+        resp = httpPost(ApiPaths.CATEGORY_TYPES_V1, JsonUtils.toJson(req), Boolean.TRUE);
+        Assertions.assertEquals(400, resp.statusCode());
+        Assertions.assertTrue(resp.body().contains("Category type name cannot be empty..."));
+
+        resp = httpGet(ApiPaths.CATEGORY_TYPES_V1_WITH_ID + "invalid-uuid", Boolean.TRUE);
+        Assertions.assertEquals(400, resp.statusCode());
+        Assertions.assertTrue(resp.body().contains("Invalid Id Provided..."));
+
+        resp = httpPut(ApiPaths.CATEGORY_TYPES_V1_WITH_ID + "invalid-uuid", "", Boolean.TRUE);
+        Assertions.assertEquals(400, resp.statusCode());
+        Assertions.assertTrue(resp.body().contains("Invalid Id Provided..."));
+
+        resp = httpDelete(ApiPaths.CATEGORY_TYPES_V1_WITH_ID + "invalid-uuid", Boolean.TRUE);
+        Assertions.assertEquals(400, resp.statusCode());
+        Assertions.assertTrue(resp.body().contains("Invalid Id Provided..."));
+    }
 }

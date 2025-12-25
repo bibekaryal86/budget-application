@@ -54,10 +54,7 @@ public abstract class IntegrationBaseTest {
 
   protected HttpResponse<String> httpGet(String path, boolean isIncludeAuth) throws Exception {
     HttpRequest.Builder builder =
-        HttpRequest.newBuilder()
-            .header("Authorization", "Basic " + basicAuthCredentialsForTest)
-            .uri(URI.create("http://localhost:" + port + path))
-            .GET();
+        HttpRequest.newBuilder().uri(URI.create("http://localhost:" + port + path)).GET();
     if (isIncludeAuth) {
       builder.header("Authorization", "Basic " + basicAuthCredentialsForTest).build();
     }

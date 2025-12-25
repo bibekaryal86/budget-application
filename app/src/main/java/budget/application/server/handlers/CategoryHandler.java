@@ -51,21 +51,21 @@ public class CategoryHandler extends SimpleChannelInboundHandler<FullHttpRequest
 
     // READ ONE: GET /petssvc/api/v1/categories/{id}
     if (path.startsWith(ApiPaths.CATEGORIES_V1_WITH_ID) && method.equals(HttpMethod.GET)) {
-      UUID id = ServerUtils.getRequestId(path, ApiPaths.CATEGORIES_V1_WITH_ID);
+      UUID id = ServerUtils.getEntityId(path, ApiPaths.CATEGORIES_V1_WITH_ID);
       handleReadOne(requestId, ctx, id);
       return;
     }
 
     // UPDATE: PUT /petssvc/api/v1/categories/{id}
     if (path.startsWith(ApiPaths.CATEGORIES_V1_WITH_ID) && method.equals(HttpMethod.PUT)) {
-      UUID id = ServerUtils.getRequestId(path, ApiPaths.CATEGORIES_V1_WITH_ID);
+      UUID id = ServerUtils.getEntityId(path, ApiPaths.CATEGORIES_V1_WITH_ID);
       handleUpdate(requestId, ctx, req, id);
       return;
     }
 
     // DELETE: DELETE /petssvc/api/v1/categories/{id}
     if (path.startsWith(ApiPaths.CATEGORIES_V1_WITH_ID) && method.equals(HttpMethod.DELETE)) {
-      UUID id = ServerUtils.getRequestId(path, ApiPaths.CATEGORIES_V1_WITH_ID);
+      UUID id = ServerUtils.getEntityId(path, ApiPaths.CATEGORIES_V1_WITH_ID);
       handleDelete(requestId, ctx, id);
       return;
     }

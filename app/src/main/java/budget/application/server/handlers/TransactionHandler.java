@@ -51,21 +51,21 @@ public class TransactionHandler extends SimpleChannelInboundHandler<FullHttpRequ
 
     // READ ONE: GET /petssvc/api/v1/transactions/{id}
     if (path.startsWith(ApiPaths.TRANSACTIONS_V1_WITH_ID) && method.equals(HttpMethod.GET)) {
-      UUID id = ServerUtils.getRequestId(path, ApiPaths.TRANSACTIONS_V1_WITH_ID);
+      UUID id = ServerUtils.getEntityId(path, ApiPaths.TRANSACTIONS_V1_WITH_ID);
       handleReadOne(requestId, ctx, id);
       return;
     }
 
     // UPDATE: PUT /petssvc/api/v1/transactions/{id}
     if (path.startsWith(ApiPaths.TRANSACTIONS_V1_WITH_ID) && method.equals(HttpMethod.PUT)) {
-      UUID id = ServerUtils.getRequestId(path, ApiPaths.TRANSACTIONS_V1_WITH_ID);
+      UUID id = ServerUtils.getEntityId(path, ApiPaths.TRANSACTIONS_V1_WITH_ID);
       handleUpdate(requestId, ctx, req, id);
       return;
     }
 
     // DELETE: DELETE /petssvc/api/v1/transactions/{id}
     if (path.startsWith(ApiPaths.TRANSACTIONS_V1_WITH_ID) && method.equals(HttpMethod.DELETE)) {
-      UUID id = ServerUtils.getRequestId(path, ApiPaths.TRANSACTIONS_V1_WITH_ID);
+      UUID id = ServerUtils.getEntityId(path, ApiPaths.TRANSACTIONS_V1_WITH_ID);
       handleDelete(requestId, ctx, id);
       return;
     }

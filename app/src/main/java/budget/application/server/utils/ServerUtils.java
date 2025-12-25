@@ -1,5 +1,6 @@
 package budget.application.server.utils;
 
+import budget.application.common.Exceptions;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseMetadata;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseWithMetadata;
 import io.netty.buffer.Unpooled;
@@ -31,12 +32,12 @@ public class ServerUtils {
     ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
   }
 
-  public static UUID getRequestId(String path, String prefix) {
+  public static UUID getEntityId(String path, String prefix) {
     try {
       String id = path.substring((prefix).length());
       return UUID.fromString(id);
     } catch (Exception e) {
-      throw new IllegalArgumentException("Invalid Id Provided...");
+      throw new Exceptions.BadRequestException("Invalid Id Provided...");
     }
   }
 
