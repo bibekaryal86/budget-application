@@ -1,5 +1,6 @@
 package budget.application.service.domain;
 
+import budget.application.common.Exceptions;
 import budget.application.db.repository.CategoryRepository;
 import budget.application.db.repository.TransactionItemRepository;
 import budget.application.model.dto.request.TransactionItemRequest;
@@ -52,6 +53,12 @@ public class TransactionItemService {
         bs -> {
           TransactionItemRepository repo = new TransactionItemRepository(requestId, bs);
           List<TransactionItem> tiList = repo.read(ids);
+
+          if (ids.size() == 1 && tiList.isEmpty()) {
+            throw new Exceptions.NotFoundException(
+                requestId, "TransactionItem", ids.getFirst().toString());
+          }
+
           return new TransactionItemResponse(tiList, ResponseMetadata.emptyResponseMetadata());
         });
   }
@@ -65,6 +72,12 @@ public class TransactionItemService {
           TransactionItemRepository repo = new TransactionItemRepository(requestId, bs);
           CategoryRepository categoryRepo = new CategoryRepository(requestId, bs);
           validate(requestId, tir, categoryRepo);
+
+          List<TransactionItem> tiList = repo.read(List.of(id));
+          if (tiList.isEmpty()) {
+            throw new Exceptions.NotFoundException(requestId, "TransactionItem", id.toString());
+          }
+
           TransactionItem tiIn =
               TransactionItem.builder()
                   .id(id)
@@ -85,6 +98,12 @@ public class TransactionItemService {
         bs -> {
           TransactionItemRepository repo = new TransactionItemRepository(requestId, bs);
 
+          List<TransactionItem> tiList = repo.read(ids);
+          if (ids.size() == 1 && tiList.isEmpty()) {
+            throw new Exceptions.NotFoundException(
+                requestId, "TransactionItem", ids.getFirst().toString());
+          }
+
           int deleteCount = repo.delete(ids);
           return new TransactionItemResponse(
               List.of(), ResponseMetadataUtils.defaultDeleteResponseMetadata(deleteCount));
@@ -94,23 +113,23 @@ public class TransactionItemService {
   private void validate(
       String requestId, TransactionItemRequest tir, CategoryRepository categoryRepo) {
     if (tir == null) {
-      throw new IllegalArgumentException(
+      throw new Exceptions.BadRequestException(
           String.format("[%s] Transaction item cannot be null...", requestId));
     }
     if (tir.transactionId() == null) {
-      throw new IllegalArgumentException(
+      throw new Exceptions.BadRequestException(
           String.format("[%s] Transaction item transaction cannot be null...", requestId));
     }
     if (tir.categoryId() == null) {
-      throw new IllegalArgumentException(
+      throw new Exceptions.BadRequestException(
           String.format("[%s] Transaction item category cannot be null...", requestId));
     }
     if (tir.amount() <= 0) {
-      throw new IllegalArgumentException(
+      throw new Exceptions.BadRequestException(
           String.format("[%s] Transaction item amount cannot be negative...", requestId));
     }
     if (categoryRepo.readByIdNoEx(tir.categoryId()).isEmpty()) {
-      throw new IllegalArgumentException(
+      throw new Exceptions.BadRequestException(
           String.format("[%s] Category type does not exist...", requestId));
     }
   }

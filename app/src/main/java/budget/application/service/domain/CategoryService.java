@@ -1,5 +1,6 @@
 package budget.application.service.domain;
 
+import budget.application.common.Exceptions;
 import budget.application.db.repository.CategoryRepository;
 import budget.application.db.repository.CategoryTypeRepository;
 import budget.application.model.dto.request.CategoryRequest;
@@ -47,6 +48,12 @@ public class CategoryService {
         bs -> {
           CategoryRepository repo = new CategoryRepository(requestId, bs);
           List<Category> cList = repo.read(ids);
+
+          if (ids.size() == 1 && cList.isEmpty()) {
+            throw new Exceptions.NotFoundException(
+                requestId, "Category", ids.getFirst().toString());
+          }
+
           return new CategoryResponse(cList, ResponseMetadata.emptyResponseMetadata());
         });
   }
@@ -59,6 +66,12 @@ public class CategoryService {
           CategoryRepository repo = new CategoryRepository(requestId, bs);
           CategoryTypeRepository typeRepo = new CategoryTypeRepository(requestId, bs);
           validate(requestId, cr, typeRepo);
+
+          List<Category> cList = repo.read(List.of(id));
+          if (cList.isEmpty()) {
+            throw new Exceptions.NotFoundException(requestId, "Category", id.toString());
+          }
+
           Category cIn =
               Category.builder().id(id).name(cr.name()).categoryTypeId(cr.categoryTypeId()).build();
           Category cOut = repo.update(cIn);
@@ -72,6 +85,13 @@ public class CategoryService {
     return tx.execute(
         bs -> {
           CategoryRepository repo = new CategoryRepository(requestId, bs);
+
+          List<Category> cList = repo.read(ids);
+          if (ids.size() == 1 && cList.isEmpty()) {
+            throw new Exceptions.NotFoundException(
+                requestId, "Category", ids.getFirst().toString());
+          }
+
           int deleteCount = repo.delete(ids);
           return new CategoryResponse(
               List.of(), ResponseMetadataUtils.defaultDeleteResponseMetadata(deleteCount));
@@ -80,19 +100,19 @@ public class CategoryService {
 
   private void validate(String requestId, CategoryRequest cr, CategoryTypeRepository typeRepo) {
     if (cr == null) {
-      throw new IllegalArgumentException(
+      throw new Exceptions.BadRequestException(
           String.format("[%s] Category request cannot be null...", requestId));
     }
     if (CommonUtilities.isEmpty(cr.name())) {
-      throw new IllegalArgumentException(
+      throw new Exceptions.BadRequestException(
           String.format("[%s] Category name cannot be empty...", requestId));
     }
     if (cr.categoryTypeId() == null) {
-      throw new IllegalArgumentException(
+      throw new Exceptions.BadRequestException(
           String.format("[%s] Category type cannot be null...", requestId));
     }
     if (typeRepo.readByIdNoEx(cr.categoryTypeId()).isEmpty()) {
-      throw new IllegalArgumentException(
+      throw new Exceptions.BadRequestException(
           String.format("[%s] Category type does not exist...", requestId));
     }
   }

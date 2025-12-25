@@ -1,5 +1,6 @@
 package budget.application.service.domain;
 
+import budget.application.common.Exceptions;
 import budget.application.db.repository.CategoryRepository;
 import budget.application.db.repository.TransactionItemRepository;
 import budget.application.db.repository.TransactionRepository;
@@ -81,6 +82,12 @@ public class TransactionService {
           TransactionRepository txnRepo = new TransactionRepository(requestId, bs);
           TransactionItemRepository itemRepo = new TransactionItemRepository(requestId, bs);
           List<Transaction> txns = txnRepo.read(ids);
+
+          if (ids.size() == 1 && txns.isEmpty()) {
+            throw new Exceptions.NotFoundException(
+                requestId, "Transaction", ids.getFirst().toString());
+          }
+
           List<UUID> txnIds = txns.stream().map(Transaction::id).toList();
           List<TransactionItem> items = itemRepo.readByTransactionIds(txnIds);
           Map<UUID, List<TransactionItem>> txnItemsMap =
@@ -106,6 +113,11 @@ public class TransactionService {
           CategoryRepository categoryRepo = new CategoryRepository(requestId, bs);
 
           validate(requestId, tr, categoryRepo);
+
+          List<Transaction> txns = txnRepo.read(List.of(id));
+          if (txns.isEmpty()) {
+            throw new Exceptions.NotFoundException(requestId, "Transaction", id.toString());
+          }
 
           Transaction txnIn =
               Transaction.builder()
@@ -159,6 +171,13 @@ public class TransactionService {
         bs -> {
           TransactionRepository txnRepo = new TransactionRepository(requestId, bs);
           TransactionItemRepository itemRepo = new TransactionItemRepository(requestId, bs);
+
+          List<Transaction> txns = txnRepo.read(ids);
+          if (ids.size() == 1 && txns.isEmpty()) {
+            throw new Exceptions.NotFoundException(
+                requestId, "Transaction", ids.getFirst().toString());
+          }
+
           int deleteCountTxnItems = itemRepo.deleteByTransactionIds(ids);
           log.info(
               "[{}] Deleted transaction items for transactions: Ids=[{}], deleteCount=[{}]",
@@ -213,29 +232,29 @@ public class TransactionService {
 
   private void validate(String requestId, TransactionRequest tr, CategoryRepository categoryRepo) {
     if (tr == null) {
-      throw new IllegalArgumentException(
+      throw new Exceptions.BadRequestException(
           String.format("[%s] Transaction request cannot be null...", requestId));
     }
     if (CommonUtilities.isEmpty(tr.merchant())) {
-      throw new IllegalArgumentException(
+      throw new Exceptions.BadRequestException(
           String.format("[%s] Transaction merchant cannot be empty...", requestId));
     }
     if (tr.totalAmount() <= 0) {
-      throw new IllegalArgumentException(
+      throw new Exceptions.BadRequestException(
           String.format("[%s] Transaction total cannot be negative...", requestId));
     }
     if (CommonUtilities.isEmpty(tr.items())) {
-      throw new IllegalArgumentException(
+      throw new Exceptions.BadRequestException(
           String.format("[%s] Transaction must have at least one item...", requestId));
     }
     double sum = tr.items().stream().mapToDouble(TransactionItemRequest::amount).sum();
     if (Double.compare(sum, tr.totalAmount()) != 0) {
-      throw new IllegalArgumentException(
+      throw new Exceptions.BadRequestException(
           String.format("[%s] Total amount does not match sum of items", requestId));
     }
     List<UUID> tiIds = tr.items().stream().map(TransactionItemRequest::categoryId).toList();
     if (categoryRepo.readByIdsNoEx(tiIds).size() != tiIds.size()) {
-      throw new IllegalArgumentException(
+      throw new Exceptions.BadRequestException(
           String.format("[%s] One or more category IDs do not exist", requestId));
     }
   }
