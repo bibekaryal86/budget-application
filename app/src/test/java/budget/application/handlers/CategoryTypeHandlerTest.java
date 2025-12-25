@@ -115,16 +115,48 @@ public class CategoryTypeHandlerTest extends IntegrationBaseTest {
   }
 
   @Test
-  void testUnknownTestsPathFallsThrough() throws Exception {
+  void testCategoryTypesNotFound() throws Exception {
+    String randomId = UUID.randomUUID().toString();
+    CategoryTypeRequest req = new CategoryTypeRequest("New Name");
     HttpResponse<String> resp =
-        httpGet(ApiPaths.CATEGORY_TYPES_V1 + "/something-else", Boolean.TRUE);
-    ResponseWithMetadata response = JsonUtils.fromJson(resp.body(), ResponseWithMetadata.class);
+        httpPut(ApiPaths.CATEGORY_TYPES_V1_WITH_ID + randomId, JsonUtils.toJson(req), Boolean.TRUE);
     Assertions.assertEquals(404, resp.statusCode());
+    Assertions.assertTrue(resp.body().contains("[CategoryType] Not found for [" + randomId + "]"));
+
+    resp = httpGet(ApiPaths.CATEGORY_TYPES_V1_WITH_ID + randomId, Boolean.TRUE);
+    Assertions.assertEquals(404, resp.statusCode());
+    Assertions.assertTrue(resp.body().contains("[CategoryType] Not found for [" + randomId + "]"));
+
+    resp = httpDelete(ApiPaths.CATEGORY_TYPES_V1_WITH_ID + randomId, Boolean.TRUE);
+    Assertions.assertEquals(404, resp.statusCode());
+    Assertions.assertTrue(resp.body().contains("[CategoryType] Not found for [" + randomId + "]"));
+  }
+
+  @Test
+  void testCategoryTypesDuplicateError() throws Exception {
+    String req = JsonUtils.toJson(new CategoryTypeRequest("Test Category Type"));
+    HttpResponse<String> resp = httpPost(ApiPaths.CATEGORY_TYPES_V1, req, Boolean.TRUE);
+    Assertions.assertEquals(400, resp.statusCode());
+    ResponseWithMetadata response = JsonUtils.fromJson(resp.body(), ResponseWithMetadata.class);
     Assertions.assertTrue(
         response
             .getResponseMetadata()
             .responseStatusInfo()
             .errMsg()
-            .contains("The requested resource does not exist..."));
+            .contains("duplicate key value violates unique constraint"));
+  }
+
+  @Test
+  void testCategoryTypesDeleteError() throws Exception {
+    HttpResponse<String> resp =
+        httpDelete(ApiPaths.CATEGORY_TYPES_V1_WITH_ID + TEST_ID, Boolean.TRUE);
+    Assertions.assertEquals(400, resp.statusCode());
+    ResponseWithMetadata response = JsonUtils.fromJson(resp.body(), ResponseWithMetadata.class);
+    Assertions.assertTrue(
+        response
+            .getResponseMetadata()
+            .responseStatusInfo()
+            .errMsg()
+            .contains("is still referenced from table"));
   }
 }

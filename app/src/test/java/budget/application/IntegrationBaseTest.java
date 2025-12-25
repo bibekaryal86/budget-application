@@ -15,6 +15,7 @@ public abstract class IntegrationBaseTest {
 
   protected static ServerNetty server;
   protected static int port;
+  protected static final String TEST_ID = "5b15fdaf-758b-4c4f-97d1-2405b716867a";
 
   @BeforeAll
   static void beforeAll() throws Exception {

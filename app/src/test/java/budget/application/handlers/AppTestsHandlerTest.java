@@ -31,6 +31,19 @@ public class AppTestsHandlerTest extends IntegrationBaseTest {
   }
 
   @Test
+  void testUnknownPathFallsThrough() throws Exception {
+    HttpResponse<String> resp = httpGet("/petssvc/api/v1/unknown", Boolean.TRUE);
+    ResponseWithMetadata response = JsonUtils.fromJson(resp.body(), ResponseWithMetadata.class);
+    Assertions.assertEquals(404, resp.statusCode());
+    Assertions.assertTrue(
+        response
+            .getResponseMetadata()
+            .responseStatusInfo()
+            .errMsg()
+            .contains("The requested resource does not exist..."));
+  }
+
+  @Test
   void testPingIsHandledOnlyByAppTestsHandler() throws Exception {
     HttpResponse<String> resp = httpGet(ApiPaths.APP_TESTS_PING, Boolean.FALSE);
     String body = resp.body();

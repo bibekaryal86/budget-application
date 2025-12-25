@@ -7,6 +7,7 @@ import io.github.bibekaryal86.shdsvc.dtos.ResponseWithMetadata;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import java.sql.SQLException;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -30,6 +31,15 @@ public class ExceptionHandler extends ChannelInboundHandlerAdapter {
     if (cause instanceof Exceptions.NotFoundException) {
       return HttpResponseStatus.NOT_FOUND;
     }
+    if (cause instanceof SQLException) {
+      if (cause.getMessage().contains("duplicate key value violates unique constraint")) {
+        return HttpResponseStatus.BAD_REQUEST;
+      }
+      if (cause.getMessage().contains("violates foreign key constraint")) {
+        return HttpResponseStatus.BAD_REQUEST;
+      }
+    }
+
     return HttpResponseStatus.INTERNAL_SERVER_ERROR;
   }
 }
