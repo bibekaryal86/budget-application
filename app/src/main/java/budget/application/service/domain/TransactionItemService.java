@@ -9,6 +9,7 @@ import budget.application.model.entity.TransactionItem;
 import budget.application.service.util.ResponseMetadataUtils;
 import budget.application.service.util.TransactionManager;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseMetadata;
+import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
@@ -114,7 +115,7 @@ public class TransactionItemService {
       String requestId, TransactionItemRequest tir, CategoryRepository categoryRepo) {
     if (tir == null) {
       throw new Exceptions.BadRequestException(
-          String.format("[%s] Transaction item cannot be null...", requestId));
+          String.format("[%s] Transaction item request cannot be null...", requestId));
     }
     if (tir.transactionId() == null) {
       throw new Exceptions.BadRequestException(
@@ -124,9 +125,13 @@ public class TransactionItemService {
       throw new Exceptions.BadRequestException(
           String.format("[%s] Transaction item category cannot be null...", requestId));
     }
+    if (CommonUtilities.isEmpty(tir.label())) {
+      throw new Exceptions.BadRequestException(
+          String.format("[%s] Transaction item label cannot be empty...", requestId));
+    }
     if (tir.amount() <= 0) {
       throw new Exceptions.BadRequestException(
-          String.format("[%s] Transaction item amount cannot be negative...", requestId));
+          String.format("[%s] Transaction item amount cannot be zero or negative...", requestId));
     }
     if (categoryRepo.readByIdNoEx(tir.categoryId()).isEmpty()) {
       throw new Exceptions.BadRequestException(

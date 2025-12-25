@@ -8,6 +8,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.UUID;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 
@@ -15,7 +16,7 @@ public abstract class IntegrationBaseTest {
 
   protected static ServerNetty server;
   protected static int port;
-  protected static final String TEST_ID = "5b15fdaf-758b-4c4f-97d1-2405b716867a";
+  protected static final UUID TEST_ID = UUID.fromString("5b15fdaf-758b-4c4f-97d1-2405b716867a");
 
   @BeforeAll
   static void beforeAll() throws Exception {
