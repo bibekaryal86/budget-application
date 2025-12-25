@@ -17,7 +17,8 @@ public class CategoryTypeHandlerTest extends IntegrationBaseTest {
   void testCategoryTypes() throws Exception {
     // CREATE
     CategoryTypeRequest req = new CategoryTypeRequest("Test One");
-    HttpResponse<String> resp = httpPost(ApiPaths.CATEGORY_TYPES_V1, JsonUtils.toJson(req));
+    HttpResponse<String> resp =
+        httpPost(ApiPaths.CATEGORY_TYPES_V1, JsonUtils.toJson(req), Boolean.TRUE);
     Assertions.assertEquals(201, resp.statusCode());
     CategoryTypeResponse response = JsonUtils.fromJson(resp.body(), CategoryTypeResponse.class);
     Assertions.assertEquals(1, response.data().size());
@@ -27,20 +28,20 @@ public class CategoryTypeHandlerTest extends IntegrationBaseTest {
     final String id = response.data().getFirst().id().toString();
 
     // READ ALL
-    resp = httpGet(ApiPaths.CATEGORY_TYPES_V1);
+    resp = httpGet(ApiPaths.CATEGORY_TYPES_V1, Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());
     response = JsonUtils.fromJson(resp.body(), CategoryTypeResponse.class);
     Assertions.assertEquals(2, response.data().size());
 
     // READ ONE
-    resp = httpGet(ApiPaths.CATEGORY_TYPES_V1_WITH_ID + id);
+    resp = httpGet(ApiPaths.CATEGORY_TYPES_V1_WITH_ID + id, Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());
     response = JsonUtils.fromJson(resp.body(), CategoryTypeResponse.class);
     Assertions.assertEquals(1, response.data().size());
 
     // UPDATE
     req = new CategoryTypeRequest("One Test");
-    resp = httpPut(ApiPaths.CATEGORY_TYPES_V1_WITH_ID + id, JsonUtils.toJson(req));
+    resp = httpPut(ApiPaths.CATEGORY_TYPES_V1_WITH_ID + id, JsonUtils.toJson(req), Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());
     response = JsonUtils.fromJson(resp.body(), CategoryTypeResponse.class);
     Assertions.assertEquals(1, response.data().size());
@@ -49,14 +50,14 @@ public class CategoryTypeHandlerTest extends IntegrationBaseTest {
         ResponseMetadataUtils.defaultUpdateResponseMetadata(), response.metadata());
 
     // DELETE
-    resp = httpDelete(ApiPaths.CATEGORY_TYPES_V1_WITH_ID + id);
+    resp = httpDelete(ApiPaths.CATEGORY_TYPES_V1_WITH_ID + id, Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());
     response = JsonUtils.fromJson(resp.body(), CategoryTypeResponse.class);
     Assertions.assertEquals(0, response.data().size());
     Assertions.assertEquals(
         ResponseMetadataUtils.defaultDeleteResponseMetadata(1), response.metadata());
 
-    resp = httpGet(ApiPaths.CATEGORY_TYPES_V1_WITH_ID + id);
+    resp = httpGet(ApiPaths.CATEGORY_TYPES_V1_WITH_ID + id, Boolean.TRUE);
     Assertions.assertEquals(404, resp.statusCode());
     ResponseWithMetadata notFoundResp = JsonUtils.fromJson(resp.body(), ResponseWithMetadata.class);
     Assertions.assertTrue(

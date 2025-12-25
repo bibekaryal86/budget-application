@@ -52,49 +52,51 @@ public abstract class IntegrationBaseTest {
               String.format("%s:%s", Constants.ENV_SELF_USERNAME, Constants.ENV_SELF_PASSWORD)
                   .getBytes(StandardCharsets.UTF_8));
 
-  protected HttpResponse<String> httpGet(String path) throws Exception {
-    HttpRequest req =
+  protected HttpResponse<String> httpGet(String path, boolean isIncludeAuth) throws Exception {
+    HttpRequest.Builder builder =
         HttpRequest.newBuilder()
             .header("Authorization", "Basic " + basicAuthCredentialsForTest)
             .uri(URI.create("http://localhost:" + port + path))
-            .GET()
-            .build();
+            .GET();
+    if (isIncludeAuth) {
+      builder.header("Authorization", "Basic " + basicAuthCredentialsForTest).build();
+    }
 
-    return HttpClient.newHttpClient().send(req, HttpResponse.BodyHandlers.ofString());
+    return HttpClient.newHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofString());
   }
 
-  protected HttpResponse<String> httpPost(String path, String json) throws Exception {
-    HttpRequest req =
+  protected HttpResponse<String> httpPost(String path, String json, boolean isIncludeAuth)
+      throws Exception {
+    HttpRequest.Builder builder =
         HttpRequest.newBuilder()
             .uri(URI.create("http://localhost:" + port + path))
             .header("Content-Type", "application/json")
-            .header("Authorization", "Basic " + basicAuthCredentialsForTest)
-            .POST(HttpRequest.BodyPublishers.ofString(json))
-            .build();
-
-    return HttpClient.newHttpClient().send(req, HttpResponse.BodyHandlers.ofString());
+            .POST(HttpRequest.BodyPublishers.ofString(json));
+    if (isIncludeAuth) {
+      builder.header("Authorization", "Basic " + basicAuthCredentialsForTest).build();
+    }
+    return HttpClient.newHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofString());
   }
 
-  protected HttpResponse<String> httpPut(String path, String json) throws Exception {
-    HttpRequest req =
+  protected HttpResponse<String> httpPut(String path, String json, boolean isIncludeAuth)
+      throws Exception {
+    HttpRequest.Builder builder =
         HttpRequest.newBuilder()
             .uri(URI.create("http://localhost:" + port + path))
             .header("Content-Type", "application/json")
-            .header("Authorization", "Basic " + basicAuthCredentialsForTest)
-            .PUT(HttpRequest.BodyPublishers.ofString(json))
-            .build();
-
-    return HttpClient.newHttpClient().send(req, HttpResponse.BodyHandlers.ofString());
+            .PUT(HttpRequest.BodyPublishers.ofString(json));
+    if (isIncludeAuth) {
+      builder.header("Authorization", "Basic " + basicAuthCredentialsForTest).build();
+    }
+    return HttpClient.newHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofString());
   }
 
-  protected HttpResponse<String> httpDelete(String path) throws Exception {
-    HttpRequest req =
-        HttpRequest.newBuilder()
-            .header("Authorization", "Basic " + basicAuthCredentialsForTest)
-            .uri(URI.create("http://localhost:" + port + path))
-            .DELETE()
-            .build();
-
-    return HttpClient.newHttpClient().send(req, HttpResponse.BodyHandlers.ofString());
+  protected HttpResponse<String> httpDelete(String path, boolean isIncludeAuth) throws Exception {
+    HttpRequest.Builder builder =
+        HttpRequest.newBuilder().uri(URI.create("http://localhost:" + port + path)).DELETE();
+    if (isIncludeAuth) {
+      builder.header("Authorization", "Basic " + basicAuthCredentialsForTest).build();
+    }
+    return HttpClient.newHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofString());
   }
 }

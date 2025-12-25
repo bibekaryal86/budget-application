@@ -12,14 +12,14 @@ public class AppTestsHandlerTest extends IntegrationBaseTest {
 
   @Test
   void testAppTestPing() throws Exception {
-    HttpResponse<String> resp = httpGet(ApiPaths.APP_TESTS_PING);
+    HttpResponse<String> resp = httpGet(ApiPaths.APP_TESTS_PING, Boolean.FALSE);
     Assertions.assertEquals(200, resp.statusCode());
     Assertions.assertTrue(resp.body().contains("ping") && resp.body().contains("successful"));
   }
 
   @Test
   void testUnknownTestsPathFallsThrough() throws Exception {
-    HttpResponse<String> resp = httpGet("/tests/unknown");
+    HttpResponse<String> resp = httpGet("/tests/unknown", Boolean.FALSE);
     ResponseWithMetadata response = JsonUtils.fromJson(resp.body(), ResponseWithMetadata.class);
     Assertions.assertEquals(404, resp.statusCode());
     Assertions.assertTrue(
@@ -32,7 +32,7 @@ public class AppTestsHandlerTest extends IntegrationBaseTest {
 
   @Test
   void testPingIsHandledOnlyByAppTestsHandler() throws Exception {
-    HttpResponse<String> resp = httpGet(ApiPaths.APP_TESTS_PING);
+    HttpResponse<String> resp = httpGet(ApiPaths.APP_TESTS_PING, Boolean.FALSE);
     String body = resp.body();
     Assertions.assertTrue(body.contains("ping"));
     Assertions.assertFalse(body.contains("data"));
@@ -40,7 +40,7 @@ public class AppTestsHandlerTest extends IntegrationBaseTest {
 
   @Test
   void testNonMatchingPathFallsThrough() throws Exception {
-    HttpResponse<String> resp = httpGet(ApiPaths.CATEGORY_TYPES_V1);
+    HttpResponse<String> resp = httpGet(ApiPaths.CATEGORY_TYPES_V1, Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());
     String body = resp.body();
     Assertions.assertFalse(body.contains("ping"));

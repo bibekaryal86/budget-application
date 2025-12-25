@@ -133,11 +133,11 @@ public abstract class BaseDao<T> {
       DaoUtils.bindParams(stmt, values);
       stmt.setObject(values.size() + 1, getId(entity));
 
-        try (ResultSet rs = stmt.executeQuery()) {
-            if (rs.next()) {
-                return mapper.map(rs);
-            }
+      try (ResultSet rs = stmt.executeQuery()) {
+        if (rs.next()) {
+          return mapper.map(rs);
         }
+      }
     }
 
     return null;
