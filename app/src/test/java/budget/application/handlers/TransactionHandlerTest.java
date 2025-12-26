@@ -8,6 +8,7 @@ import budget.application.server.utils.ApiPaths;
 import budget.application.server.utils.JsonUtils;
 import budget.application.service.util.ResponseMetadataUtils;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseWithMetadata;
+import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 import java.net.http.HttpResponse;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -36,6 +37,8 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
     Assertions.assertEquals(1, response.data().size());
     Assertions.assertEquals(2, response.data().getFirst().items().size());
     Assertions.assertEquals(req.merchant(), response.data().getFirst().transaction().merchant());
+    Assertions.assertTrue(
+        CommonUtilities.isEmpty(response.data().getFirst().transaction().notes()));
     Assertions.assertEquals(
         req.items().getFirst().label(), response.data().getFirst().items().getFirst().label());
     Assertions.assertEquals(
@@ -64,7 +67,7 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
             LocalDateTime.now(),
             "Merchant Test",
             100.00,
-            "",
+            "Txn Note",
             List.of(
                 new TransactionItemRequest(null, TEST_ID, "Label1 Test", 50.00),
                 new TransactionItemRequest(null, TEST_ID, "Test Label2", 50.00)));
@@ -74,6 +77,9 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
     Assertions.assertEquals(1, response.data().size());
     Assertions.assertEquals(2, response.data().getFirst().items().size());
     Assertions.assertEquals(req.merchant(), response.data().getFirst().transaction().merchant());
+    Assertions.assertFalse(
+        CommonUtilities.isEmpty(response.data().getFirst().transaction().notes()));
+    Assertions.assertEquals(req.notes(), response.data().getFirst().transaction().notes());
     Assertions.assertEquals(
         req.items().getFirst().label(), response.data().getFirst().items().getFirst().label());
     Assertions.assertEquals(
@@ -112,61 +118,71 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
     Assertions.assertEquals(401, resp.statusCode());
   }
 
-//  @Test
-//  void testTransactionsBadRequest() throws Exception {
-//    HttpResponse<String> resp = httpPost(ApiPaths.TRANSACTIONS_V1, "", Boolean.TRUE);
-//    Assertions.assertEquals(400, resp.statusCode());
-//    Assertions.assertTrue(resp.body().contains("Transaction request cannot be null..."));
-//
-//    TransactionRequest req =
-//        new TransactionRequest(
-//            LocalDateTime.now(),
-//            "",
-//            100.00,
-//            "",
-//            List.of(
-//                new TransactionItemRequest(null, TEST_ID, "Test Label1", 50.00),
-//                new TransactionItemRequest(null, TEST_ID, "Test Label2", 50.00)));
-//    resp = httpPost(ApiPaths.TRANSACTIONS_V1, JsonUtils.toJson(req), Boolean.TRUE);
-//    Assertions.assertEquals(400, resp.statusCode());
-//    Assertions.assertTrue(resp.body().contains("Transaction merchant cannot be empty..."));
-//
-//    req =
-//        new TransactionRequest(
-//            LocalDateTime.now(),
-//            "Some Merchant",
-//            0.00,
-//            "",
-//            List.of(
-//                new TransactionItemRequest(null, TEST_ID, "Test Label1", 50.00),
-//                new TransactionItemRequest(null, TEST_ID, "Test Label2", 50.00)));
-//    resp = httpPost(ApiPaths.TRANSACTIONS_V1, JsonUtils.toJson(req), Boolean.TRUE);
-//    Assertions.assertEquals(400, resp.statusCode());
-//    Assertions.assertTrue(resp.body().contains("Transaction total cannot be negative..."));
-//
-//    req = new TransactionRequest(UUID.randomUUID(), "Something");
-//    resp = httpPost(ApiPaths.TRANSACTIONS_V1, JsonUtils.toJson(req), Boolean.TRUE);
-//    Assertions.assertEquals(400, resp.statusCode());
-//    Assertions.assertTrue(resp.body().contains("Transaction type does not exist..."));
-//
-//    resp = httpGet(ApiPaths.TRANSACTIONS_V1_WITH_ID + "invalid-uuid", Boolean.TRUE);
-//    Assertions.assertEquals(400, resp.statusCode());
-//    Assertions.assertTrue(resp.body().contains("Invalid Id Provided..."));
-//
-//    resp =
-//        httpGet(
-//            ApiPaths.TRANSACTIONS_V1_WITH_ID + UUID.randomUUID() + "/something-else", Boolean.TRUE);
-//    Assertions.assertEquals(400, resp.statusCode());
-//    Assertions.assertTrue(resp.body().contains("Invalid Id Provided..."));
-//
-//    resp = httpPut(ApiPaths.TRANSACTIONS_V1_WITH_ID + "invalid-uuid", "", Boolean.TRUE);
-//    Assertions.assertEquals(400, resp.statusCode());
-//    Assertions.assertTrue(resp.body().contains("Invalid Id Provided..."));
-//
-//    resp = httpDelete(ApiPaths.TRANSACTIONS_V1_WITH_ID + "invalid-uuid", Boolean.TRUE);
-//    Assertions.assertEquals(400, resp.statusCode());
-//    Assertions.assertTrue(resp.body().contains("Invalid Id Provided..."));
-//  }
+  @Test
+  void testTransactionsBadRequest() throws Exception {
+    HttpResponse<String> resp = httpPost(ApiPaths.TRANSACTIONS_V1, "", Boolean.TRUE);
+    Assertions.assertEquals(400, resp.statusCode());
+    Assertions.assertTrue(resp.body().contains("Transaction request cannot be null..."));
+
+    TransactionRequest req = new TransactionRequest(LocalDateTime.now(), "", 100.00, "", List.of());
+    resp = httpPost(ApiPaths.TRANSACTIONS_V1, JsonUtils.toJson(req), Boolean.TRUE);
+    Assertions.assertEquals(400, resp.statusCode());
+    Assertions.assertTrue(resp.body().contains("Transaction merchant cannot be empty..."));
+
+    req = new TransactionRequest(LocalDateTime.now(), "Some Merchant", 0.00, "", List.of());
+    resp = httpPost(ApiPaths.TRANSACTIONS_V1, JsonUtils.toJson(req), Boolean.TRUE);
+    Assertions.assertEquals(400, resp.statusCode());
+    Assertions.assertTrue(resp.body().contains("Transaction total cannot be negative..."));
+
+    req = new TransactionRequest(LocalDateTime.now(), "Some Merchant", 100.00, "", List.of());
+    resp = httpPost(ApiPaths.TRANSACTIONS_V1, JsonUtils.toJson(req), Boolean.TRUE);
+    Assertions.assertEquals(400, resp.statusCode());
+    Assertions.assertTrue(resp.body().contains("Transaction must have at least one item..."));
+
+    req =
+        new TransactionRequest(
+            LocalDateTime.now(),
+            "Some Merchant",
+            100.00,
+            "",
+            List.of(
+                new TransactionItemRequest(null, TEST_ID, "Test Label1", 40.00),
+                new TransactionItemRequest(null, TEST_ID, "Test Label2", 50.00)));
+    resp = httpPost(ApiPaths.TRANSACTIONS_V1, JsonUtils.toJson(req), Boolean.TRUE);
+    Assertions.assertEquals(400, resp.statusCode());
+    Assertions.assertTrue(resp.body().contains("Total amount does not match sum of items..."));
+
+    req =
+        new TransactionRequest(
+            LocalDateTime.now(),
+            "Some Merchant",
+            100.00,
+            "",
+            List.of(
+                new TransactionItemRequest(null, TEST_ID, "Test Label1", 50),
+                new TransactionItemRequest(null, UUID.randomUUID(), "Test Label2", 50.00)));
+    resp = httpPost(ApiPaths.TRANSACTIONS_V1, JsonUtils.toJson(req), Boolean.TRUE);
+    Assertions.assertEquals(400, resp.statusCode());
+    Assertions.assertTrue(resp.body().contains("One or more category IDs do not exist..."));
+
+    resp = httpGet(ApiPaths.TRANSACTIONS_V1_WITH_ID + "invalid-uuid", Boolean.TRUE);
+    Assertions.assertEquals(400, resp.statusCode());
+    Assertions.assertTrue(resp.body().contains("Invalid Id Provided..."));
+
+    resp =
+        httpGet(
+            ApiPaths.TRANSACTIONS_V1_WITH_ID + UUID.randomUUID() + "/something-else", Boolean.TRUE);
+    Assertions.assertEquals(400, resp.statusCode());
+    Assertions.assertTrue(resp.body().contains("Invalid Id Provided..."));
+
+    resp = httpPut(ApiPaths.TRANSACTIONS_V1_WITH_ID + "invalid-uuid", "", Boolean.TRUE);
+    Assertions.assertEquals(400, resp.statusCode());
+    Assertions.assertTrue(resp.body().contains("Invalid Id Provided..."));
+
+    resp = httpDelete(ApiPaths.TRANSACTIONS_V1_WITH_ID + "invalid-uuid", Boolean.TRUE);
+    Assertions.assertEquals(400, resp.statusCode());
+    Assertions.assertTrue(resp.body().contains("Invalid Id Provided..."));
+  }
 
   @Test
   void testTransactionsNotFound() throws Exception {

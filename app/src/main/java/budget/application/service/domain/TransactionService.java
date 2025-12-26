@@ -251,13 +251,13 @@ public class TransactionService {
     double sum = tr.items().stream().mapToDouble(TransactionItemRequest::amount).sum();
     if (Double.compare(sum, tr.totalAmount()) != 0) {
       throw new Exceptions.BadRequestException(
-          String.format("[%s] Total amount does not match sum of items", requestId));
+          String.format("[%s] Total amount does not match sum of items...", requestId));
     }
     Set<UUID> tiIds =
         tr.items().stream().map(TransactionItemRequest::categoryId).collect(Collectors.toSet());
     if (categoryRepo.readByIdsNoEx(tiIds.stream().toList()).size() != tiIds.size()) {
       throw new Exceptions.BadRequestException(
-          String.format("[%s] One or more category IDs do not exist", requestId));
+          String.format("[%s] One or more category IDs do not exist...", requestId));
     }
   }
 }
