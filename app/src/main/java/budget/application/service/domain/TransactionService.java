@@ -20,6 +20,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import javax.sql.DataSource;
@@ -252,8 +253,9 @@ public class TransactionService {
       throw new Exceptions.BadRequestException(
           String.format("[%s] Total amount does not match sum of items", requestId));
     }
-    List<UUID> tiIds = tr.items().stream().map(TransactionItemRequest::categoryId).toList();
-    if (categoryRepo.readByIdsNoEx(tiIds).size() != tiIds.size()) {
+    Set<UUID> tiIds =
+        tr.items().stream().map(TransactionItemRequest::categoryId).collect(Collectors.toSet());
+    if (categoryRepo.readByIdsNoEx(tiIds.stream().toList()).size() != tiIds.size()) {
       throw new Exceptions.BadRequestException(
           String.format("[%s] One or more category IDs do not exist", requestId));
     }
