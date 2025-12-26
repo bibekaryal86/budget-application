@@ -1,5 +1,6 @@
 package budget.application.service.domain;
 
+import budget.application.common.Constants;
 import budget.application.common.Exceptions;
 import budget.application.db.repository.CategoryRepository;
 import budget.application.db.repository.TransactionItemRepository;
@@ -14,6 +15,9 @@ import budget.application.model.entity.Transaction;
 import budget.application.model.entity.TransactionItem;
 import budget.application.service.util.ResponseMetadataUtils;
 import budget.application.service.util.TransactionManager;
+import io.github.bibekaryal86.shdsvc.Email;
+import io.github.bibekaryal86.shdsvc.dtos.EmailRequest;
+import io.github.bibekaryal86.shdsvc.dtos.EmailResponse;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseMetadata;
 import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 import java.sql.SQLException;
@@ -30,9 +34,11 @@ import lombok.extern.slf4j.Slf4j;
 public class TransactionService {
 
   private final TransactionManager tx;
+  private final Email email;
 
   public TransactionService(DataSource dataSource) {
     this.tx = new TransactionManager(dataSource);
+    this.email = new Email();
   }
 
   public TransactionResponse create(String requestId, TransactionRequest tr) throws SQLException {
@@ -196,6 +202,7 @@ public class TransactionService {
 
   public void reconcileAll(String requestId) throws SQLException {
     log.info("[{}] Reconciling all transactions...", requestId);
+    List<Transaction> mmTxns = new ArrayList<>();
     tx.executeVoid(
         bs -> {
           TransactionRepository txnRepo = new TransactionRepository(requestId, bs);
@@ -218,6 +225,7 @@ public class TransactionService {
               List<TransactionItem> items = itemRepo.readByTransactionIds(List.of(txnId));
               double sum = items.stream().mapToDouble(TransactionItem::amount).sum();
               if (Double.compare(sum, txn.totalAmount()) != 0) {
+                mmTxns.add(txn);
                 log.info(
                     "[{}] MISMATCH for txn=[{}] | total=[{}] | sum(items)=[{}]",
                     requestId,
@@ -229,6 +237,9 @@ public class TransactionService {
             pageNumber++;
           }
         });
+    if (!mmTxns.isEmpty()) {
+      sendReconciliationEmail(mmTxns);
+    }
   }
 
   private void validate(String requestId, TransactionRequest tr, CategoryRepository categoryRepo) {
@@ -259,5 +270,52 @@ public class TransactionService {
       throw new Exceptions.BadRequestException(
           String.format("[%s] One or more category IDs do not exist...", requestId));
     }
+  }
+
+  private void sendReconciliationEmail(List<Transaction> mmTxns) {
+    String subject = "PETS Txn Mismatch Report";
+    String emailTo = CommonUtilities.getSystemEnvProperty(Constants.ENV_RECON_EMAIL_TO);
+    StringBuilder emailBody = new StringBuilder();
+
+    emailBody
+        .append("<html>")
+        .append("<body style='font-family: Arial, sans-serif; font-size: 14px;'>")
+        .append("<h2>PETS Transaction Mismatch Report</h2>")
+        .append("<p>The following transactions were identified as mismatches:</p>");
+
+    emailBody
+        .append(
+            "<table border='1' cellpadding='6' cellspacing='0' style='border-collapse: collapse;'>")
+        .append("<tr style='background-color: #f2f2f2;'>")
+        .append("<th>Transaction ID</th>")
+        .append("<th>Transaction Date</th>")
+        .append("</tr>");
+
+    for (Transaction txn : mmTxns) {
+      emailBody
+          .append("<tr>")
+          .append("<td>")
+          .append(txn.id())
+          .append("</td>")
+          .append("<td>")
+          .append(txn.txnDate())
+          .append("</td>")
+          .append("</tr>");
+    }
+
+    emailBody
+        .append("</table>")
+        .append("<br/><p>Generated automatically by PETS service.</p>")
+        .append("</body></html>");
+
+    EmailResponse emailResponse =
+        email.sendEmail(
+            new EmailRequest(
+                null,
+                List.of(new EmailRequest.EmailContact(emailTo, emailTo)),
+                List.of(),
+                new EmailRequest.EmailContent(subject, null, emailBody.toString()),
+                List.of()));
+    log.info("Txn Recon Email Sent: {}", emailResponse.toString());
   }
 }
