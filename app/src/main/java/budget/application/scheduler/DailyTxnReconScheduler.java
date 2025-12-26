@@ -1,6 +1,7 @@
 package budget.application.scheduler;
 
 import budget.application.service.domain.TransactionService;
+import io.github.bibekaryal86.shdsvc.Email;
 import java.sql.SQLException;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -17,8 +18,9 @@ public class DailyTxnReconScheduler {
   private final ScheduledExecutorService executor;
   private final TransactionService svc;
 
-  public DailyTxnReconScheduler(DataSource dataSource, ScheduledExecutorService executor) {
-    this.svc = new TransactionService(dataSource);
+  public DailyTxnReconScheduler(
+      DataSource dataSource, ScheduledExecutorService executor, Email email) {
+    this.svc = new TransactionService(dataSource, email);
     this.executor = executor;
   }
 

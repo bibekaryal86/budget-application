@@ -8,6 +8,7 @@ import budget.application.db.util.DataSourceFactory;
 import budget.application.db.util.DatabaseHealthCheck;
 import budget.application.scheduler.ScheduleManager;
 import budget.application.server.core.ServerNetty;
+import io.github.bibekaryal86.shdsvc.Email;
 import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,15 +23,16 @@ public class Main {
     log.info("Starting Budget Service...");
     Main.checkEnvProperties();
 
+    Email email = new Email();
     DataSource dataSource = DataSourceFactory.create();
 
     var dbHealth = new DatabaseHealthCheck(dataSource).check();
     log.info("{}", dbHealth);
 
-    ServerNetty serverNetty = new ServerNetty(dataSource);
+    ServerNetty serverNetty = new ServerNetty(dataSource, email);
     serverNetty.start();
 
-    ScheduleManager schedulerManager = new ScheduleManager(dataSource);
+    ScheduleManager schedulerManager = new ScheduleManager(dataSource, email);
     schedulerManager.start();
 
     Runtime.getRuntime()

@@ -1,5 +1,6 @@
 package budget.application.scheduler;
 
+import io.github.bibekaryal86.shdsvc.Email;
 import java.time.LocalTime;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -12,7 +13,7 @@ public class ScheduleManager {
   private final ScheduledExecutorService executor;
   private final DailyTxnReconScheduler dailyTxnReconScheduler;
 
-  public ScheduleManager(DataSource dataSource) {
+  public ScheduleManager(DataSource dataSource, Email email) {
     this.executor =
         Executors.newSingleThreadScheduledExecutor(
             r -> {
@@ -21,7 +22,7 @@ public class ScheduleManager {
               return t;
             });
 
-    this.dailyTxnReconScheduler = new DailyTxnReconScheduler(dataSource, executor);
+    this.dailyTxnReconScheduler = new DailyTxnReconScheduler(dataSource, executor, email);
   }
 
   public void start() {

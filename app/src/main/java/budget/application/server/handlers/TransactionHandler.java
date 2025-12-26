@@ -6,6 +6,7 @@ import budget.application.model.dto.response.TransactionResponse;
 import budget.application.server.utils.ApiPaths;
 import budget.application.server.utils.ServerUtils;
 import budget.application.service.domain.TransactionService;
+import io.github.bibekaryal86.shdsvc.Email;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.FullHttpRequest;
@@ -21,8 +22,8 @@ public class TransactionHandler extends SimpleChannelInboundHandler<FullHttpRequ
 
   private final TransactionService service;
 
-  public TransactionHandler(DataSource dataSource) {
-    this.service = new TransactionService(dataSource);
+  public TransactionHandler(DataSource dataSource, Email email) {
+    this.service = new TransactionService(dataSource, email);
   }
 
   @Override

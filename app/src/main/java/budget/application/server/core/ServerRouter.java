@@ -8,6 +8,7 @@ import budget.application.server.handlers.CompositeHandler;
 import budget.application.server.handlers.TransactionHandler;
 import budget.application.server.handlers.TransactionItemHandler;
 import budget.application.server.utils.ApiPaths;
+import io.github.bibekaryal86.shdsvc.Email;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.FullHttpRequest;
@@ -23,12 +24,12 @@ public class ServerRouter extends SimpleChannelInboundHandler<FullHttpRequest> {
   private final TransactionHandler transactionHandler;
   private final CompositeHandler compositeHandler;
 
-  public ServerRouter(DataSource dataSource) {
+  public ServerRouter(DataSource dataSource, Email email) {
     this.appTestsHandler = new AppTestsHandler();
     this.categoryTypeHandler = new CategoryTypeHandler(dataSource);
     this.categoryHandler = new CategoryHandler(dataSource);
     this.transactionItemHandler = new TransactionItemHandler(dataSource);
-    this.transactionHandler = new TransactionHandler(dataSource);
+    this.transactionHandler = new TransactionHandler(dataSource, email);
     this.compositeHandler = new CompositeHandler(dataSource);
   }
 

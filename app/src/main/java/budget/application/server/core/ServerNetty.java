@@ -3,6 +3,7 @@ package budget.application.server.core;
 import budget.application.common.Constants;
 import budget.application.server.handlers.ExceptionHandler;
 import budget.application.server.handlers.NotFoundHandler;
+import io.github.bibekaryal86.shdsvc.Email;
 import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
@@ -22,18 +23,21 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ServerNetty {
 
-  final DataSource dataSource;
+  private final DataSource dataSource;
+  private final Email email;
+
   private Channel serverChannel;
   private EventLoopGroup bossGroup;
   private EventLoopGroup workerGroup;
 
-  public ServerNetty(DataSource dataSource) {
+  public ServerNetty(DataSource dataSource, Email email) {
     this.dataSource = dataSource;
+    this.email = email;
   }
 
   public void start() throws Exception {
     bossGroup = new NioEventLoopGroup(Constants.BOSS_GROUP_THREADS);
-    EventLoopGroup workerGroup = new NioEventLoopGroup(Constants.WORKER_GROUP_THREADS);
+    workerGroup = new NioEventLoopGroup(Constants.WORKER_GROUP_THREADS);
 
     try {
       final ServerBootstrap serverBootstrap = new ServerBootstrap();
@@ -51,7 +55,7 @@ public class ServerNetty {
                       .addLast(new HttpObjectAggregator(Constants.MAX_CONTENT_LENGTH))
                       .addLast(new ServerLogging())
                       .addLast(new ServerSecurity())
-                      .addLast(new ServerRouter(dataSource))
+                      .addLast(new ServerRouter(dataSource, email))
                       .addLast(new ExceptionHandler())
                       .addLast(new NotFoundHandler());
                 }

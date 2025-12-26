@@ -36,9 +36,9 @@ public class TransactionService {
   private final TransactionManager tx;
   private final Email email;
 
-  public TransactionService(DataSource dataSource) {
+  public TransactionService(DataSource dataSource, Email email) {
     this.tx = new TransactionManager(dataSource);
-    this.email = new Email();
+    this.email = email;
   }
 
   public TransactionResponse create(String requestId, TransactionRequest tr) throws SQLException {
