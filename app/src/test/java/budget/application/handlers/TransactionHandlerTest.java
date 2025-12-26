@@ -112,46 +112,61 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
     Assertions.assertEquals(401, resp.statusCode());
   }
 
-  //  @Test
-  //  void testTransactionsBadRequest() throws Exception {
-  //    HttpResponse<String> resp = httpPost(ApiPaths.TRANSACTIONS_V1, "", Boolean.TRUE);
-  //    Assertions.assertEquals(400, resp.statusCode());
-  //    Assertions.assertTrue(resp.body().contains("Transaction request cannot be null..."));
-  //
-  //    TransactionRequest req = new TransactionRequest(null, "");
-  //    resp = httpPost(ApiPaths.TRANSACTIONS_V1, JsonUtils.toJson(req), Boolean.TRUE);
-  //    Assertions.assertEquals(400, resp.statusCode());
-  //    Assertions.assertTrue(resp.body().contains("Transaction type cannot be null..."));
-  //
-  //    req = new TransactionRequest(TEST_ID, "");
-  //    resp = httpPost(ApiPaths.TRANSACTIONS_V1, JsonUtils.toJson(req), Boolean.TRUE);
-  //    Assertions.assertEquals(400, resp.statusCode());
-  //    Assertions.assertTrue(resp.body().contains("Transaction name cannot be empty..."));
-  //
-  //    req = new TransactionRequest(UUID.randomUUID(), "Something");
-  //    resp = httpPost(ApiPaths.TRANSACTIONS_V1, JsonUtils.toJson(req), Boolean.TRUE);
-  //    Assertions.assertEquals(400, resp.statusCode());
-  //    Assertions.assertTrue(resp.body().contains("Transaction type does not exist..."));
-  //
-  //    resp = httpGet(ApiPaths.TRANSACTIONS_V1_WITH_ID + "invalid-uuid", Boolean.TRUE);
-  //    Assertions.assertEquals(400, resp.statusCode());
-  //    Assertions.assertTrue(resp.body().contains("Invalid Id Provided..."));
-  //
-  //    resp =
-  //        httpGet(
-  //            ApiPaths.TRANSACTIONS_V1_WITH_ID + UUID.randomUUID() + "/something-else",
-  // Boolean.TRUE);
-  //    Assertions.assertEquals(400, resp.statusCode());
-  //    Assertions.assertTrue(resp.body().contains("Invalid Id Provided..."));
-  //
-  //    resp = httpPut(ApiPaths.TRANSACTIONS_V1_WITH_ID + "invalid-uuid", "", Boolean.TRUE);
-  //    Assertions.assertEquals(400, resp.statusCode());
-  //    Assertions.assertTrue(resp.body().contains("Invalid Id Provided..."));
-  //
-  //    resp = httpDelete(ApiPaths.TRANSACTIONS_V1_WITH_ID + "invalid-uuid", Boolean.TRUE);
-  //    Assertions.assertEquals(400, resp.statusCode());
-  //    Assertions.assertTrue(resp.body().contains("Invalid Id Provided..."));
-  //  }
+//  @Test
+//  void testTransactionsBadRequest() throws Exception {
+//    HttpResponse<String> resp = httpPost(ApiPaths.TRANSACTIONS_V1, "", Boolean.TRUE);
+//    Assertions.assertEquals(400, resp.statusCode());
+//    Assertions.assertTrue(resp.body().contains("Transaction request cannot be null..."));
+//
+//    TransactionRequest req =
+//        new TransactionRequest(
+//            LocalDateTime.now(),
+//            "",
+//            100.00,
+//            "",
+//            List.of(
+//                new TransactionItemRequest(null, TEST_ID, "Test Label1", 50.00),
+//                new TransactionItemRequest(null, TEST_ID, "Test Label2", 50.00)));
+//    resp = httpPost(ApiPaths.TRANSACTIONS_V1, JsonUtils.toJson(req), Boolean.TRUE);
+//    Assertions.assertEquals(400, resp.statusCode());
+//    Assertions.assertTrue(resp.body().contains("Transaction merchant cannot be empty..."));
+//
+//    req =
+//        new TransactionRequest(
+//            LocalDateTime.now(),
+//            "Some Merchant",
+//            0.00,
+//            "",
+//            List.of(
+//                new TransactionItemRequest(null, TEST_ID, "Test Label1", 50.00),
+//                new TransactionItemRequest(null, TEST_ID, "Test Label2", 50.00)));
+//    resp = httpPost(ApiPaths.TRANSACTIONS_V1, JsonUtils.toJson(req), Boolean.TRUE);
+//    Assertions.assertEquals(400, resp.statusCode());
+//    Assertions.assertTrue(resp.body().contains("Transaction total cannot be negative..."));
+//
+//    req = new TransactionRequest(UUID.randomUUID(), "Something");
+//    resp = httpPost(ApiPaths.TRANSACTIONS_V1, JsonUtils.toJson(req), Boolean.TRUE);
+//    Assertions.assertEquals(400, resp.statusCode());
+//    Assertions.assertTrue(resp.body().contains("Transaction type does not exist..."));
+//
+//    resp = httpGet(ApiPaths.TRANSACTIONS_V1_WITH_ID + "invalid-uuid", Boolean.TRUE);
+//    Assertions.assertEquals(400, resp.statusCode());
+//    Assertions.assertTrue(resp.body().contains("Invalid Id Provided..."));
+//
+//    resp =
+//        httpGet(
+//            ApiPaths.TRANSACTIONS_V1_WITH_ID + UUID.randomUUID() + "/something-else", Boolean.TRUE);
+//    Assertions.assertEquals(400, resp.statusCode());
+//    Assertions.assertTrue(resp.body().contains("Invalid Id Provided..."));
+//
+//    resp = httpPut(ApiPaths.TRANSACTIONS_V1_WITH_ID + "invalid-uuid", "", Boolean.TRUE);
+//    Assertions.assertEquals(400, resp.statusCode());
+//    Assertions.assertTrue(resp.body().contains("Invalid Id Provided..."));
+//
+//    resp = httpDelete(ApiPaths.TRANSACTIONS_V1_WITH_ID + "invalid-uuid", Boolean.TRUE);
+//    Assertions.assertEquals(400, resp.statusCode());
+//    Assertions.assertTrue(resp.body().contains("Invalid Id Provided..."));
+//  }
 
   @Test
   void testTransactionsNotFound() throws Exception {
