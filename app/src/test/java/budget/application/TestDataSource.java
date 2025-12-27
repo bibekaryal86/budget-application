@@ -11,6 +11,12 @@ public final class TestDataSource {
 
   public static void start() throws IOException {
     dataSource = EmbeddedPostgres.builder().setPort(0).start();
+    Flyway flyway =
+        Flyway.configure()
+            .dataSource(dataSource.getPostgresDatabase())
+            .locations("classpath:test_db/test_migration")
+            .load();
+    flyway.migrate();
   }
 
   public static DataSource getDataSource() {
@@ -19,11 +25,5 @@ public final class TestDataSource {
 
   public static void stop() throws IOException {
     dataSource.close();
-  }
-
-  public static void flywayMigrate(DataSource ds) {
-    Flyway flyway =
-        Flyway.configure().dataSource(ds).locations("classpath:test_db/test_migration").load();
-    flyway.migrate();
   }
 }

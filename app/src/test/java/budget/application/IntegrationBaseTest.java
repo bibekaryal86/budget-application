@@ -22,12 +22,8 @@ public abstract class IntegrationBaseTest {
   static void beforeAll() throws Exception {
     setSystemEnvPropertyTestData();
     TestDataSource.start();
-    TestDataSource.flywayMigrate(TestDataSource.getDataSource());
-
-    server = new ServerNetty(TestDataSource.getDataSource());
-
+    server = new ServerNetty(TestDataSource.getDataSource(), null);
     server.start();
-
     port = server.getBoundPort();
   }
 

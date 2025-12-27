@@ -201,7 +201,7 @@ public class TransactionService {
   }
 
   public void reconcileAll(String requestId) throws SQLException {
-    log.info("[{}] Reconciling all transactions...", requestId);
+    log.debug("[{}] Reconciling all transactions...", requestId);
     List<Transaction> mmTxns = new ArrayList<>();
     tx.executeVoid(
         bs -> {
@@ -226,7 +226,7 @@ public class TransactionService {
               double sum = items.stream().mapToDouble(TransactionItem::amount).sum();
               if (Double.compare(sum, txn.totalAmount()) != 0) {
                 mmTxns.add(txn);
-                log.info(
+                log.debug(
                     "[{}] MISMATCH for txn=[{}] | total=[{}] | sum(items)=[{}]",
                     requestId,
                     txnId,
@@ -238,6 +238,7 @@ public class TransactionService {
           }
         });
     if (!mmTxns.isEmpty()) {
+      log.info("[{}] Mismatched transactions found: [{}]", requestId, mmTxns.size());
       sendReconciliationEmail(mmTxns);
     }
   }
@@ -311,11 +312,11 @@ public class TransactionService {
     EmailResponse emailResponse =
         email.sendEmail(
             new EmailRequest(
-                null,
+                new EmailRequest.EmailContact("PETS Service", "PETS Service"),
                 List.of(new EmailRequest.EmailContact(emailTo, emailTo)),
                 List.of(),
                 new EmailRequest.EmailContent(subject, null, emailBody.toString()),
                 List.of()));
-    log.info("Txn Recon Email Sent: {}", emailResponse.toString());
+    log.info("Txn Recon Email Sent: {}", emailResponse);
   }
 }

@@ -84,7 +84,7 @@ public class TransactionDao extends BaseDao<Transaction> {
   }
 
   private int countAll() throws SQLException {
-    String sql = "SELECT COUNT(*) FROM transactions";
+    String sql = "SELECT COUNT(*) FROM transaction";
 
     try (PreparedStatement ps = connection.prepareStatement(sql);
         ResultSet rs = ps.executeQuery()) {
