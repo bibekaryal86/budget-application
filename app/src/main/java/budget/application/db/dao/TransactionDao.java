@@ -33,7 +33,7 @@ public class TransactionDao extends BaseDao<Transaction> {
 
   @Override
   protected List<Object> insertValues(Transaction t) {
-    return List.of(t.txnDate(), t.merchant(), t.totalAmount(), t.notes());
+    return List.of(t.txnDate(), t.merchant().toUpperCase(), t.totalAmount(), t.notes().toUpperCase());
   }
 
   @Override
@@ -43,7 +43,7 @@ public class TransactionDao extends BaseDao<Transaction> {
 
   @Override
   protected List<Object> updateValues(Transaction t) {
-    return List.of(t.txnDate(), t.merchant(), t.totalAmount(), t.notes(), LocalDateTime.now());
+    return List.of(t.txnDate(), t.merchant().toUpperCase(), t.totalAmount(), t.notes().toUpperCase(), LocalDateTime.now());
   }
 
   @Override

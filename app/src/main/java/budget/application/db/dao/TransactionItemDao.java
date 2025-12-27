@@ -32,7 +32,7 @@ public class TransactionItemDao extends BaseDao<TransactionItem> {
 
   @Override
   protected List<Object> insertValues(TransactionItem ti) {
-    return List.of(ti.transactionId(), ti.categoryId(), ti.label(), ti.amount());
+    return List.of(ti.transactionId(), ti.categoryId(), ti.label().toUpperCase(), ti.amount());
   }
 
   @Override
@@ -42,7 +42,7 @@ public class TransactionItemDao extends BaseDao<TransactionItem> {
 
   @Override
   protected List<Object> updateValues(TransactionItem ti) {
-    return List.of(ti.categoryId(), ti.label(), ti.amount());
+    return List.of(ti.categoryId(), ti.label().toUpperCase(), ti.amount());
   }
 
   @Override
