@@ -57,7 +57,7 @@ public class TransactionItemDao extends BaseDao<TransactionItem> {
 
   // --- Custom ---
   public List<TransactionItem> readByTransactionIds(List<UUID> txnIds) throws SQLException {
-    log.info("[{}] Reading transaction items for txnIds: {}", requestId, txnIds);
+    log.debug("[{}] Reading transaction items for txnIds: {}", requestId, txnIds);
     if (CommonUtilities.isEmpty(txnIds)) {
       return List.of();
     }
@@ -68,7 +68,7 @@ public class TransactionItemDao extends BaseDao<TransactionItem> {
             + " WHERE transaction_id IN ("
             + DaoUtils.placeholders(txnIds.size())
             + ")";
-    log.info("[{}] Read By Transaction Ids SQL=[{}]", requestId, sql);
+    log.debug("[{}] Read By Transaction Ids SQL=[{}]", requestId, sql);
 
     try (PreparedStatement stmt = connection.prepareStatement(sql)) {
       DaoUtils.bindParams(stmt, txnIds);
