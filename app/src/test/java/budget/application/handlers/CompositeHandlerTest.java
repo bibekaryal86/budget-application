@@ -122,10 +122,118 @@ public class CompositeHandlerTest extends IntegrationBaseTest {
 
   @Test
   void testCompositeTransactions() throws Exception {
-    CompositeRequest req = new CompositeRequest(null, null);
-    HttpResponse<String> resp =
-        httpPost(ApiPaths.COMPOSITE_V1_TRANSACTIONS, JsonUtils.toJson(req), Boolean.TRUE);
+    HttpResponse<String> resp = httpPost(ApiPaths.COMPOSITE_V1_TRANSACTIONS, "", Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());
+    CompositeResponse response = JsonUtils.fromJson(resp.body(), CompositeResponse.class);
+    Assertions.assertNull(response.cats());
+    Assertions.assertEquals(ResponseMetadata.emptyResponseMetadata(), response.metadata());
+    Assertions.assertEquals(2, response.txns().size());
+
+    CompositeRequest req = new CompositeRequest(null, null);
+    resp = httpPost(ApiPaths.COMPOSITE_V1_TRANSACTIONS, JsonUtils.toJson(req), Boolean.TRUE);
+    Assertions.assertEquals(200, resp.statusCode());
+    response = JsonUtils.fromJson(resp.body(), CompositeResponse.class);
+    Assertions.assertNull(response.cats());
+    Assertions.assertEquals(ResponseMetadata.emptyResponseMetadata(), response.metadata());
+    Assertions.assertEquals(2, response.txns().size());
+
+    req =
+        new CompositeRequest(
+            new CompositeRequest.TransactionRequest(null, null, null, null, null), null);
+    resp = httpPost(ApiPaths.COMPOSITE_V1_TRANSACTIONS, JsonUtils.toJson(req), Boolean.TRUE);
+    Assertions.assertEquals(200, resp.statusCode());
+    response = JsonUtils.fromJson(resp.body(), CompositeResponse.class);
+    Assertions.assertNull(response.cats());
+    Assertions.assertEquals(ResponseMetadata.emptyResponseMetadata(), response.metadata());
+    Assertions.assertEquals(2, response.txns().size());
+
+    req =
+        new CompositeRequest(
+            new CompositeRequest.TransactionRequest(
+                LocalDate.now().minusDays(75), null, null, null, null),
+            null);
+    resp = httpPost(ApiPaths.COMPOSITE_V1_TRANSACTIONS, JsonUtils.toJson(req), Boolean.TRUE);
+    Assertions.assertEquals(200, resp.statusCode());
+    response = JsonUtils.fromJson(resp.body(), CompositeResponse.class);
+    Assertions.assertNull(response.cats());
+    Assertions.assertEquals(ResponseMetadata.emptyResponseMetadata(), response.metadata());
+    Assertions.assertEquals(1, response.txns().size());
+
+    req =
+        new CompositeRequest(
+            new CompositeRequest.TransactionRequest(
+                null, LocalDate.now().plusDays(1), null, null, null),
+            null);
+    resp = httpPost(ApiPaths.COMPOSITE_V1_TRANSACTIONS, JsonUtils.toJson(req), Boolean.TRUE);
+    Assertions.assertEquals(200, resp.statusCode());
+    response = JsonUtils.fromJson(resp.body(), CompositeResponse.class);
+    Assertions.assertNull(response.cats());
+    Assertions.assertEquals(ResponseMetadata.emptyResponseMetadata(), response.metadata());
+    Assertions.assertEquals(2, response.txns().size());
+
+    req =
+        new CompositeRequest(
+            new CompositeRequest.TransactionRequest(
+                LocalDate.now().minusDays(75), LocalDate.now().plusDays(1), null, null, null),
+            null);
+    resp = httpPost(ApiPaths.COMPOSITE_V1_TRANSACTIONS, JsonUtils.toJson(req), Boolean.TRUE);
+    Assertions.assertEquals(200, resp.statusCode());
+    response = JsonUtils.fromJson(resp.body(), CompositeResponse.class);
+    Assertions.assertNull(response.cats());
+    Assertions.assertEquals(ResponseMetadata.emptyResponseMetadata(), response.metadata());
+    Assertions.assertEquals(4, response.txns().size());
+
+    req =
+        new CompositeRequest(
+            new CompositeRequest.TransactionRequest(
+                LocalDate.now().minusDays(75), LocalDate.now().plusDays(1), null, cId2, null),
+            null);
+    resp = httpPost(ApiPaths.COMPOSITE_V1_TRANSACTIONS, JsonUtils.toJson(req), Boolean.TRUE);
+    Assertions.assertEquals(200, resp.statusCode());
+    response = JsonUtils.fromJson(resp.body(), CompositeResponse.class);
+    Assertions.assertNull(response.cats());
+    Assertions.assertEquals(ResponseMetadata.emptyResponseMetadata(), response.metadata());
+    Assertions.assertEquals(2, response.txns().size());
+
+    req =
+        new CompositeRequest(
+            new CompositeRequest.TransactionRequest(
+                LocalDate.now().minusDays(75), LocalDate.now().plusDays(1), null, null, ctId1),
+            null);
+    resp = httpPost(ApiPaths.COMPOSITE_V1_TRANSACTIONS, JsonUtils.toJson(req), Boolean.TRUE);
+    Assertions.assertEquals(200, resp.statusCode());
+    response = JsonUtils.fromJson(resp.body(), CompositeResponse.class);
+    Assertions.assertNull(response.cats());
+    Assertions.assertEquals(ResponseMetadata.emptyResponseMetadata(), response.metadata());
+    Assertions.assertEquals(2, response.txns().size());
+
+    req =
+        new CompositeRequest(
+            new CompositeRequest.TransactionRequest(
+                LocalDate.now().minusDays(75), LocalDate.now().plusDays(1), null, cId2, ctId1),
+            null);
+    resp = httpPost(ApiPaths.COMPOSITE_V1_TRANSACTIONS, JsonUtils.toJson(req), Boolean.TRUE);
+    Assertions.assertEquals(200, resp.statusCode());
+    response = JsonUtils.fromJson(resp.body(), CompositeResponse.class);
+    Assertions.assertNull(response.cats());
+    Assertions.assertEquals(ResponseMetadata.emptyResponseMetadata(), response.metadata());
+    Assertions.assertEquals(2, response.txns().size());
+
+    req =
+        new CompositeRequest(
+            new CompositeRequest.TransactionRequest(
+                LocalDate.now().minusDays(75),
+                LocalDate.now().plusDays(1),
+                "Merchant: " + tId2,
+                cId2,
+                ctId1),
+            null);
+    resp = httpPost(ApiPaths.COMPOSITE_V1_TRANSACTIONS, JsonUtils.toJson(req), Boolean.TRUE);
+    Assertions.assertEquals(200, resp.statusCode());
+    response = JsonUtils.fromJson(resp.body(), CompositeResponse.class);
+    Assertions.assertNull(response.cats());
+    Assertions.assertEquals(ResponseMetadata.emptyResponseMetadata(), response.metadata());
+    Assertions.assertEquals(1, response.txns().size());
   }
 
   @Test

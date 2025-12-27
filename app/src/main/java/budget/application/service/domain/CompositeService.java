@@ -48,22 +48,39 @@ public class CompositeService {
     LocalDate now = LocalDate.now();
     YearMonth currentMonth = YearMonth.from(now);
 
-    LocalDate monthStart = currentMonth.atDay(1);
-    LocalDate monthEnd = currentMonth.atEndOfMonth();
+    LocalDate defaultStart = currentMonth.atDay(1);
+    LocalDate defaultEnd = currentMonth.atEndOfMonth();
 
-    CompositeRequest.TransactionRequest crtr = cr.transactionRequest();
+    CompositeRequest.TransactionRequest tr = (cr == null ? null : cr.transactionRequest());
 
-    if (crtr == null) {
+    if (tr == null) {
       return new CompositeRequest(
-          new CompositeRequest.TransactionRequest(monthStart, monthEnd, null, null, null), null);
+          new CompositeRequest.TransactionRequest(defaultStart, defaultEnd, null, null, null),
+          null);
     }
 
-    LocalDate beginDate = crtr.beginDate() != null ? crtr.beginDate() : monthStart;
-    LocalDate endDate = crtr.endDate() != null ? crtr.endDate() : monthEnd;
+    LocalDate begin = tr.beginDate();
+    LocalDate end = tr.endDate();
+
+    // (1) Both missing → use current month
+    if (begin == null && end == null) {
+      begin = defaultStart;
+      end = defaultEnd;
+    }
+    // (2) begin provided, end missing → end = end of begin's month
+    else if (begin != null && end == null) {
+      YearMonth ym = YearMonth.from(begin);
+      end = ym.atEndOfMonth();
+    }
+    // (3) end provided, begin missing → begin = start of end's month
+    else if (begin == null && end != null) {
+      YearMonth ym = YearMonth.from(end);
+      begin = ym.atDay(1);
+    }
 
     return new CompositeRequest(
         new CompositeRequest.TransactionRequest(
-            beginDate, endDate, crtr.merchant(), crtr.categoryId(), crtr.categoryTypeId()),
+            begin, end, tr.merchant(), tr.categoryId(), tr.categoryTypeId()),
         null);
   }
 }
