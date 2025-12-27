@@ -25,6 +25,53 @@ public class CompositeDao {
     this.requestId = requestId;
   }
 
+  public List<CompositeResponse.CategoryComposite> compositeCategories(CompositeRequest cr)
+      throws SQLException {
+    log.debug("[{}] Composite Categories Request=[{}]", requestId, cr);
+    CompositeRequest.CategoryRequest crcr = cr.categoryRequest();
+
+    String sql =
+        """
+                    SELECT
+                        c.id                  AS category_id,
+                        c.name                AS category_name,
+
+                        ct.id                 AS category_type_id,
+                        ct.name               AS category_type_name
+
+                    FROM category c
+                    JOIN category_type ct
+                       ON ct.id = c.category_type_id
+
+                    WHERE 1 = 1
+                      AND (:categoryTypeId IS NULL OR c.category_type_id = :categoryTypeId)
+
+                    ORDER BY ct.category_type_name, c.category_name ASC
+                    """;
+    log.debug("[{}] Composite Categories SQL=[{}]", requestId, sql);
+
+    PreparedStatement stmt = connection.prepareStatement(sql);
+    stmt.setObject(1, crcr.categoryTypeId());
+
+    List<CompositeResponse.CategoryComposite> crcc = new ArrayList<>();
+
+    try (ResultSet rs = stmt.executeQuery()) {
+      while (rs.next()) {
+        CompositeResponse.CategoryTypeComposite ct =
+            new CompositeResponse.CategoryTypeComposite(
+                rs.getObject("category_type_id", UUID.class), rs.getString("category_type_name"));
+
+        CompositeResponse.CategoryComposite c =
+            new CompositeResponse.CategoryComposite(
+                rs.getObject("category_id", UUID.class), rs.getString("category_name"), ct);
+
+        crcc.add(c);
+      }
+    }
+
+    return crcc;
+  }
+
   public List<CompositeResponse.TransactionComposite> compositeTransactions(CompositeRequest cr)
       throws SQLException {
     log.debug("[{}] Composite Transactions Request=[{}]", requestId, cr);
@@ -42,11 +89,9 @@ public class CompositeDao {
                 ti.id                 AS item_id,
                 ti.label              AS item_label,
                 ti.amount             AS item_amount,
-                ti.category_id        AS item_category_id,
 
                 c.id                  AS category_id,
                 c.name                AS category_name,
-                c.category_type_id    AS category_type_id,
 
                 ct.id                 AS category_type_id,
                 ct.name               AS category_type_name
@@ -68,7 +113,7 @@ public class CompositeDao {
                     OR (t.txn_date >= :beginDate AND t.txn_date <= :endDate)
                   )
 
-            ORDER BY t.txn_date DESC, t.id, ti.id
+            ORDER BY t.txn_date DESC
             """;
     log.debug("[{}] Composite Transactions SQL=[{}]", requestId, sql);
 

@@ -35,6 +35,12 @@ public class CompositeHandler extends SimpleChannelInboundHandler<FullHttpReques
     }
     log.info("[{}] Request: Method=[{}] Path=[{}]", requestId, method, path);
 
+    // Transactions: POST /petssvc/api/v1/composites/categories
+    if (path.equals(ApiPaths.COMPOSITE_V1_CATEGORIES) && method.equals(HttpMethod.POST)) {
+      handleCompositeCategories(requestId, ctx, req);
+      return;
+    }
+
     // Transactions: POST /petssvc/api/v1/composites/transactions
     if (path.equals(ApiPaths.COMPOSITE_V1_TRANSACTIONS) && method.equals(HttpMethod.POST)) {
       handleCompositeTransactions(requestId, ctx, req);
@@ -45,7 +51,15 @@ public class CompositeHandler extends SimpleChannelInboundHandler<FullHttpReques
     ctx.fireChannelRead(req.retain());
   }
 
-  // CREATE
+  // CATEGORIES
+  private void handleCompositeCategories(
+      String requestId, ChannelHandlerContext ctx, FullHttpRequest req) throws Exception {
+    CompositeRequest request = ServerUtils.getRequestBody(req, CompositeRequest.class);
+    CompositeResponse response = service.compositeCategories(requestId, request);
+    ServerUtils.sendResponse(ctx, HttpResponseStatus.OK, response);
+  }
+
+  // TRANSACTIONS
   private void handleCompositeTransactions(
       String requestId, ChannelHandlerContext ctx, FullHttpRequest req) throws Exception {
     CompositeRequest request = ServerUtils.getRequestBody(req, CompositeRequest.class);

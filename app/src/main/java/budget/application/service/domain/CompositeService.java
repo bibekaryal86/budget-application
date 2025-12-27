@@ -21,6 +21,18 @@ public class CompositeService {
     this.tx = new TransactionManager(dataSource);
   }
 
+  public CompositeResponse compositeCategories(String requestId, CompositeRequest cr)
+      throws SQLException {
+    log.debug("[{}] Composite categories: CompositeRequest=[{}]", requestId, cr);
+    return tx.execute(
+        bs -> {
+          CompositeRepository repo = new CompositeRepository(requestId, bs);
+          List<CompositeResponse.CategoryComposite> data =
+              repo.readCompositeCategories(normalizeCompositeTransactionRequest(cr));
+          return new CompositeResponse(null, data, ResponseMetadata.emptyResponseMetadata());
+        });
+  }
+
   public CompositeResponse compositeTransactions(String requestId, CompositeRequest cr)
       throws SQLException {
     log.debug("[{}] Composite transactions: CompositeRequest=[{}]", requestId, cr);
@@ -29,7 +41,7 @@ public class CompositeService {
           CompositeRepository repo = new CompositeRepository(requestId, bs);
           List<CompositeResponse.TransactionComposite> data =
               repo.readCompositeTransactions(normalizeCompositeTransactionRequest(cr));
-          return new CompositeResponse(data, ResponseMetadata.emptyResponseMetadata());
+          return new CompositeResponse(data, null, ResponseMetadata.emptyResponseMetadata());
         });
   }
 
@@ -44,7 +56,7 @@ public class CompositeService {
 
     if (crtr == null) {
       return new CompositeRequest(
-          new CompositeRequest.TransactionRequest(monthStart, monthEnd, null, null, null));
+          new CompositeRequest.TransactionRequest(monthStart, monthEnd, null, null, null), null);
     }
 
     LocalDate beginDate = crtr.beginDate() != null ? crtr.beginDate() : monthStart;
@@ -52,6 +64,7 @@ public class CompositeService {
 
     return new CompositeRequest(
         new CompositeRequest.TransactionRequest(
-            beginDate, endDate, crtr.merchant(), crtr.categoryId(), crtr.categoryTypeId()));
+            beginDate, endDate, crtr.merchant(), crtr.categoryId(), crtr.categoryTypeId()),
+        null);
   }
 }

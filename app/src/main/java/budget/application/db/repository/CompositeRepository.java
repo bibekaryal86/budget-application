@@ -14,6 +14,11 @@ public class CompositeRepository {
     this.dao = new CompositeDao(requestId, bs.connection());
   }
 
+  public List<CompositeResponse.CategoryComposite> readCompositeCategories(CompositeRequest cr)
+      throws SQLException {
+    return dao.compositeCategories(cr);
+  }
+
   public List<CompositeResponse.TransactionComposite> readCompositeTransactions(CompositeRequest cr)
       throws SQLException {
     return dao.compositeTransactions(cr);

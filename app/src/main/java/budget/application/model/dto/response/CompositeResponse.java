@@ -5,7 +5,8 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
-public record CompositeResponse(List<TransactionComposite> data, ResponseMetadata metadata) {
+public record CompositeResponse(
+    List<TransactionComposite> txns, List<CategoryComposite> cats, ResponseMetadata metadata) {
 
   public record TransactionComposite(
       UUID id,
