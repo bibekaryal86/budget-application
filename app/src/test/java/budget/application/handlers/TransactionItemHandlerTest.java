@@ -24,7 +24,7 @@ public class TransactionItemHandlerTest extends IntegrationBaseTest {
     TransactionItemResponse response =
         JsonUtils.fromJson(resp.body(), TransactionItemResponse.class);
     Assertions.assertEquals(1, response.data().size());
-    Assertions.assertEquals(req.label(), response.data().getFirst().label());
+    Assertions.assertEquals(req.label().toUpperCase(), response.data().getFirst().label());
     Assertions.assertEquals(
         ResponseMetadataUtils.defaultInsertResponseMetadata(), response.metadata());
     final String id = response.data().getFirst().id().toString();
@@ -47,7 +47,7 @@ public class TransactionItemHandlerTest extends IntegrationBaseTest {
     Assertions.assertEquals(200, resp.statusCode());
     response = JsonUtils.fromJson(resp.body(), TransactionItemResponse.class);
     Assertions.assertEquals(1, response.data().size());
-    Assertions.assertEquals(req.label(), response.data().getFirst().label());
+    Assertions.assertEquals(req.label().toUpperCase(), response.data().getFirst().label());
     Assertions.assertEquals(
         ResponseMetadataUtils.defaultUpdateResponseMetadata(), response.metadata());
 

@@ -19,6 +19,65 @@ public final class TestDataHelper {
     this.ds = ds;
   }
 
+  public UUID insertCategoryType(UUID id, String name) throws SQLException {
+    try (Connection c = ds.getConnection();
+        PreparedStatement stmt =
+            c.prepareStatement(
+                """
+                           INSERT INTO category_type (id, name)
+                           VALUES (?, ?)
+                       """)) {
+
+      stmt.setObject(1, id);
+      stmt.setObject(2, name);
+      stmt.executeUpdate();
+    }
+    return id;
+  }
+
+  public void deleteCategoryType(UUID id) throws SQLException {
+    try (Connection c = ds.getConnection();
+        PreparedStatement stmt =
+            c.prepareStatement(
+                """
+                           DELETE FROM category_type WHERE id = ?
+                       """)) {
+
+      stmt.setObject(1, id);
+      stmt.executeUpdate();
+    }
+  }
+
+  public UUID insertCategory(UUID id, UUID catTypeId, String name) throws SQLException {
+    try (Connection c = ds.getConnection();
+        PreparedStatement stmt =
+            c.prepareStatement(
+                """
+                             INSERT INTO category (id, category_type_id, name)
+                             VALUES (?, ?, ?)
+                         """)) {
+
+      stmt.setObject(1, id);
+      stmt.setObject(2, catTypeId);
+      stmt.setObject(3, name);
+      stmt.executeUpdate();
+    }
+    return id;
+  }
+
+  public void deleteCategory(UUID id) throws SQLException {
+    try (Connection c = ds.getConnection();
+        PreparedStatement stmt =
+            c.prepareStatement(
+                """
+                             DELETE FROM category WHERE id = ?
+                         """)) {
+
+      stmt.setObject(1, id);
+      stmt.executeUpdate();
+    }
+  }
+
   public UUID insertTransaction(UUID id, LocalDate txnDate, double totalAmount)
       throws SQLException {
     try (Connection c = ds.getConnection();
@@ -38,7 +97,21 @@ public final class TestDataHelper {
     return id;
   }
 
-  public UUID insertTransactionItem(UUID id, UUID txnId, double amount) throws SQLException {
+  public void deleteTransaction(UUID id) throws SQLException {
+    try (Connection c = ds.getConnection();
+        PreparedStatement stmt =
+            c.prepareStatement(
+                """
+                             DELETE FROM transaction WHERE id = ?
+                         """)) {
+
+      stmt.setObject(1, id);
+      stmt.executeUpdate();
+    }
+  }
+
+  public UUID insertTransactionItem(UUID id, UUID txnId, UUID catId, double amount)
+      throws SQLException {
     try (Connection c = ds.getConnection();
         PreparedStatement stmt =
             c.prepareStatement(
@@ -48,12 +121,25 @@ public final class TestDataHelper {
             """)) {
       stmt.setObject(1, id);
       stmt.setObject(2, txnId);
-      stmt.setObject(3, IntegrationBaseTest.TEST_ID);
+      stmt.setObject(3, catId);
       stmt.setString(4, "Label: " + id);
       stmt.setDouble(5, amount);
       stmt.executeUpdate();
     }
     return id;
+  }
+
+  public void deleteTransactionItem(UUID id) throws SQLException {
+    try (Connection c = ds.getConnection();
+        PreparedStatement stmt =
+            c.prepareStatement(
+                """
+                             DELETE FROM transaction_item WHERE id = ?
+                         """)) {
+
+      stmt.setObject(1, id);
+      stmt.executeUpdate();
+    }
   }
 
   public List<UUID> insertBulkTransactions(
@@ -101,7 +187,7 @@ public final class TestDataHelper {
         insertTransaction(txnId, LocalDate.of(2024, 1, 1), totalAmount);
 
         for (int j = 0; j < itemCount; j++) {
-          insertTransactionItem(UUID.randomUUID(), txnId, itemAmount);
+          insertTransactionItem(UUID.randomUUID(), txnId, IntegrationBaseTest.TEST_ID, itemAmount);
         }
 
         if (i % 250 == 0) {

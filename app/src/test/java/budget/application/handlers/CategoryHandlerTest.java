@@ -23,7 +23,7 @@ public class CategoryHandlerTest extends IntegrationBaseTest {
     Assertions.assertEquals(201, resp.statusCode());
     CategoryResponse response = JsonUtils.fromJson(resp.body(), CategoryResponse.class);
     Assertions.assertEquals(1, response.data().size());
-    Assertions.assertEquals(req.name(), response.data().getFirst().name());
+    Assertions.assertEquals(req.name().toUpperCase(), response.data().getFirst().name());
     Assertions.assertEquals(
         ResponseMetadataUtils.defaultInsertResponseMetadata(), response.metadata());
     final String id = response.data().getFirst().id().toString();
@@ -46,7 +46,7 @@ public class CategoryHandlerTest extends IntegrationBaseTest {
     Assertions.assertEquals(200, resp.statusCode());
     response = JsonUtils.fromJson(resp.body(), CategoryResponse.class);
     Assertions.assertEquals(1, response.data().size());
-    Assertions.assertEquals(req.name(), response.data().getFirst().name());
+    Assertions.assertEquals(req.name().toUpperCase(), response.data().getFirst().name());
     Assertions.assertEquals(
         ResponseMetadataUtils.defaultUpdateResponseMetadata(), response.metadata());
 
