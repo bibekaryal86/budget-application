@@ -11,7 +11,9 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class TransactionItemDao extends BaseDao<TransactionItem> {
 
   public TransactionItemDao(String requestId, Connection connection) {
@@ -55,6 +57,7 @@ public class TransactionItemDao extends BaseDao<TransactionItem> {
 
   // --- Custom ---
   public List<TransactionItem> readByTransactionIds(List<UUID> txnIds) throws SQLException {
+    log.info("[{}] Reading transaction items for txnIds: {}", requestId, txnIds);
     if (CommonUtilities.isEmpty(txnIds)) {
       return List.of();
     }
@@ -65,6 +68,7 @@ public class TransactionItemDao extends BaseDao<TransactionItem> {
             + " WHERE transaction_id IN ("
             + DaoUtils.placeholders(txnIds.size())
             + ")";
+    log.info("[{}] Read By Transaction Ids SQL=[{}]", requestId, sql);
 
     try (PreparedStatement stmt = connection.prepareStatement(sql)) {
       DaoUtils.bindParams(stmt, txnIds);

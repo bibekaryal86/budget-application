@@ -238,7 +238,8 @@ public class TransactionService {
           }
         });
     if (!mmTxns.isEmpty()) {
-      log.info("[{}] Mismatched transactions found: [{}]", requestId, mmTxns.size());
+      List<UUID> mmTxnIds = mmTxns.stream().map(Transaction::id).toList();
+      log.info("[{}] Mismatched transactions found: TxnIds={}", requestId, mmTxnIds);
       sendReconciliationEmail(mmTxns);
     }
   }
@@ -317,6 +318,7 @@ public class TransactionService {
                 List.of(),
                 new EmailRequest.EmailContent(subject, null, emailBody.toString()),
                 List.of()));
-    log.info("Txn Recon Email Sent: {}", emailResponse);
+    log.info(
+        "Txn Recon Email Sent: {}", emailResponse == null ? "Failed" : emailResponse.toString());
   }
 }

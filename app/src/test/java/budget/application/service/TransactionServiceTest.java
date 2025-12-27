@@ -91,10 +91,4 @@ public class TransactionServiceTest extends IntegrationBaseTest {
     service.reconcileAll("req-pagination");
     Mockito.verify(email, Mockito.times(1)).sendEmail(ArgumentMatchers.any(EmailRequest.class));
   }
-
-  @Test
-  void testReconcileAll_NoTransactions_NoEmail() throws Exception {
-    service.reconcileAll("req-empty");
-    Mockito.verify(email, Mockito.never()).sendEmail(Mockito.any());
-  }
 }

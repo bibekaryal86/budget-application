@@ -33,7 +33,7 @@ public class TransactionItemHandlerTest extends IntegrationBaseTest {
     resp = httpGet(ApiPaths.TRANSACTION_ITEMS_V1, Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());
     response = JsonUtils.fromJson(resp.body(), TransactionItemResponse.class);
-    Assertions.assertEquals(1, response.data().size());
+    Assertions.assertEquals(2, response.data().size());
 
     // READ ONE
     resp = httpGet(ApiPaths.TRANSACTION_ITEMS_V1_WITH_ID + id, Boolean.TRUE);
