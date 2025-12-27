@@ -51,16 +51,16 @@ public class CompositeService {
     LocalDate defaultStart = currentMonth.atDay(1);
     LocalDate defaultEnd = currentMonth.atEndOfMonth();
 
-    CompositeRequest.TransactionRequest tr = (cr == null ? null : cr.transactionRequest());
+    CompositeRequest.TransactionComposite crtc = (cr == null ? null : cr.transactionComposite());
 
-    if (tr == null) {
+    if (crtc == null) {
       return new CompositeRequest(
-          new CompositeRequest.TransactionRequest(defaultStart, defaultEnd, null, null, null),
+          new CompositeRequest.TransactionComposite(defaultStart, defaultEnd, null, null, null),
           null);
     }
 
-    LocalDate begin = tr.beginDate();
-    LocalDate end = tr.endDate();
+    LocalDate begin = crtc.beginDate();
+    LocalDate end = crtc.endDate();
 
     // (1) Both missing → use current month
     if (begin == null && end == null) {
@@ -79,8 +79,8 @@ public class CompositeService {
     }
 
     return new CompositeRequest(
-        new CompositeRequest.TransactionRequest(
-            begin, end, tr.merchant(), tr.categoryId(), tr.categoryTypeId()),
+        new CompositeRequest.TransactionComposite(
+            begin, end, crtc.merchant(), crtc.categoryId(), crtc.categoryTypeId()),
         null);
   }
 }

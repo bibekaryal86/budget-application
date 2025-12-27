@@ -30,8 +30,8 @@ public class CompositeDao {
       throws SQLException {
     log.info("[{}] Composite Categories Request=[{}]", requestId, cr);
 
-    CompositeRequest.CategoryRequest crcr = cr == null ? null : cr.categoryRequest();
-    UUID categoryTypeId = (crcr == null ? null : crcr.categoryTypeId());
+    CompositeRequest.CategoryComposite crcc = cr == null ? null : cr.categoryComposite();
+    UUID categoryTypeId = (crcc == null ? null : crcc.categoryTypeId());
 
     StringBuilder sql =
         new StringBuilder(
@@ -87,13 +87,13 @@ public class CompositeDao {
 
     log.debug("[{}] Composite Transactions Request=[{}]", requestId, cr);
 
-    CompositeRequest.TransactionRequest tr = cr.transactionRequest();
+    CompositeRequest.TransactionComposite crtc = cr.transactionComposite();
 
-    UUID categoryId = tr.categoryId();
-    UUID categoryTypeId = tr.categoryTypeId();
-    LocalDate beginDate = tr.beginDate();
-    LocalDate endDate = tr.endDate();
-    String merchant = tr.merchant();
+    UUID categoryId = crtc.categoryId();
+    UUID categoryTypeId = crtc.categoryTypeId();
+    LocalDate beginDate = crtc.beginDate();
+    LocalDate endDate = crtc.endDate();
+    String merchant = crtc.merchant();
 
     StringBuilder sql =
         new StringBuilder(

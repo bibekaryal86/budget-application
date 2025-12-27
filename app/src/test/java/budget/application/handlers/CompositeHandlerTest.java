@@ -105,7 +105,7 @@ public class CompositeHandlerTest extends IntegrationBaseTest {
 
   @Test
   void testCompositeCategories_nullCategoryRequest() throws Exception {
-    CompositeRequest req = new CompositeRequest(null, new CompositeRequest.CategoryRequest(null));
+    CompositeRequest req = new CompositeRequest(null, new CompositeRequest.CategoryComposite(null));
 
     HttpResponse<String> resp =
         httpPost(ApiPaths.COMPOSITE_V1_CATEGORIES, JsonUtils.toJson(req), Boolean.TRUE);
@@ -119,7 +119,7 @@ public class CompositeHandlerTest extends IntegrationBaseTest {
 
   @Test
   void testCompositeCategories_filterByCategoryType1() throws Exception {
-    CompositeRequest req = new CompositeRequest(null, new CompositeRequest.CategoryRequest(ctId1));
+    CompositeRequest req = new CompositeRequest(null, new CompositeRequest.CategoryComposite(ctId1));
 
     HttpResponse<String> resp =
         httpPost(ApiPaths.COMPOSITE_V1_CATEGORIES, JsonUtils.toJson(req), Boolean.TRUE);
@@ -133,7 +133,7 @@ public class CompositeHandlerTest extends IntegrationBaseTest {
 
   @Test
   void testCompositeCategories_filterByCategoryType2() throws Exception {
-    CompositeRequest req = new CompositeRequest(null, new CompositeRequest.CategoryRequest(ctId2));
+    CompositeRequest req = new CompositeRequest(null, new CompositeRequest.CategoryComposite(ctId2));
 
     HttpResponse<String> resp =
         httpPost(ApiPaths.COMPOSITE_V1_CATEGORIES, JsonUtils.toJson(req), Boolean.TRUE);
@@ -176,7 +176,7 @@ public class CompositeHandlerTest extends IntegrationBaseTest {
   void testCompositeTransactions_emptyTransactionRequest() throws Exception {
     CompositeRequest req =
         new CompositeRequest(
-            new CompositeRequest.TransactionRequest(null, null, null, null, null), null);
+            new CompositeRequest.TransactionComposite(null, null, null, null, null), null);
 
     HttpResponse<String> resp =
         httpPost(ApiPaths.COMPOSITE_V1_TRANSACTIONS, JsonUtils.toJson(req), Boolean.TRUE);
@@ -193,7 +193,7 @@ public class CompositeHandlerTest extends IntegrationBaseTest {
   void testCompositeTransactions_beginDateOnly() throws Exception {
     CompositeRequest req =
         new CompositeRequest(
-            new CompositeRequest.TransactionRequest(
+            new CompositeRequest.TransactionComposite(
                 LocalDate.now().minusDays(75), null, null, null, null),
             null);
 
@@ -212,7 +212,7 @@ public class CompositeHandlerTest extends IntegrationBaseTest {
   void testCompositeTransactions_endDateOnly() throws Exception {
     CompositeRequest req =
         new CompositeRequest(
-            new CompositeRequest.TransactionRequest(
+            new CompositeRequest.TransactionComposite(
                 null, LocalDate.now().plusDays(1), null, null, null),
             null);
 
@@ -231,7 +231,7 @@ public class CompositeHandlerTest extends IntegrationBaseTest {
   void testCompositeTransactions_fullDateRange() throws Exception {
     CompositeRequest req =
         new CompositeRequest(
-            new CompositeRequest.TransactionRequest(
+            new CompositeRequest.TransactionComposite(
                 LocalDate.now().minusDays(75), LocalDate.now().plusDays(1), null, null, null),
             null);
 
@@ -250,7 +250,7 @@ public class CompositeHandlerTest extends IntegrationBaseTest {
   void testCompositeTransactions_filterByCategory() throws Exception {
     CompositeRequest req =
         new CompositeRequest(
-            new CompositeRequest.TransactionRequest(
+            new CompositeRequest.TransactionComposite(
                 LocalDate.now().minusDays(75), LocalDate.now().plusDays(1), null, cId2, null),
             null);
 
@@ -269,7 +269,7 @@ public class CompositeHandlerTest extends IntegrationBaseTest {
   void testCompositeTransactions_filterByCategoryType() throws Exception {
     CompositeRequest req =
         new CompositeRequest(
-            new CompositeRequest.TransactionRequest(
+            new CompositeRequest.TransactionComposite(
                 LocalDate.now().minusDays(75), LocalDate.now().plusDays(1), null, null, ctId1),
             null);
 
@@ -288,7 +288,7 @@ public class CompositeHandlerTest extends IntegrationBaseTest {
   void testCompositeTransactions_filterByCategoryAndType() throws Exception {
     CompositeRequest req =
         new CompositeRequest(
-            new CompositeRequest.TransactionRequest(
+            new CompositeRequest.TransactionComposite(
                 LocalDate.now().minusDays(75), LocalDate.now().plusDays(1), null, cId2, ctId1),
             null);
 
@@ -307,7 +307,7 @@ public class CompositeHandlerTest extends IntegrationBaseTest {
   void testCompositeTransactions_filterByMerchantCategoryAndType() throws Exception {
     CompositeRequest req =
         new CompositeRequest(
-            new CompositeRequest.TransactionRequest(
+            new CompositeRequest.TransactionComposite(
                 LocalDate.now().minusDays(75),
                 LocalDate.now().plusDays(1),
                 "Merchant: " + tId2,

@@ -4,14 +4,14 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 public record CompositeRequest(
-    TransactionRequest transactionRequest, CategoryRequest categoryRequest) {
+        TransactionComposite transactionComposite, CategoryComposite categoryComposite) {
 
-  public record TransactionRequest(
+  public record TransactionComposite(
       LocalDate beginDate,
       LocalDate endDate,
       String merchant,
       UUID categoryId,
       UUID categoryTypeId) {}
 
-  public record CategoryRequest(UUID categoryTypeId) {}
+  public record CategoryComposite(UUID categoryTypeId) {}
 }
