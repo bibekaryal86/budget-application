@@ -12,6 +12,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.BiConsumer;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -27,33 +28,42 @@ public class CompositeDao {
 
   public List<CompositeResponse.CategoryComposite> compositeCategories(CompositeRequest cr)
       throws SQLException {
-    log.debug("[{}] Composite Categories Request=[{}]", requestId, cr);
-    CompositeRequest.CategoryRequest crcr = cr.categoryRequest();
+    log.info("[{}] Composite Categories Request=[{}]", requestId, cr);
 
-    String sql =
-        """
-                    SELECT
-                        c.id                  AS category_id,
-                        c.name                AS category_name,
+    CompositeRequest.CategoryRequest crcr = cr == null ? null : cr.categoryRequest();
+    UUID categoryTypeId = (crcr == null ? null : crcr.categoryTypeId());
 
-                        ct.id                 AS category_type_id,
-                        ct.name               AS category_type_name
+    StringBuilder sql =
+        new StringBuilder(
+            """
+                SELECT
+                    c.id   AS category_id,
+                    c.name AS category_name,
 
-                    FROM category c
-                    JOIN category_type ct
-                       ON ct.id = c.category_type_id
+                    ct.id  AS category_type_id,
+                    ct.name AS category_type_name
 
-                    WHERE 1 = 1
-                      AND (:categoryTypeId IS NULL OR c.category_type_id = :categoryTypeId)
+                FROM category c
+                JOIN category_type ct
+                  ON ct.id = c.category_type_id
+                """);
 
-                    ORDER BY ct.category_type_name, c.category_name ASC
-                    """;
-    log.debug("[{}] Composite Categories SQL=[{}]", requestId, sql);
+    if (categoryTypeId != null) {
+      sql.append(" WHERE c.category_type_id = ? ");
+    }
 
-    PreparedStatement stmt = connection.prepareStatement(sql);
-    stmt.setObject(1, crcr.categoryTypeId());
+    sql.append(" ORDER BY ct.name, c.name ASC ");
 
-    List<CompositeResponse.CategoryComposite> crcc = new ArrayList<>();
+    String finalSql = sql.toString();
+    log.info("[{}] Composite Categories SQL=[{}]", requestId, finalSql);
+
+    PreparedStatement stmt = connection.prepareStatement(finalSql);
+
+    if (categoryTypeId != null) {
+      stmt.setObject(1, categoryTypeId);
+    }
+
+    List<CompositeResponse.CategoryComposite> results = new ArrayList<>();
 
     try (ResultSet rs = stmt.executeQuery()) {
       while (rs.next()) {
@@ -65,69 +75,96 @@ public class CompositeDao {
             new CompositeResponse.CategoryComposite(
                 rs.getObject("category_id", UUID.class), rs.getString("category_name"), ct);
 
-        crcc.add(c);
+        results.add(c);
       }
     }
 
-    return crcc;
+    return results;
   }
 
   public List<CompositeResponse.TransactionComposite> compositeTransactions(CompositeRequest cr)
       throws SQLException {
+
     log.debug("[{}] Composite Transactions Request=[{}]", requestId, cr);
-    CompositeRequest.TransactionRequest crtr = cr.transactionRequest();
 
-    String sql =
-        """
-            SELECT
-                t.id                  AS txn_id,
-                t.txn_date            AS txn_date,
-                t.merchant            AS txn_merchant,
-                t.total_amount        AS txn_total_amount,
-                t.notes               AS txn_notes,
+    CompositeRequest.TransactionRequest tr = cr.transactionRequest();
 
-                ti.id                 AS item_id,
-                ti.label              AS item_label,
-                ti.amount             AS item_amount,
+    UUID categoryId = tr.categoryId();
+    UUID categoryTypeId = tr.categoryTypeId();
+    LocalDate beginDate = tr.beginDate();
+    LocalDate endDate = tr.endDate();
+    String merchant = tr.merchant();
 
-                c.id                  AS category_id,
-                c.name                AS category_name,
+    StringBuilder sql =
+        new StringBuilder(
+            """
+                SELECT
+                    t.id           AS txn_id,
+                    t.txn_date     AS txn_date,
+                    t.merchant     AS txn_merchant,
+                    t.total_amount AS txn_total_amount,
+                    t.notes        AS txn_notes,
 
-                ct.id                 AS category_type_id,
-                ct.name               AS category_type_name
+                    ti.id          AS item_id,
+                    ti.label       AS item_label,
+                    ti.amount      AS item_amount,
 
-            FROM transaction t
-            LEFT JOIN transaction_item ti
-                   ON ti.transaction_id = t.id
-            LEFT JOIN category c
-                   ON c.id = ti.category_id
-            LEFT JOIN category_type ct
-                   ON ct.id = c.category_type_id
+                    c.id           AS category_id,
+                    c.name         AS category_name,
 
-            WHERE 1 = 1
-              AND (:merchant IS NULL OR t.merchant = :merchant)
-              AND (:categoryId IS NULL OR ti.category_id = :categoryId)
-              AND (:categoryTypeId IS NULL OR c.category_type_id = :categoryTypeId)
-              AND (
-                    (:beginDate IS NULL OR :endDate IS NULL)
-                    OR (t.txn_date >= :beginDate AND t.txn_date <= :endDate)
-                  )
+                    ct.id          AS category_type_id,
+                    ct.name        AS category_type_name
 
-            ORDER BY t.txn_date DESC
-            """;
-    log.debug("[{}] Composite Transactions SQL=[{}]", requestId, sql);
+                FROM transaction t
+                LEFT JOIN transaction_item ti
+                       ON ti.transaction_id = t.id
+                LEFT JOIN category c
+                       ON c.id = ti.category_id
+                LEFT JOIN category_type ct
+                       ON ct.id = c.category_type_id
+                """);
 
-    PreparedStatement stmt = connection.prepareStatement(sql);
-    stmt.setObject(1, crtr.merchant());
-    stmt.setObject(2, crtr.categoryId());
-    stmt.setObject(3, crtr.categoryTypeId());
-    stmt.setObject(4, crtr.beginDate());
-    stmt.setObject(5, crtr.endDate());
+    List<Object> params = new ArrayList<>();
+    final boolean[] whereAdded = {false};
+
+    BiConsumer<String, Object> addFilter =
+        (condition, value) -> {
+          if (value != null) {
+            sql.append(whereAdded[0] ? " AND " : " WHERE ");
+            sql.append(condition);
+            params.add(value);
+            whereAdded[0] = true;
+          }
+        };
+
+    addFilter.accept("t.merchant = ?", merchant);
+    addFilter.accept("ti.category_id = ?", categoryId);
+    addFilter.accept("c.category_type_id = ?", categoryTypeId);
+
+    if (beginDate != null && endDate != null) {
+      sql.append(whereAdded[0] ? " AND " : " WHERE ");
+      sql.append("t.txn_date >= ? AND t.txn_date <= ?");
+      params.add(beginDate);
+      params.add(endDate);
+      whereAdded[0] = true;
+    }
+
+    sql.append(" ORDER BY t.txn_date DESC ");
+
+    String finalSql = sql.toString();
+    log.debug("[{}] Composite Transactions SQL=[{}]", requestId, finalSql);
+
+    PreparedStatement stmt = connection.prepareStatement(finalSql);
+
+    for (int i = 0; i < params.size(); i++) {
+      stmt.setObject(i + 1, params.get(i));
+    }
 
     Map<UUID, TransactionCompositeBuilder> txnMap = new LinkedHashMap<>();
 
     try (ResultSet rs = stmt.executeQuery()) {
       while (rs.next()) {
+
         UUID txnId = rs.getObject("txn_id", UUID.class);
 
         txnMap.putIfAbsent(
@@ -141,6 +178,7 @@ public class CompositeDao {
 
         UUID itemId = rs.getObject("item_id", UUID.class);
         if (itemId != null) {
+
           CompositeResponse.CategoryTypeComposite ct =
               new CompositeResponse.CategoryTypeComposite(
                   rs.getObject("category_type_id", UUID.class), rs.getString("category_type_name"));

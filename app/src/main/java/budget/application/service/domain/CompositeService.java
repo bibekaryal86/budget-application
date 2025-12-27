@@ -27,8 +27,7 @@ public class CompositeService {
     return tx.execute(
         bs -> {
           CompositeRepository repo = new CompositeRepository(requestId, bs);
-          List<CompositeResponse.CategoryComposite> data =
-              repo.readCompositeCategories(normalizeCompositeTransactionRequest(cr));
+          List<CompositeResponse.CategoryComposite> data = repo.readCompositeCategories(cr);
           return new CompositeResponse(null, data, ResponseMetadata.emptyResponseMetadata());
         });
   }
