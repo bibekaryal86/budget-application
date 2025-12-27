@@ -79,147 +79,233 @@ public class CompositeHandlerTest extends IntegrationBaseTest {
   }
 
   @Test
-  void testCompositeCategories() throws Exception {
+  void testCompositeCategories_noBody() throws Exception {
     HttpResponse<String> resp = httpPost(ApiPaths.COMPOSITE_V1_CATEGORIES, "", Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());
+
     CompositeResponse response = JsonUtils.fromJson(resp.body(), CompositeResponse.class);
     Assertions.assertNull(response.txns());
     Assertions.assertEquals(ResponseMetadata.emptyResponseMetadata(), response.metadata());
     Assertions.assertEquals(4, response.cats().size());
+  }
 
+  @Test
+  void testCompositeCategories_nullRequest() throws Exception {
     CompositeRequest req = new CompositeRequest(null, null);
-    resp = httpPost(ApiPaths.COMPOSITE_V1_CATEGORIES, JsonUtils.toJson(req), Boolean.TRUE);
+
+    HttpResponse<String> resp =
+        httpPost(ApiPaths.COMPOSITE_V1_CATEGORIES, JsonUtils.toJson(req), Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());
-    response = JsonUtils.fromJson(resp.body(), CompositeResponse.class);
+
+    CompositeResponse response = JsonUtils.fromJson(resp.body(), CompositeResponse.class);
     Assertions.assertNull(response.txns());
     Assertions.assertEquals(ResponseMetadata.emptyResponseMetadata(), response.metadata());
     Assertions.assertEquals(4, response.cats().size());
+  }
 
-    req = new CompositeRequest(null, new CompositeRequest.CategoryRequest(null));
-    resp = httpPost(ApiPaths.COMPOSITE_V1_CATEGORIES, JsonUtils.toJson(req), Boolean.TRUE);
+  @Test
+  void testCompositeCategories_nullCategoryRequest() throws Exception {
+    CompositeRequest req = new CompositeRequest(null, new CompositeRequest.CategoryRequest(null));
+
+    HttpResponse<String> resp =
+        httpPost(ApiPaths.COMPOSITE_V1_CATEGORIES, JsonUtils.toJson(req), Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());
-    response = JsonUtils.fromJson(resp.body(), CompositeResponse.class);
+
+    CompositeResponse response = JsonUtils.fromJson(resp.body(), CompositeResponse.class);
     Assertions.assertNull(response.txns());
     Assertions.assertEquals(ResponseMetadata.emptyResponseMetadata(), response.metadata());
     Assertions.assertEquals(4, response.cats().size());
+  }
 
-    req = new CompositeRequest(null, new CompositeRequest.CategoryRequest(ctId1));
-    resp = httpPost(ApiPaths.COMPOSITE_V1_CATEGORIES, JsonUtils.toJson(req), Boolean.TRUE);
+  @Test
+  void testCompositeCategories_filterByCategoryType1() throws Exception {
+    CompositeRequest req = new CompositeRequest(null, new CompositeRequest.CategoryRequest(ctId1));
+
+    HttpResponse<String> resp =
+        httpPost(ApiPaths.COMPOSITE_V1_CATEGORIES, JsonUtils.toJson(req), Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());
-    response = JsonUtils.fromJson(resp.body(), CompositeResponse.class);
+
+    CompositeResponse response = JsonUtils.fromJson(resp.body(), CompositeResponse.class);
     Assertions.assertNull(response.txns());
     Assertions.assertEquals(ResponseMetadata.emptyResponseMetadata(), response.metadata());
     Assertions.assertEquals(2, response.cats().size());
+  }
 
-    req = new CompositeRequest(null, new CompositeRequest.CategoryRequest(ctId2));
-    resp = httpPost(ApiPaths.COMPOSITE_V1_CATEGORIES, JsonUtils.toJson(req), Boolean.TRUE);
+  @Test
+  void testCompositeCategories_filterByCategoryType2() throws Exception {
+    CompositeRequest req = new CompositeRequest(null, new CompositeRequest.CategoryRequest(ctId2));
+
+    HttpResponse<String> resp =
+        httpPost(ApiPaths.COMPOSITE_V1_CATEGORIES, JsonUtils.toJson(req), Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());
-    response = JsonUtils.fromJson(resp.body(), CompositeResponse.class);
+
+    CompositeResponse response = JsonUtils.fromJson(resp.body(), CompositeResponse.class);
     Assertions.assertNull(response.txns());
     Assertions.assertEquals(ResponseMetadata.emptyResponseMetadata(), response.metadata());
     Assertions.assertEquals(1, response.cats().size());
   }
 
   @Test
-  void testCompositeTransactions() throws Exception {
+  void testCompositeTransactions_noBody() throws Exception {
     HttpResponse<String> resp = httpPost(ApiPaths.COMPOSITE_V1_TRANSACTIONS, "", Boolean.TRUE);
+
     Assertions.assertEquals(200, resp.statusCode());
     CompositeResponse response = JsonUtils.fromJson(resp.body(), CompositeResponse.class);
+
     Assertions.assertNull(response.cats());
     Assertions.assertEquals(ResponseMetadata.emptyResponseMetadata(), response.metadata());
     Assertions.assertEquals(2, response.txns().size());
+  }
 
+  @Test
+  void testCompositeTransactions_nullRequest() throws Exception {
     CompositeRequest req = new CompositeRequest(null, null);
-    resp = httpPost(ApiPaths.COMPOSITE_V1_TRANSACTIONS, JsonUtils.toJson(req), Boolean.TRUE);
+
+    HttpResponse<String> resp =
+        httpPost(ApiPaths.COMPOSITE_V1_TRANSACTIONS, JsonUtils.toJson(req), Boolean.TRUE);
+
     Assertions.assertEquals(200, resp.statusCode());
-    response = JsonUtils.fromJson(resp.body(), CompositeResponse.class);
+    CompositeResponse response = JsonUtils.fromJson(resp.body(), CompositeResponse.class);
+
     Assertions.assertNull(response.cats());
     Assertions.assertEquals(ResponseMetadata.emptyResponseMetadata(), response.metadata());
     Assertions.assertEquals(2, response.txns().size());
+  }
 
-    req =
+  @Test
+  void testCompositeTransactions_emptyTransactionRequest() throws Exception {
+    CompositeRequest req =
         new CompositeRequest(
             new CompositeRequest.TransactionRequest(null, null, null, null, null), null);
-    resp = httpPost(ApiPaths.COMPOSITE_V1_TRANSACTIONS, JsonUtils.toJson(req), Boolean.TRUE);
+
+    HttpResponse<String> resp =
+        httpPost(ApiPaths.COMPOSITE_V1_TRANSACTIONS, JsonUtils.toJson(req), Boolean.TRUE);
+
     Assertions.assertEquals(200, resp.statusCode());
-    response = JsonUtils.fromJson(resp.body(), CompositeResponse.class);
+    CompositeResponse response = JsonUtils.fromJson(resp.body(), CompositeResponse.class);
+
     Assertions.assertNull(response.cats());
     Assertions.assertEquals(ResponseMetadata.emptyResponseMetadata(), response.metadata());
     Assertions.assertEquals(2, response.txns().size());
+  }
 
-    req =
+  @Test
+  void testCompositeTransactions_beginDateOnly() throws Exception {
+    CompositeRequest req =
         new CompositeRequest(
             new CompositeRequest.TransactionRequest(
                 LocalDate.now().minusDays(75), null, null, null, null),
             null);
-    resp = httpPost(ApiPaths.COMPOSITE_V1_TRANSACTIONS, JsonUtils.toJson(req), Boolean.TRUE);
+
+    HttpResponse<String> resp =
+        httpPost(ApiPaths.COMPOSITE_V1_TRANSACTIONS, JsonUtils.toJson(req), Boolean.TRUE);
+
     Assertions.assertEquals(200, resp.statusCode());
-    response = JsonUtils.fromJson(resp.body(), CompositeResponse.class);
+    CompositeResponse response = JsonUtils.fromJson(resp.body(), CompositeResponse.class);
+
     Assertions.assertNull(response.cats());
     Assertions.assertEquals(ResponseMetadata.emptyResponseMetadata(), response.metadata());
     Assertions.assertEquals(1, response.txns().size());
+  }
 
-    req =
+  @Test
+  void testCompositeTransactions_endDateOnly() throws Exception {
+    CompositeRequest req =
         new CompositeRequest(
             new CompositeRequest.TransactionRequest(
                 null, LocalDate.now().plusDays(1), null, null, null),
             null);
-    resp = httpPost(ApiPaths.COMPOSITE_V1_TRANSACTIONS, JsonUtils.toJson(req), Boolean.TRUE);
+
+    HttpResponse<String> resp =
+        httpPost(ApiPaths.COMPOSITE_V1_TRANSACTIONS, JsonUtils.toJson(req), Boolean.TRUE);
+
     Assertions.assertEquals(200, resp.statusCode());
-    response = JsonUtils.fromJson(resp.body(), CompositeResponse.class);
+    CompositeResponse response = JsonUtils.fromJson(resp.body(), CompositeResponse.class);
+
     Assertions.assertNull(response.cats());
     Assertions.assertEquals(ResponseMetadata.emptyResponseMetadata(), response.metadata());
     Assertions.assertEquals(2, response.txns().size());
+  }
 
-    req =
+  @Test
+  void testCompositeTransactions_fullDateRange() throws Exception {
+    CompositeRequest req =
         new CompositeRequest(
             new CompositeRequest.TransactionRequest(
                 LocalDate.now().minusDays(75), LocalDate.now().plusDays(1), null, null, null),
             null);
-    resp = httpPost(ApiPaths.COMPOSITE_V1_TRANSACTIONS, JsonUtils.toJson(req), Boolean.TRUE);
+
+    HttpResponse<String> resp =
+        httpPost(ApiPaths.COMPOSITE_V1_TRANSACTIONS, JsonUtils.toJson(req), Boolean.TRUE);
+
     Assertions.assertEquals(200, resp.statusCode());
-    response = JsonUtils.fromJson(resp.body(), CompositeResponse.class);
+    CompositeResponse response = JsonUtils.fromJson(resp.body(), CompositeResponse.class);
+
     Assertions.assertNull(response.cats());
     Assertions.assertEquals(ResponseMetadata.emptyResponseMetadata(), response.metadata());
     Assertions.assertEquals(4, response.txns().size());
+  }
 
-    req =
+  @Test
+  void testCompositeTransactions_filterByCategory() throws Exception {
+    CompositeRequest req =
         new CompositeRequest(
             new CompositeRequest.TransactionRequest(
                 LocalDate.now().minusDays(75), LocalDate.now().plusDays(1), null, cId2, null),
             null);
-    resp = httpPost(ApiPaths.COMPOSITE_V1_TRANSACTIONS, JsonUtils.toJson(req), Boolean.TRUE);
+
+    HttpResponse<String> resp =
+        httpPost(ApiPaths.COMPOSITE_V1_TRANSACTIONS, JsonUtils.toJson(req), Boolean.TRUE);
+
     Assertions.assertEquals(200, resp.statusCode());
-    response = JsonUtils.fromJson(resp.body(), CompositeResponse.class);
+    CompositeResponse response = JsonUtils.fromJson(resp.body(), CompositeResponse.class);
+
     Assertions.assertNull(response.cats());
     Assertions.assertEquals(ResponseMetadata.emptyResponseMetadata(), response.metadata());
     Assertions.assertEquals(2, response.txns().size());
+  }
 
-    req =
+  @Test
+  void testCompositeTransactions_filterByCategoryType() throws Exception {
+    CompositeRequest req =
         new CompositeRequest(
             new CompositeRequest.TransactionRequest(
                 LocalDate.now().minusDays(75), LocalDate.now().plusDays(1), null, null, ctId1),
             null);
-    resp = httpPost(ApiPaths.COMPOSITE_V1_TRANSACTIONS, JsonUtils.toJson(req), Boolean.TRUE);
+
+    HttpResponse<String> resp =
+        httpPost(ApiPaths.COMPOSITE_V1_TRANSACTIONS, JsonUtils.toJson(req), Boolean.TRUE);
+
     Assertions.assertEquals(200, resp.statusCode());
-    response = JsonUtils.fromJson(resp.body(), CompositeResponse.class);
+    CompositeResponse response = JsonUtils.fromJson(resp.body(), CompositeResponse.class);
+
     Assertions.assertNull(response.cats());
     Assertions.assertEquals(ResponseMetadata.emptyResponseMetadata(), response.metadata());
     Assertions.assertEquals(2, response.txns().size());
+  }
 
-    req =
+  @Test
+  void testCompositeTransactions_filterByCategoryAndType() throws Exception {
+    CompositeRequest req =
         new CompositeRequest(
             new CompositeRequest.TransactionRequest(
                 LocalDate.now().minusDays(75), LocalDate.now().plusDays(1), null, cId2, ctId1),
             null);
-    resp = httpPost(ApiPaths.COMPOSITE_V1_TRANSACTIONS, JsonUtils.toJson(req), Boolean.TRUE);
+
+    HttpResponse<String> resp =
+        httpPost(ApiPaths.COMPOSITE_V1_TRANSACTIONS, JsonUtils.toJson(req), Boolean.TRUE);
+
     Assertions.assertEquals(200, resp.statusCode());
-    response = JsonUtils.fromJson(resp.body(), CompositeResponse.class);
+    CompositeResponse response = JsonUtils.fromJson(resp.body(), CompositeResponse.class);
+
     Assertions.assertNull(response.cats());
     Assertions.assertEquals(ResponseMetadata.emptyResponseMetadata(), response.metadata());
     Assertions.assertEquals(2, response.txns().size());
+  }
 
-    req =
+  @Test
+  void testCompositeTransactions_filterByMerchantCategoryAndType() throws Exception {
+    CompositeRequest req =
         new CompositeRequest(
             new CompositeRequest.TransactionRequest(
                 LocalDate.now().minusDays(75),
@@ -228,16 +314,20 @@ public class CompositeHandlerTest extends IntegrationBaseTest {
                 cId2,
                 ctId1),
             null);
-    resp = httpPost(ApiPaths.COMPOSITE_V1_TRANSACTIONS, JsonUtils.toJson(req), Boolean.TRUE);
+
+    HttpResponse<String> resp =
+        httpPost(ApiPaths.COMPOSITE_V1_TRANSACTIONS, JsonUtils.toJson(req), Boolean.TRUE);
+
     Assertions.assertEquals(200, resp.statusCode());
-    response = JsonUtils.fromJson(resp.body(), CompositeResponse.class);
+    CompositeResponse response = JsonUtils.fromJson(resp.body(), CompositeResponse.class);
+
     Assertions.assertNull(response.cats());
     Assertions.assertEquals(ResponseMetadata.emptyResponseMetadata(), response.metadata());
     Assertions.assertEquals(1, response.txns().size());
   }
 
   @Test
-  void testCategoriesUnauthorized() throws Exception {
+  void testUnauthorized() throws Exception {
     HttpResponse<String> resp = httpPost(ApiPaths.COMPOSITE_V1_CATEGORIES, "", Boolean.FALSE);
     Assertions.assertEquals(401, resp.statusCode());
 
