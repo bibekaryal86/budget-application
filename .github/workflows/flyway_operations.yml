@@ -1,0 +1,71 @@
+name: Flyway Operations
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment to run Flyway against (PROD or SANDBOX)"
+        required: true
+        default: "SANDBOX"
+      action:
+        description: "Flyway action to perform (MIGRATE, REPAIR, VALIDATE)"
+        required: true
+        default: "VALIDATE"
+
+jobs:
+  flyway:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Validate Inputs
+        run: |
+          if [[ "${{ inputs.environment }}" != "PROD" && "${{ inputs.environment }}" != "SANDBOX" ]]; then
+            echo "Error: Invalid environment '${{ inputs.environment }}'. Allowed values: PROD, SANDBOX."
+            exit 1
+          fi
+
+          if [[ "${{ inputs.action }}" != "MIGRATE" && "${{ inputs.action }}" != "REPAIR" && "${{ inputs.action }}" != "VALIDATE" ]]; then
+            echo "Error: Invalid action '${{ inputs.action }}'. Allowed values: MIGRATE, REPAIR, VALIDATE."
+            exit 1
+          fi
+
+      - name: Checkout Code
+        uses: actions/checkout@v6
+
+      - name: Set DB Variables
+        id: db
+        run: |
+          if [[ "${{ inputs.environment }}" == "PROD" ]]; then
+            echo "host=${{ secrets.DB_HOST }}" >> $GITHUB_OUTPUT
+            echo "user=${{ secrets.DB_USERNAME }}" >> $GITHUB_OUTPUT
+            echo "pass=${{ secrets.DB_PASSWORD }}" >> $GITHUB_OUTPUT
+            echo "db=${{ secrets.DB_DBNAME }}" >> $GITHUB_OUTPUT
+          else
+            echo "host=${{ secrets.DB_HOST_SANDBOX }}" >> $GITHUB_OUTPUT
+            echo "user=${{ secrets.DB_USERNAME_SANDBOX }}" >> $GITHUB_OUTPUT
+            echo "pass=${{ secrets.DB_PASSWORD_SANDBOX }}" >> $GITHUB_OUTPUT
+            echo "db=${{ secrets.DB_DBNAME_SANDBOX }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Test Database Connection
+        run: |
+          pg_isready -h ${{ steps.db.outputs.host }} -p 5432 -U ${{ steps.db.outputs.user }} -d ${{ steps.db.outputs.db }}
+
+      - name: Run Flyway Command
+        run: |
+          CMD=""
+          if [[ "${{ inputs.action }}" == "MIGRATE" ]]; then
+            CMD="migrate -baselineOnMigrate=true"
+          elif [[ "${{ inputs.action }}" == "REPAIR" ]]; then
+            CMD="repair"
+          else
+            CMD="validate"
+          fi
+
+          docker run --rm \
+            -v ${{ github.workspace }}/app/src/main/resources/db/migration:/flyway/sql \
+            flyway/flyway:11.9.1 \
+            -url=jdbc:postgresql://${{ steps.db.outputs.host }}:5432/${{ steps.db.outputs.db }} \
+            -user=${{ steps.db.outputs.user }} \
+            -password=${{ steps.db.outputs.pass }} \
+            $CMD
