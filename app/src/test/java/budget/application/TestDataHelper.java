@@ -1,5 +1,6 @@
 package budget.application;
 
+import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -60,7 +61,7 @@ public final class TestDataHelper {
       double baseTotalAmount,
       double baseItemAmount,
       boolean randomizeAmounts,
-      double mismatchRatio, // e.g., 0.10 = 10% mismatches
+      double mismatchRatio,
       int minItemsPerTxn,
       int maxItemsPerTxn)
       throws SQLException {
@@ -85,14 +86,16 @@ public final class TestDataHelper {
 
         boolean isMismatch = Math.random() < mismatchRatio;
 
-        if (isMismatch) {
-          itemAmount = itemAmount / 2.0;
-        }
-
         int itemCount = minItemsPerTxn;
         if (maxItemsPerTxn > minItemsPerTxn) {
           itemCount =
               minItemsPerTxn + (int) (Math.random() * (maxItemsPerTxn - minItemsPerTxn + 1));
+        }
+
+        if (!isMismatch) {
+          totalAmount = itemAmount * itemCount;
+        } else {
+          totalAmount = itemAmount * itemCount + 1.0;
         }
 
         insertTransaction(txnId, LocalDate.of(2024, 1, 1), totalAmount);
@@ -116,20 +119,26 @@ public final class TestDataHelper {
     try (Connection c = ds.getConnection()) {
       c.setAutoCommit(false);
 
-      try (PreparedStatement deleteItems = c.prepareStatement("DELETE FROM transaction_item")) {
-        deleteItems.executeUpdate();
-      }
-
-      if (keepIds == null || keepIds.isEmpty()) {
+      if (CommonUtilities.isEmpty(keepIds)) {
+        try (PreparedStatement deleteItems = c.prepareStatement("DELETE FROM transaction_item")) {
+          deleteItems.executeUpdate();
+        }
         try (PreparedStatement deleteTxns = c.prepareStatement("DELETE FROM transaction")) {
           deleteTxns.executeUpdate();
         }
       } else {
         String placeholders = keepIds.stream().map(id -> "?").collect(Collectors.joining(", "));
+        String itemsSql = "DELETE FROM transaction WHERE id NOT IN (" + placeholders + ")";
+        String txnsSql = "DELETE FROM transaction WHERE id NOT IN (" + placeholders + ")";
 
-        String sql = "DELETE FROM transaction WHERE id NOT IN (" + placeholders + ")";
+        try (PreparedStatement deleteItems = c.prepareStatement(itemsSql)) {
+          for (int i = 0; i < keepIds.size(); i++) {
+            deleteItems.setObject(i + 1, keepIds.get(i));
+          }
+          deleteItems.executeUpdate();
+        }
 
-        try (PreparedStatement deleteTxns = c.prepareStatement(sql)) {
+        try (PreparedStatement deleteTxns = c.prepareStatement(txnsSql)) {
           for (int i = 0; i < keepIds.size(); i++) {
             deleteTxns.setObject(i + 1, keepIds.get(i));
           }
