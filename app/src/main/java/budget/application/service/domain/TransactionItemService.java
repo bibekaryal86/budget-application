@@ -1,6 +1,7 @@
 package budget.application.service.domain;
 
 import budget.application.common.Exceptions;
+import budget.application.common.Validations;
 import budget.application.db.repository.CategoryRepository;
 import budget.application.db.repository.TransactionItemRepository;
 import budget.application.model.dto.request.TransactionItemRequest;
@@ -9,7 +10,6 @@ import budget.application.model.entity.TransactionItem;
 import budget.application.service.util.ResponseMetadataUtils;
 import budget.application.service.util.TransactionManager;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseMetadata;
-import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
@@ -33,7 +33,7 @@ public class TransactionItemService {
           TransactionItemRepository repo = new TransactionItemRepository(requestId, bs);
           CategoryRepository categoryRepo = new CategoryRepository(requestId, bs);
 
-          validate(requestId, tir, categoryRepo);
+          Validations.validateTransactionItem(requestId, tir, categoryRepo, Boolean.FALSE);
 
           TransactionItem tiIn =
               TransactionItem.builder()
@@ -41,6 +41,7 @@ public class TransactionItemService {
                   .categoryId(tir.categoryId())
                   .label(tir.label())
                   .amount(tir.amount())
+                  .txnType(tir.txnType())
                   .build();
           TransactionItem tiOut = repo.create(tiIn);
           return new TransactionItemResponse(
@@ -72,7 +73,7 @@ public class TransactionItemService {
         bs -> {
           TransactionItemRepository repo = new TransactionItemRepository(requestId, bs);
           CategoryRepository categoryRepo = new CategoryRepository(requestId, bs);
-          validate(requestId, tir, categoryRepo);
+          Validations.validateTransactionItem(requestId, tir, categoryRepo, Boolean.FALSE);
 
           List<TransactionItem> tiList = repo.read(List.of(id));
           if (tiList.isEmpty()) {
@@ -86,6 +87,7 @@ public class TransactionItemService {
                   .categoryId(tir.categoryId())
                   .label(tir.label())
                   .amount(tir.amount())
+                  .txnType(tir.txnType())
                   .build();
           TransactionItem tiOut = repo.update(tiIn);
           return new TransactionItemResponse(
@@ -109,33 +111,5 @@ public class TransactionItemService {
           return new TransactionItemResponse(
               List.of(), ResponseMetadataUtils.defaultDeleteResponseMetadata(deleteCount));
         });
-  }
-
-  private void validate(
-      String requestId, TransactionItemRequest tir, CategoryRepository categoryRepo) {
-    if (tir == null) {
-      throw new Exceptions.BadRequestException(
-          String.format("[%s] Transaction item request cannot be null...", requestId));
-    }
-    if (tir.transactionId() == null) {
-      throw new Exceptions.BadRequestException(
-          String.format("[%s] Transaction item transaction cannot be null...", requestId));
-    }
-    if (tir.categoryId() == null) {
-      throw new Exceptions.BadRequestException(
-          String.format("[%s] Transaction item category cannot be null...", requestId));
-    }
-    if (CommonUtilities.isEmpty(tir.label())) {
-      throw new Exceptions.BadRequestException(
-          String.format("[%s] Transaction item label cannot be empty...", requestId));
-    }
-    if (tir.amount() <= 0) {
-      throw new Exceptions.BadRequestException(
-          String.format("[%s] Transaction item amount cannot be zero or negative...", requestId));
-    }
-    if (categoryRepo.readByIdNoEx(tir.categoryId()).isEmpty()) {
-      throw new Exceptions.BadRequestException(
-          String.format("[%s] Category type does not exist...", requestId));
-    }
   }
 }

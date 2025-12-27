@@ -58,9 +58,9 @@ public class CompositeHandlerTest extends IntegrationBaseTest {
     helper.insertTransaction(tId2, LocalDate.now().minusMonths(1L), 200.00);
     helper.insertTransaction(tId3, LocalDate.now().minusMonths(2L), 300.00);
 
-    helper.insertTransactionItem(tiId1, tId1, cId1, 50);
-    helper.insertTransactionItem(tiId2, tId1, cId2, 50);
-    helper.insertTransactionItem(tiId3, tId2, cId2, 200);
+    helper.insertTransactionItem(tiId1, tId1, cId1, 50, "NEEDS");
+    helper.insertTransactionItem(tiId2, tId1, cId2, 50, "NEEDS");
+    helper.insertTransactionItem(tiId3, tId2, cId2, 200, "INCOME");
   }
 
   @AfterAll

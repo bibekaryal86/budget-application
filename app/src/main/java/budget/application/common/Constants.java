@@ -67,6 +67,9 @@ public class Constants {
   public static final int MAX_CONTENT_LENGTH = 1048576; // 1MB
   public static final String CONTENT_LENGTH_DEFAULT = "0";
 
+  public static final List<String> TRANSACTION_TYPES =
+      List.of("NEEDS", "WANTS", "INCOME", "SAVINGS", "TRANSFER", "OTHER");
+
   static {
     IS_PRODUCTION =
         Objects.equals(

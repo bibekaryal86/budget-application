@@ -116,7 +116,7 @@ public class CategoryTypeHandlerTest extends IntegrationBaseTest {
 
   @Test
   void testCategoryTypesNotFound() throws Exception {
-    String randomId = UUID.randomUUID().toString();
+    UUID randomId = UUID.randomUUID();
     CategoryTypeRequest req = new CategoryTypeRequest("New Name");
     HttpResponse<String> resp =
         httpPut(ApiPaths.CATEGORY_TYPES_V1_WITH_ID + randomId, JsonUtils.toJson(req), Boolean.TRUE);

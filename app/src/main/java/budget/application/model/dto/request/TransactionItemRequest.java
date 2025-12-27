@@ -3,4 +3,4 @@ package budget.application.model.dto.request;
 import java.util.UUID;
 
 public record TransactionItemRequest(
-    UUID transactionId, UUID categoryId, String label, double amount) {}
+    UUID transactionId, UUID categoryId, String label, double amount, String txnType) {}

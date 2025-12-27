@@ -2,13 +2,13 @@ package budget.application.service.domain;
 
 import budget.application.common.Constants;
 import budget.application.common.Exceptions;
+import budget.application.common.Validations;
 import budget.application.db.repository.CategoryRepository;
 import budget.application.db.repository.TransactionItemRepository;
 import budget.application.db.repository.TransactionRepository;
 import budget.application.model.dto.composite.PaginationResponse;
 import budget.application.model.dto.composite.TransactionWithItems;
 import budget.application.model.dto.request.PaginationRequest;
-import budget.application.model.dto.request.TransactionItemRequest;
 import budget.application.model.dto.request.TransactionRequest;
 import budget.application.model.dto.response.TransactionResponse;
 import budget.application.model.entity.Transaction;
@@ -24,7 +24,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import javax.sql.DataSource;
@@ -49,7 +48,7 @@ public class TransactionService {
           CategoryRepository categoryRepo = new CategoryRepository(requestId, bs);
           TransactionItemRepository itemRepo = new TransactionItemRepository(requestId, bs);
 
-          validate(requestId, tr, categoryRepo);
+          Validations.validateTransaction(requestId, tr, categoryRepo);
           Transaction txnIn =
               Transaction.builder()
                   .txnDate(tr.txnDate())
@@ -70,6 +69,7 @@ public class TransactionService {
                               .categoryId(item.categoryId())
                               .label(item.label())
                               .amount(item.amount())
+                              .txnType(item.txnType())
                               .build())
                   .toList();
           List<TransactionItem> txnItemsOut = itemRepo.createItems(txnItemsIn);
@@ -119,7 +119,7 @@ public class TransactionService {
           TransactionItemRepository itemRepo = new TransactionItemRepository(requestId, bs);
           CategoryRepository categoryRepo = new CategoryRepository(requestId, bs);
 
-          validate(requestId, tr, categoryRepo);
+          Validations.validateTransaction(requestId, tr, categoryRepo);
 
           List<Transaction> txns = txnRepo.read(List.of(id));
           if (txns.isEmpty()) {
@@ -159,6 +159,7 @@ public class TransactionService {
                                 .categoryId(item.categoryId())
                                 .label(item.label())
                                 .amount(item.amount())
+                                .txnType(item.txnType())
                                 .build())
                     .toList();
             txnItemsOut = itemRepo.createItems(txnItemsIn);
@@ -241,36 +242,6 @@ public class TransactionService {
       List<UUID> mmTxnIds = mmTxns.stream().map(Transaction::id).toList();
       log.info("[{}] Mismatched transactions found: TxnIds={}", requestId, mmTxnIds);
       sendReconciliationEmail(mmTxns);
-    }
-  }
-
-  private void validate(String requestId, TransactionRequest tr, CategoryRepository categoryRepo) {
-    if (tr == null) {
-      throw new Exceptions.BadRequestException(
-          String.format("[%s] Transaction request cannot be null...", requestId));
-    }
-    if (CommonUtilities.isEmpty(tr.merchant())) {
-      throw new Exceptions.BadRequestException(
-          String.format("[%s] Transaction merchant cannot be empty...", requestId));
-    }
-    if (tr.totalAmount() <= 0) {
-      throw new Exceptions.BadRequestException(
-          String.format("[%s] Transaction total cannot be negative...", requestId));
-    }
-    if (CommonUtilities.isEmpty(tr.items())) {
-      throw new Exceptions.BadRequestException(
-          String.format("[%s] Transaction must have at least one item...", requestId));
-    }
-    double sum = tr.items().stream().mapToDouble(TransactionItemRequest::amount).sum();
-    if (Double.compare(sum, tr.totalAmount()) != 0) {
-      throw new Exceptions.BadRequestException(
-          String.format("[%s] Total amount does not match sum of items...", requestId));
-    }
-    Set<UUID> tiIds =
-        tr.items().stream().map(TransactionItemRequest::categoryId).collect(Collectors.toSet());
-    if (categoryRepo.readByIdsNoEx(tiIds.stream().toList()).size() != tiIds.size()) {
-      throw new Exceptions.BadRequestException(
-          String.format("[%s] One or more category IDs do not exist...", requestId));
     }
   }
 

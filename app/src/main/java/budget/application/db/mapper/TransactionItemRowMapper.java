@@ -14,6 +14,7 @@ public class TransactionItemRowMapper implements RowMapper<TransactionItem> {
         .categoryId(rs.getObject("category_id", UUID.class))
         .label(rs.getString("label"))
         .amount(rs.getDouble("amount"))
+        .txnType(rs.getString("txn_type"))
         .build();
   }
 }

@@ -125,7 +125,7 @@ public class CategoryHandlerTest extends IntegrationBaseTest {
 
   @Test
   void testCategoriesNotFound() throws Exception {
-    String randomId = UUID.randomUUID().toString();
+    UUID randomId = UUID.randomUUID();
     CategoryRequest req = new CategoryRequest(TEST_ID, "Item Test");
     HttpResponse<String> resp =
         httpPut(ApiPaths.CATEGORIES_V1_WITH_ID + randomId, JsonUtils.toJson(req), Boolean.TRUE);

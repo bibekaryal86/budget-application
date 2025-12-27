@@ -27,22 +27,23 @@ public class TransactionItemDao extends BaseDao<TransactionItem> {
 
   @Override
   protected List<String> insertColumns() {
-    return List.of("transaction_id", "category_id", "label", "amount");
+    return List.of("transaction_id", "category_id", "label", "amount", "txn_type");
   }
 
   @Override
   protected List<Object> insertValues(TransactionItem ti) {
-    return List.of(ti.transactionId(), ti.categoryId(), ti.label().toUpperCase(), ti.amount());
+    return List.of(
+        ti.transactionId(), ti.categoryId(), ti.label().toUpperCase(), ti.amount(), ti.txnType());
   }
 
   @Override
   protected List<String> updateColumns() {
-    return List.of("category_id", "label", "amount");
+    return List.of("category_id", "label", "amount", "txn_type");
   }
 
   @Override
   protected List<Object> updateValues(TransactionItem ti) {
-    return List.of(ti.categoryId(), ti.label().toUpperCase(), ti.amount());
+    return List.of(ti.categoryId(), ti.label().toUpperCase(), ti.amount(), ti.txnType());
   }
 
   @Override

@@ -53,6 +53,7 @@ CREATE TABLE transaction_item (
     category_id     UUID NOT NULL REFERENCES category(id) ON DELETE RESTRICT,
     label           VARCHAR(255) NOT NULL,
     amount          NUMERIC(12, 2) NOT NULL CHECK (amount >= 0)
+    txn_type        VARCHAR(10) NOT NULL CHECK (txn_type IN ('NEEDS', 'WANTS', 'INCOME', 'SAVINGS', 'TRANSFER', 'OTHER'))
 );
 
 CREATE INDEX idx_transaction_item_transaction_id ON transaction_item(transaction_id);

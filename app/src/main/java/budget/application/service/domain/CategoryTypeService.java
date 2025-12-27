@@ -1,6 +1,7 @@
 package budget.application.service.domain;
 
 import budget.application.common.Exceptions;
+import budget.application.common.Validations;
 import budget.application.db.repository.CategoryTypeRepository;
 import budget.application.model.dto.request.CategoryTypeRequest;
 import budget.application.model.dto.response.CategoryTypeResponse;
@@ -8,7 +9,6 @@ import budget.application.model.entity.CategoryType;
 import budget.application.service.util.ResponseMetadataUtils;
 import budget.application.service.util.TransactionManager;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseMetadata;
-import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
@@ -30,7 +30,7 @@ public class CategoryTypeService {
     return tx.execute(
         bs -> {
           CategoryTypeRepository repo = new CategoryTypeRepository(requestId, bs);
-          validate(requestId, ctr);
+          Validations.validateCategoryType(requestId, ctr);
           CategoryType ctIn = CategoryType.builder().name(ctr.name()).build();
           CategoryType ctOut = repo.create(ctIn);
           return new CategoryTypeResponse(
@@ -60,7 +60,7 @@ public class CategoryTypeService {
     return tx.execute(
         bs -> {
           CategoryTypeRepository repo = new CategoryTypeRepository(requestId, bs);
-          validate(requestId, ctr);
+          Validations.validateCategoryType(requestId, ctr);
 
           List<CategoryType> ctList = repo.read(List.of(id));
 
@@ -92,16 +92,5 @@ public class CategoryTypeService {
           return new CategoryTypeResponse(
               List.of(), ResponseMetadataUtils.defaultDeleteResponseMetadata(deleteCount));
         });
-  }
-
-  private void validate(String requestId, CategoryTypeRequest ctr) {
-    if (ctr == null) {
-      throw new Exceptions.BadRequestException(
-          String.format("[%s] Category type request cannot be null...", requestId));
-    }
-    if (CommonUtilities.isEmpty(ctr.name())) {
-      throw new Exceptions.BadRequestException(
-          String.format("[%s] Category type name cannot be empty...", requestId));
-    }
   }
 }

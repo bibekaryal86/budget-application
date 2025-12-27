@@ -1,6 +1,7 @@
 package budget.application.service.domain;
 
 import budget.application.common.Exceptions;
+import budget.application.common.Validations;
 import budget.application.db.repository.CategoryRepository;
 import budget.application.db.repository.CategoryTypeRepository;
 import budget.application.model.dto.request.CategoryRequest;
@@ -9,7 +10,6 @@ import budget.application.model.entity.Category;
 import budget.application.service.util.ResponseMetadataUtils;
 import budget.application.service.util.TransactionManager;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseMetadata;
-import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
@@ -32,7 +32,7 @@ public class CategoryService {
           CategoryRepository repo = new CategoryRepository(requestId, bs);
           CategoryTypeRepository typeRepo = new CategoryTypeRepository(requestId, bs);
 
-          validate(requestId, cr, typeRepo);
+          Validations.validateCategory(requestId, cr, typeRepo);
 
           Category cIn =
               Category.builder().name(cr.name()).categoryTypeId(cr.categoryTypeId()).build();
@@ -65,7 +65,7 @@ public class CategoryService {
         bs -> {
           CategoryRepository repo = new CategoryRepository(requestId, bs);
           CategoryTypeRepository typeRepo = new CategoryTypeRepository(requestId, bs);
-          validate(requestId, cr, typeRepo);
+          Validations.validateCategory(requestId, cr, typeRepo);
 
           List<Category> cList = repo.read(List.of(id));
           if (cList.isEmpty()) {
@@ -96,24 +96,5 @@ public class CategoryService {
           return new CategoryResponse(
               List.of(), ResponseMetadataUtils.defaultDeleteResponseMetadata(deleteCount));
         });
-  }
-
-  private void validate(String requestId, CategoryRequest cr, CategoryTypeRepository typeRepo) {
-    if (cr == null) {
-      throw new Exceptions.BadRequestException(
-          String.format("[%s] Category request cannot be null...", requestId));
-    }
-    if (cr.categoryTypeId() == null) {
-      throw new Exceptions.BadRequestException(
-          String.format("[%s] Category type cannot be null...", requestId));
-    }
-    if (CommonUtilities.isEmpty(cr.name())) {
-      throw new Exceptions.BadRequestException(
-          String.format("[%s] Category name cannot be empty...", requestId));
-    }
-    if (typeRepo.readByIdNoEx(cr.categoryTypeId()).isEmpty()) {
-      throw new Exceptions.BadRequestException(
-          String.format("[%s] Category type does not exist...", requestId));
-    }
   }
 }
