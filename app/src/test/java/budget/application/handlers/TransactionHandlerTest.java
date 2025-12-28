@@ -135,36 +135,13 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
 
     HttpResponse<String> resp = httpGet(ApiPaths.TRANSACTIONS_V1_WITH_MERCHANTS, Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());
-    TransactionResponse response = JsonUtils.fromJson(resp.body(), TransactionResponse.class);
+    TransactionResponse.TransactionMerchants response = JsonUtils.fromJson(resp.body(), TransactionResponse.TransactionMerchants.class);
     Assertions.assertEquals(4, response.data().size());
 
-    // does not return transaction items
-    Assertions.assertEquals(0, response.data().getFirst().items().size());
-    Assertions.assertEquals(0, response.data().get(1).items().size());
-    Assertions.assertEquals(0, response.data().get(2).items().size());
-    Assertions.assertEquals(0, response.data().getLast().items().size());
-
-    // all fields except merchant are null
-    Assertions.assertNull(response.data().getFirst().id());
-    Assertions.assertNull(response.data().getFirst().txnDate());
-    Assertions.assertNull(response.data().getFirst().notes());
-    Assertions.assertFalse(
-        CommonUtilities.isEmpty(response.data().getFirst().merchant()));
-
-    Assertions.assertNull(response.data().get(1).txnDate());
-    Assertions.assertNull(response.data().get(1).notes());
-    Assertions.assertFalse(
-        CommonUtilities.isEmpty(response.data().get(1).merchant()));
-
-    Assertions.assertNull(response.data().get(2).txnDate());
-    Assertions.assertNull(response.data().get(2).notes());
-    Assertions.assertFalse(
-        CommonUtilities.isEmpty(response.data().get(2).merchant()));
-
-    Assertions.assertNull(response.data().getLast().txnDate());
-    Assertions.assertNull(response.data().getLast().notes());
-    Assertions.assertFalse(
-        CommonUtilities.isEmpty(response.data().getLast().merchant()));
+    Assertions.assertTrue(response.data().contains("TEST MERCHANT"));
+    Assertions.assertTrue(response.data().contains("Merchant: " + txnId1));
+    Assertions.assertTrue(response.data().contains("Merchant: " + txnId2));
+    Assertions.assertTrue(response.data().contains("Merchant: " + txnId3));
 
     helper.deleteTransaction(txnId1);
     helper.deleteTransaction(txnId2);
