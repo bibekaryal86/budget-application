@@ -55,6 +55,14 @@ public class TransactionItemDao extends BaseDao<TransactionItem> {
   }
 
   // --- Custom ---
+  public List<TransactionItem> createItems(List<TransactionItem> itemsIn) throws SQLException {
+    List<TransactionItem> itemsOut = new ArrayList<>();
+    for (TransactionItem item : itemsIn) {
+      itemsOut.add(create(item));
+    }
+    return itemsOut;
+  }
+
   public List<TransactionItem> readByTransactionIds(List<UUID> txnIds) throws SQLException {
     log.debug("[{}] Reading transaction items for txnIds: {}", requestId, txnIds);
     if (CommonUtilities.isEmpty(txnIds)) {

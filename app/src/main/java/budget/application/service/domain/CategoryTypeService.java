@@ -2,7 +2,7 @@ package budget.application.service.domain;
 
 import budget.application.common.Exceptions;
 import budget.application.common.Validations;
-import budget.application.db.repository.CategoryTypeRepository;
+import budget.application.db.dao.CategoryTypeDao;
 import budget.application.model.dto.CategoryTypeRequest;
 import budget.application.model.dto.CategoryTypeResponse;
 import budget.application.model.entity.CategoryType;
@@ -31,7 +31,7 @@ public class CategoryTypeService {
     log.debug("[{}] Create category type: CategoryTypeRequest=[{}]", requestId, ctr);
     return tx.execute(
         bs -> {
-          CategoryTypeRepository repo = new CategoryTypeRepository(requestId, bs);
+          CategoryTypeDao repo = new CategoryTypeDao(requestId, bs.connection());
           Validations.validateCategoryType(requestId, ctr);
           CategoryType ctIn = new CategoryType(null, ctr.name());
           CategoryType ctOut = repo.create(ctIn);
@@ -44,7 +44,7 @@ public class CategoryTypeService {
     log.debug("[{}] Read category types: Ids=[{}]", requestId, ids);
     return tx.execute(
         bs -> {
-          CategoryTypeRepository repo = new CategoryTypeRepository(requestId, bs);
+          CategoryTypeDao repo = new CategoryTypeDao(requestId, bs.connection());
           List<CategoryType> ctList = repo.read(ids);
 
           if (ids.size() == 1 && ctList.isEmpty()) {
@@ -61,7 +61,7 @@ public class CategoryTypeService {
     log.debug("[{}] Update category type: Id=[{}], CategoryTypeRequest=[{}]", requestId, id, ctr);
     return tx.execute(
         bs -> {
-          CategoryTypeRepository repo = new CategoryTypeRepository(requestId, bs);
+          CategoryTypeDao repo = new CategoryTypeDao(requestId, bs.connection());
           Validations.validateCategoryType(requestId, ctr);
 
           List<CategoryType> ctList = repo.read(List.of(id));
@@ -81,7 +81,7 @@ public class CategoryTypeService {
     log.info("[{}] Delete category types: Ids=[{}]", requestId, ids);
     return tx.execute(
         bs -> {
-          CategoryTypeRepository repo = new CategoryTypeRepository(requestId, bs);
+          CategoryTypeDao repo = new CategoryTypeDao(requestId, bs.connection());
 
           List<CategoryType> ctList = repo.read(ids);
 

@@ -1,6 +1,6 @@
 package budget.application.service.domain;
 
-import budget.application.db.repository.CompositeRepository;
+import budget.application.db.dao.CompositeDao;
 import budget.application.model.dto.request.CompositeRequest;
 import budget.application.model.dto.response.CompositeResponse;
 import budget.application.service.util.TransactionManager;
@@ -27,8 +27,8 @@ public class CompositeService {
     log.debug("[{}] Composite categories: CompositeRequest=[{}]", requestId, cr);
     return tx.execute(
         bs -> {
-          CompositeRepository repo = new CompositeRepository(requestId, bs);
-          List<CompositeResponse.CategoryComposite> data = repo.readCompositeCategories(cr);
+          CompositeDao dao = new CompositeDao(requestId, bs.connection());
+          List<CompositeResponse.CategoryComposite> data = dao.compositeCategories(cr);
           return new CompositeResponse(null, data, ResponseMetadata.emptyResponseMetadata());
         });
   }
@@ -38,9 +38,9 @@ public class CompositeService {
     log.debug("[{}] Composite transactions: CompositeRequest=[{}]", requestId, cr);
     return tx.execute(
         bs -> {
-          CompositeRepository repo = new CompositeRepository(requestId, bs);
+          CompositeDao dao = new CompositeDao(requestId, bs.connection());
           List<CompositeResponse.TransactionComposite> data =
-              repo.readCompositeTransactions(normalizeCompositeTransactionRequest(cr));
+              dao.compositeTransactions(normalizeCompositeTransactionRequest(cr));
           return new CompositeResponse(data, null, ResponseMetadata.emptyResponseMetadata());
         });
   }

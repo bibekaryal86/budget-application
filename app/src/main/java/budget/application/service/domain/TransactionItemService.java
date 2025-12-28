@@ -2,8 +2,8 @@ package budget.application.service.domain;
 
 import budget.application.common.Exceptions;
 import budget.application.common.Validations;
-import budget.application.db.repository.CategoryRepository;
-import budget.application.db.repository.TransactionItemRepository;
+import budget.application.db.dao.CategoryDao;
+import budget.application.db.dao.TransactionItemDao;
 import budget.application.model.dto.TransactionItemRequest;
 import budget.application.model.dto.TransactionItemResponse;
 import budget.application.model.entity.TransactionItem;
@@ -31,10 +31,10 @@ public class TransactionItemService {
     log.debug("[{}] Create transaction item: TransactionItemRequest=[{}]", requestId, tir);
     return tx.execute(
         bs -> {
-          TransactionItemRepository repo = new TransactionItemRepository(requestId, bs);
-          CategoryRepository categoryRepo = new CategoryRepository(requestId, bs);
+          TransactionItemDao dao = new TransactionItemDao(requestId, bs.connection());
+          CategoryDao categoryDao = new CategoryDao(requestId, bs.connection());
 
-          Validations.validateTransactionItem(requestId, tir, categoryRepo, Boolean.FALSE);
+          Validations.validateTransactionItem(requestId, tir, categoryDao, Boolean.FALSE);
 
           TransactionItem tiIn =
               new TransactionItem(
@@ -44,7 +44,7 @@ public class TransactionItemService {
                   tir.label(),
                   tir.amount(),
                   tir.txnType());
-          TransactionItem tiOut = repo.create(tiIn);
+          TransactionItem tiOut = dao.create(tiIn);
           return new TransactionItemResponse(
               List.of(tiOut), ResponseMetadataUtils.defaultInsertResponseMetadata());
         });
@@ -54,8 +54,8 @@ public class TransactionItemService {
     log.debug("[{}] Read transaction items: Ids=[{}]", requestId, ids);
     return tx.execute(
         bs -> {
-          TransactionItemRepository repo = new TransactionItemRepository(requestId, bs);
-          List<TransactionItem> tiList = repo.read(ids);
+          TransactionItemDao dao = new TransactionItemDao(requestId, bs.connection());
+          List<TransactionItem> tiList = dao.read(ids);
 
           if (ids.size() == 1 && tiList.isEmpty()) {
             throw new Exceptions.NotFoundException(
@@ -72,11 +72,11 @@ public class TransactionItemService {
         "[{}] Update transaction item: Id=[{}], TransactionItemRequest=[{}]", requestId, id, tir);
     return tx.execute(
         bs -> {
-          TransactionItemRepository repo = new TransactionItemRepository(requestId, bs);
-          CategoryRepository categoryRepo = new CategoryRepository(requestId, bs);
-          Validations.validateTransactionItem(requestId, tir, categoryRepo, Boolean.FALSE);
+          TransactionItemDao dao = new TransactionItemDao(requestId, bs.connection());
+          CategoryDao categoryDao = new CategoryDao(requestId, bs.connection());
+          Validations.validateTransactionItem(requestId, tir, categoryDao, Boolean.FALSE);
 
-          List<TransactionItem> tiList = repo.read(List.of(id));
+          List<TransactionItem> tiList = dao.read(List.of(id));
           if (tiList.isEmpty()) {
             throw new Exceptions.NotFoundException(requestId, "TransactionItem", id.toString());
           }
@@ -89,7 +89,7 @@ public class TransactionItemService {
                   tir.label(),
                   tir.amount(),
                   tir.txnType());
-          TransactionItem tiOut = repo.update(tiIn);
+          TransactionItem tiOut = dao.update(tiIn);
           return new TransactionItemResponse(
               List.of(tiOut), ResponseMetadataUtils.defaultUpdateResponseMetadata());
         });
@@ -99,15 +99,15 @@ public class TransactionItemService {
     log.info("[{}] Delete transaction items: Ids=[{}]", requestId, ids);
     return tx.execute(
         bs -> {
-          TransactionItemRepository repo = new TransactionItemRepository(requestId, bs);
+          TransactionItemDao dao = new TransactionItemDao(requestId, bs.connection());
 
-          List<TransactionItem> tiList = repo.read(ids);
+          List<TransactionItem> tiList = dao.read(ids);
           if (ids.size() == 1 && tiList.isEmpty()) {
             throw new Exceptions.NotFoundException(
                 requestId, "TransactionItem", ids.getFirst().toString());
           }
 
-          int deleteCount = repo.delete(ids);
+          int deleteCount = dao.delete(ids);
           return new TransactionItemResponse(
               List.of(), ResponseMetadataUtils.defaultDeleteResponseMetadata(deleteCount));
         });

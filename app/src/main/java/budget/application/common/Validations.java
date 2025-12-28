@@ -1,7 +1,7 @@
 package budget.application.common;
 
-import budget.application.db.repository.CategoryRepository;
-import budget.application.db.repository.CategoryTypeRepository;
+import budget.application.db.dao.CategoryDao;
+import budget.application.db.dao.CategoryTypeDao;
 import budget.application.model.dto.CategoryRequest;
 import budget.application.model.dto.CategoryTypeRequest;
 import budget.application.model.dto.TransactionItemRequest;
@@ -12,7 +12,7 @@ public class Validations {
   private Validations() {}
 
   public static void validateCategory(
-      String requestId, CategoryRequest cr, CategoryTypeRepository typeRepo) {
+      String requestId, CategoryRequest cr, CategoryTypeDao categoryTypeDao) {
     if (cr == null) {
       throw new Exceptions.BadRequestException(
           String.format("[%s] Category request cannot be null...", requestId));
@@ -25,7 +25,7 @@ public class Validations {
       throw new Exceptions.BadRequestException(
           String.format("[%s] Category name cannot be empty...", requestId));
     }
-    if (typeRepo.readByIdNoEx(cr.categoryTypeId()).isEmpty()) {
+    if (categoryTypeDao.readByIdNoEx(cr.categoryTypeId()).isEmpty()) {
       throw new Exceptions.BadRequestException(
           String.format("[%s] Category type does not exist...", requestId));
     }
@@ -43,10 +43,7 @@ public class Validations {
   }
 
   public static void validateTransactionItem(
-      String requestId,
-      TransactionItemRequest tir,
-      CategoryRepository categoryRepo,
-      Boolean isCreateTxn) {
+      String requestId, TransactionItemRequest tir, CategoryDao categoryDao, Boolean isCreateTxn) {
     if (tir == null) {
       throw new Exceptions.BadRequestException(
           String.format("[%s] Transaction item request cannot be null...", requestId));
@@ -75,14 +72,14 @@ public class Validations {
       throw new Exceptions.BadRequestException(
           String.format("[%s] Transaction item type is invalid...", requestId));
     }
-    if (categoryRepo.readByIdNoEx(tir.categoryId()).isEmpty()) {
+    if (categoryDao.readByIdNoEx(tir.categoryId()).isEmpty()) {
       throw new Exceptions.BadRequestException(
           String.format("[%s] Category type does not exist...", requestId));
     }
   }
 
   public static void validateTransaction(
-      String requestId, TransactionRequest tr, CategoryRepository categoryRepo) {
+      String requestId, TransactionRequest tr, CategoryDao categoryDao) {
     if (tr == null) {
       throw new Exceptions.BadRequestException(
           String.format("[%s] Transaction request cannot be null...", requestId));
@@ -105,7 +102,7 @@ public class Validations {
           String.format("[%s] Total amount does not match sum of items...", requestId));
     }
     for (TransactionItemRequest tir : tr.items()) {
-      validateTransactionItem(requestId, tir, categoryRepo, Boolean.TRUE);
+      validateTransactionItem(requestId, tir, categoryDao, Boolean.TRUE);
     }
   }
 }

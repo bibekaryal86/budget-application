@@ -2,8 +2,8 @@ package budget.application.service.domain;
 
 import budget.application.common.Exceptions;
 import budget.application.common.Validations;
-import budget.application.db.repository.CategoryRepository;
-import budget.application.db.repository.CategoryTypeRepository;
+import budget.application.db.dao.CategoryDao;
+import budget.application.db.dao.CategoryTypeDao;
 import budget.application.model.dto.CategoryRequest;
 import budget.application.model.dto.CategoryResponse;
 import budget.application.model.entity.Category;
@@ -30,13 +30,13 @@ public class CategoryService {
     log.debug("[{}] Create category: CategoryRequest=[{}]", requestId, cr);
     return tx.execute(
         bs -> {
-          CategoryRepository repo = new CategoryRepository(requestId, bs);
-          CategoryTypeRepository typeRepo = new CategoryTypeRepository(requestId, bs);
+          CategoryDao dao = new CategoryDao(requestId, bs.connection());
+          CategoryTypeDao typeDao = new CategoryTypeDao(requestId, bs.connection());
 
-          Validations.validateCategory(requestId, cr, typeRepo);
+          Validations.validateCategory(requestId, cr, typeDao);
 
           Category cIn = new Category(null, cr.categoryTypeId(), cr.name());
-          Category cOut = repo.create(cIn);
+          Category cOut = dao.create(cIn);
           return new CategoryResponse(
               List.of(cOut), ResponseMetadataUtils.defaultInsertResponseMetadata());
         });
@@ -46,8 +46,8 @@ public class CategoryService {
     log.debug("[{}] Read categories: Ids=[{}]", requestId, ids);
     return tx.execute(
         bs -> {
-          CategoryRepository repo = new CategoryRepository(requestId, bs);
-          List<Category> cList = repo.read(ids);
+          CategoryDao dao = new CategoryDao(requestId, bs.connection());
+          List<Category> cList = dao.read(ids);
 
           if (ids.size() == 1 && cList.isEmpty()) {
             throw new Exceptions.NotFoundException(
@@ -63,17 +63,17 @@ public class CategoryService {
     log.debug("[{}] Update category: Id=[{}], CategoryRequest=[{}]", requestId, id, cr);
     return tx.execute(
         bs -> {
-          CategoryRepository repo = new CategoryRepository(requestId, bs);
-          CategoryTypeRepository typeRepo = new CategoryTypeRepository(requestId, bs);
-          Validations.validateCategory(requestId, cr, typeRepo);
+          CategoryDao dao = new CategoryDao(requestId, bs.connection());
+          CategoryTypeDao typeDao = new CategoryTypeDao(requestId, bs.connection());
+          Validations.validateCategory(requestId, cr, typeDao);
 
-          List<Category> cList = repo.read(List.of(id));
+          List<Category> cList = dao.read(List.of(id));
           if (cList.isEmpty()) {
             throw new Exceptions.NotFoundException(requestId, "Category", id.toString());
           }
 
           Category cIn = new Category(id, cr.categoryTypeId(), cr.name());
-          Category cOut = repo.update(cIn);
+          Category cOut = dao.update(cIn);
           return new CategoryResponse(
               List.of(cOut), ResponseMetadataUtils.defaultUpdateResponseMetadata());
         });
@@ -83,15 +83,15 @@ public class CategoryService {
     log.info("[{}] Delete categories: Ids=[{}]", requestId, ids);
     return tx.execute(
         bs -> {
-          CategoryRepository repo = new CategoryRepository(requestId, bs);
+          CategoryDao dao = new CategoryDao(requestId, bs.connection());
 
-          List<Category> cList = repo.read(ids);
+          List<Category> cList = dao.read(ids);
           if (ids.size() == 1 && cList.isEmpty()) {
             throw new Exceptions.NotFoundException(
                 requestId, "Category", ids.getFirst().toString());
           }
 
-          int deleteCount = repo.delete(ids);
+          int deleteCount = dao.delete(ids);
           return new CategoryResponse(
               List.of(), ResponseMetadataUtils.defaultDeleteResponseMetadata(deleteCount));
         });

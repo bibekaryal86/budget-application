@@ -1,4 +1,4 @@
-package budget.application.db.repository;
+package budget.application.db.dao;
 
 import java.sql.Connection;
 import java.sql.SQLException;

@@ -4,6 +4,7 @@ import budget.application.db.mapper.CategoryTypeRowMapper;
 import budget.application.model.entity.CategoryType;
 import java.sql.Connection;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public class CategoryTypeDao extends BaseDao<CategoryType> {
@@ -45,5 +46,13 @@ public class CategoryTypeDao extends BaseDao<CategoryType> {
   @Override
   protected String orderByClause() {
     return "name ASC";
+  }
+
+  public Optional<CategoryType> readByIdNoEx(UUID id) {
+    try {
+      return read(List.of(id)).stream().findFirst();
+    } catch (Exception e) {
+      return Optional.empty();
+    }
   }
 }

@@ -3,14 +3,14 @@ package budget.application.service.domain;
 import budget.application.common.Constants;
 import budget.application.common.Exceptions;
 import budget.application.common.Validations;
-import budget.application.db.repository.CategoryRepository;
-import budget.application.db.repository.TransactionItemRepository;
-import budget.application.db.repository.TransactionRepository;
-import budget.application.model.dto.PaginationResponse;
-import budget.application.model.dto.composite.TransactionWithItems;
+import budget.application.db.dao.CategoryDao;
+import budget.application.db.dao.TransactionDao;
+import budget.application.db.dao.TransactionItemDao;
 import budget.application.model.dto.PaginationRequest;
+import budget.application.model.dto.PaginationResponse;
 import budget.application.model.dto.TransactionRequest;
 import budget.application.model.dto.TransactionResponse;
+import budget.application.model.dto.composite.TransactionWithItems;
 import budget.application.model.entity.Transaction;
 import budget.application.model.entity.TransactionItem;
 import budget.application.service.util.ResponseMetadataUtils;
@@ -45,16 +45,16 @@ public class TransactionService {
     log.debug("[{}] Create transaction: TransactionRequest=[{}]", requestId, tr);
     return tx.execute(
         bs -> {
-          TransactionRepository txnRepo = new TransactionRepository(requestId, bs);
-          CategoryRepository categoryRepo = new CategoryRepository(requestId, bs);
-          TransactionItemRepository itemRepo = new TransactionItemRepository(requestId, bs);
+          TransactionDao txnDao = new TransactionDao(requestId, bs.connection());
+          CategoryDao categoryDao = new CategoryDao(requestId, bs.connection());
+          TransactionItemDao itemRepo = new TransactionItemDao(requestId, bs.connection());
 
-          Validations.validateTransaction(requestId, tr, categoryRepo);
+          Validations.validateTransaction(requestId, tr, categoryDao);
           Transaction txnIn =
               new Transaction(
                   null, tr.txnDate(), tr.merchant(), tr.totalAmount(), tr.notes(), null, null);
 
-          Transaction txnOut = txnRepo.create(txnIn);
+          Transaction txnOut = txnDao.create(txnIn);
           log.debug("[{}] Created transaction: Transaction=[{}]", requestId, txnOut);
 
           List<TransactionItem> txnItemsIn =
@@ -83,9 +83,9 @@ public class TransactionService {
     log.debug("[{}] Read transactions: Ids=[{}]", requestId, ids);
     return tx.execute(
         bs -> {
-          TransactionRepository txnRepo = new TransactionRepository(requestId, bs);
-          TransactionItemRepository itemRepo = new TransactionItemRepository(requestId, bs);
-          List<Transaction> txns = txnRepo.read(ids);
+          TransactionDao txnDao = new TransactionDao(requestId, bs.connection());
+          TransactionItemDao itemRepo = new TransactionItemDao(requestId, bs.connection());
+          List<Transaction> txns = txnDao.read(ids);
 
           if (ids.size() == 1 && txns.isEmpty()) {
             throw new Exceptions.NotFoundException(
@@ -111,8 +111,8 @@ public class TransactionService {
     log.debug("[{}] Read all transaction merchants", requestId);
     return tx.execute(
         bs -> {
-          TransactionRepository txnRepo = new TransactionRepository(requestId, bs);
-          List<Transaction> txns = txnRepo.readTransactionMerchants();
+          TransactionDao txnDao = new TransactionDao(requestId, bs.connection());
+          List<Transaction> txns = txnDao.readAllMerchants();
           List<TransactionWithItems> txnWithItems =
               txns.stream().map(txn -> new TransactionWithItems(txn, List.of())).toList();
           return new TransactionResponse(txnWithItems, ResponseMetadata.emptyResponseMetadata());
@@ -124,13 +124,13 @@ public class TransactionService {
     log.debug("[{}] Update transaction: Id=[{}], TransactionRequest=[{}]", requestId, id, tr);
     return tx.execute(
         bs -> {
-          TransactionRepository txnRepo = new TransactionRepository(requestId, bs);
-          TransactionItemRepository itemRepo = new TransactionItemRepository(requestId, bs);
-          CategoryRepository categoryRepo = new CategoryRepository(requestId, bs);
+          TransactionDao txnDao = new TransactionDao(requestId, bs.connection());
+          TransactionItemDao itemRepo = new TransactionItemDao(requestId, bs.connection());
+          CategoryDao categoryDao = new CategoryDao(requestId, bs.connection());
 
-          Validations.validateTransaction(requestId, tr, categoryRepo);
+          Validations.validateTransaction(requestId, tr, categoryDao);
 
-          List<Transaction> txns = txnRepo.read(List.of(id));
+          List<Transaction> txns = txnDao.read(List.of(id));
           if (txns.isEmpty()) {
             throw new Exceptions.NotFoundException(requestId, "Transaction", id.toString());
           }
@@ -140,7 +140,7 @@ public class TransactionService {
                   id, tr.txnDate(), tr.merchant(), tr.totalAmount(), tr.notes(), null, null);
 
           // Update transaction
-          Transaction txnOut = txnRepo.update(txnIn);
+          Transaction txnOut = txnDao.update(txnIn);
           log.debug("[{}] Updated transaction: Transaction=[{}]", requestId, txnOut);
 
           List<TransactionItem> txnItemsOut = new ArrayList<>();
@@ -181,10 +181,10 @@ public class TransactionService {
     log.info("[{}] Delete transactions: Ids=[{}]", requestId, ids);
     return tx.execute(
         bs -> {
-          TransactionRepository txnRepo = new TransactionRepository(requestId, bs);
-          TransactionItemRepository itemRepo = new TransactionItemRepository(requestId, bs);
+          TransactionDao txnDao = new TransactionDao(requestId, bs.connection());
+          TransactionItemDao itemRepo = new TransactionItemDao(requestId, bs.connection());
 
-          List<Transaction> txns = txnRepo.read(ids);
+          List<Transaction> txns = txnDao.read(ids);
           if (ids.size() == 1 && txns.isEmpty()) {
             throw new Exceptions.NotFoundException(
                 requestId, "Transaction", ids.getFirst().toString());
@@ -197,7 +197,7 @@ public class TransactionService {
               ids,
               deleteCountTxnItems);
 
-          int deleteCount = txnRepo.delete(ids);
+          int deleteCount = txnDao.delete(ids);
           log.info(
               "[{}] Deleted transactions: Ids=[{}], deleteCount=[{}]", requestId, ids, deleteCount);
           return new TransactionResponse(
@@ -210,15 +210,15 @@ public class TransactionService {
     List<Transaction> mmTxns = new ArrayList<>();
     tx.executeVoid(
         bs -> {
-          TransactionRepository txnRepo = new TransactionRepository(requestId, bs);
-          TransactionItemRepository itemRepo = new TransactionItemRepository(requestId, bs);
+          TransactionDao txnDao = new TransactionDao(requestId, bs.connection());
+          TransactionItemDao itemRepo = new TransactionItemDao(requestId, bs.connection());
           // Read all transactions
           int pageNumber = 1;
           int pageSize = 1000;
 
           while (true) {
             PaginationRequest pageReq = new PaginationRequest(pageNumber, pageSize);
-            PaginationResponse<Transaction> pagedTxns = txnRepo.readAll(pageReq);
+            PaginationResponse<Transaction> pagedTxns = txnDao.readAll(pageReq);
 
             List<Transaction> txns = pagedTxns.items();
             if (txns.isEmpty()) {

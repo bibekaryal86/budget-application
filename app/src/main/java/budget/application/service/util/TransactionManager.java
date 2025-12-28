@@ -1,6 +1,6 @@
 package budget.application.service.util;
 
-import budget.application.db.repository.BaseRepository;
+import budget.application.db.dao.BaseRepository;
 import java.sql.Connection;
 import java.sql.SQLException;
 import javax.sql.DataSource;
