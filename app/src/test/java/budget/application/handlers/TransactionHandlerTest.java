@@ -40,9 +40,9 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
     Assertions.assertEquals(1, response.data().size());
     Assertions.assertEquals(2, response.data().getFirst().items().size());
     Assertions.assertEquals(
-        req.merchant().toUpperCase(), response.data().getFirst().transaction().merchant());
+        req.merchant().toUpperCase(), response.data().getFirst().merchant());
     Assertions.assertTrue(
-        CommonUtilities.isEmpty(response.data().getFirst().transaction().notes()));
+        CommonUtilities.isEmpty(response.data().getFirst().notes()));
     Assertions.assertEquals(
         req.items().getFirst().label().toUpperCase(),
         response.data().getFirst().items().getFirst().label());
@@ -51,7 +51,7 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
         response.data().getFirst().items().getLast().label());
     Assertions.assertEquals(
         ResponseMetadataUtils.defaultInsertResponseMetadata(), response.metadata());
-    final String id = response.data().getFirst().transaction().id().toString();
+    final String id = response.data().getFirst().id().toString();
 
     // READ ALL
     resp = httpGet(ApiPaths.TRANSACTIONS_V1, Boolean.TRUE);
@@ -64,9 +64,9 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
     Assertions.assertEquals(200, resp.statusCode());
     response = JsonUtils.fromJson(resp.body(), TransactionResponse.class);
     Assertions.assertEquals(1, response.data().size());
-    Assertions.assertEquals(id, response.data().getFirst().transaction().id().toString());
+    Assertions.assertEquals(id, response.data().getFirst().id().toString());
     Assertions.assertEquals(
-        req.merchant().toUpperCase(), response.data().getFirst().transaction().merchant());
+        req.merchant().toUpperCase(), response.data().getFirst().merchant());
     Assertions.assertEquals(
         req.items().getFirst().label().toUpperCase(),
         response.data().getFirst().items().getFirst().label());
@@ -90,11 +90,11 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
     Assertions.assertEquals(1, response.data().size());
     Assertions.assertEquals(2, response.data().getFirst().items().size());
     Assertions.assertEquals(
-        req.merchant().toUpperCase(), response.data().getFirst().transaction().merchant());
+        req.merchant().toUpperCase(), response.data().getFirst().merchant());
     Assertions.assertFalse(
-        CommonUtilities.isEmpty(response.data().getFirst().transaction().notes()));
+        CommonUtilities.isEmpty(response.data().getFirst().notes()));
     Assertions.assertEquals(
-        req.notes().toUpperCase(), response.data().getFirst().transaction().notes());
+        req.notes().toUpperCase(), response.data().getFirst().notes());
     Assertions.assertEquals(
         req.items().getFirst().label().toUpperCase(),
         response.data().getFirst().items().getFirst().label());
@@ -145,34 +145,26 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
     Assertions.assertEquals(0, response.data().getLast().items().size());
 
     // all fields except merchant are null
-    Assertions.assertNull(response.data().getFirst().transaction().id());
-    Assertions.assertNull(response.data().getFirst().transaction().txnDate());
-    Assertions.assertNull(response.data().getFirst().transaction().notes());
-    Assertions.assertNull(response.data().getFirst().transaction().createdAt());
-    Assertions.assertNull(response.data().getFirst().transaction().updatedAt());
+    Assertions.assertNull(response.data().getFirst().id());
+    Assertions.assertNull(response.data().getFirst().txnDate());
+    Assertions.assertNull(response.data().getFirst().notes());
     Assertions.assertFalse(
-        CommonUtilities.isEmpty(response.data().getFirst().transaction().merchant()));
+        CommonUtilities.isEmpty(response.data().getFirst().merchant()));
 
-    Assertions.assertNull(response.data().get(1).transaction().txnDate());
-    Assertions.assertNull(response.data().get(1).transaction().notes());
-    Assertions.assertNull(response.data().get(1).transaction().createdAt());
-    Assertions.assertNull(response.data().get(1).transaction().updatedAt());
+    Assertions.assertNull(response.data().get(1).txnDate());
+    Assertions.assertNull(response.data().get(1).notes());
     Assertions.assertFalse(
-        CommonUtilities.isEmpty(response.data().get(1).transaction().merchant()));
+        CommonUtilities.isEmpty(response.data().get(1).merchant()));
 
-    Assertions.assertNull(response.data().get(2).transaction().txnDate());
-    Assertions.assertNull(response.data().get(2).transaction().notes());
-    Assertions.assertNull(response.data().get(2).transaction().createdAt());
-    Assertions.assertNull(response.data().get(2).transaction().updatedAt());
+    Assertions.assertNull(response.data().get(2).txnDate());
+    Assertions.assertNull(response.data().get(2).notes());
     Assertions.assertFalse(
-        CommonUtilities.isEmpty(response.data().get(2).transaction().merchant()));
+        CommonUtilities.isEmpty(response.data().get(2).merchant()));
 
-    Assertions.assertNull(response.data().getLast().transaction().txnDate());
-    Assertions.assertNull(response.data().getLast().transaction().notes());
-    Assertions.assertNull(response.data().getLast().transaction().createdAt());
-    Assertions.assertNull(response.data().getLast().transaction().updatedAt());
+    Assertions.assertNull(response.data().getLast().txnDate());
+    Assertions.assertNull(response.data().getLast().notes());
     Assertions.assertFalse(
-        CommonUtilities.isEmpty(response.data().getLast().transaction().merchant()));
+        CommonUtilities.isEmpty(response.data().getLast().merchant()));
 
     helper.deleteTransaction(txnId1);
     helper.deleteTransaction(txnId2);

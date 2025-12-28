@@ -1,22 +1,33 @@
 package budget.application.db.dao;
 
-import budget.application.db.mapper.TransactionRowMapper;
+import budget.application.db.mapper.TransactionRowMappers;
+import budget.application.db.util.DaoUtils;
+import budget.application.model.dto.CategoryResponse;
+import budget.application.model.dto.CategoryTypeResponse;
 import budget.application.model.dto.PaginationRequest;
 import budget.application.model.dto.PaginationResponse;
+import budget.application.model.dto.RequestParams;
+import budget.application.model.dto.TransactionItemResponse;
+import budget.application.model.dto.TransactionResponse;
 import budget.application.model.entity.Transaction;
+import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 public class TransactionDao extends BaseDao<Transaction> {
 
   public TransactionDao(String requestId, Connection connection) {
-    super(requestId, connection, new TransactionRowMapper());
+    super(requestId, connection, new TransactionRowMappers.TransactionRowMapper());
   }
 
   @Override
@@ -60,16 +71,145 @@ public class TransactionDao extends BaseDao<Transaction> {
     return "txn_date DESC";
   }
 
-  public List<Transaction> readAllMerchants() throws SQLException {
+  public List<TransactionResponse.Transaction> readTransactions(
+      List<UUID> txnIds, RequestParams.TransactionParams requestParams) throws SQLException {
+    log.debug("[{}] Read Transactions: TxnIds=[{}], Params=[{}]", requestId, txnIds, requestParams);
+
+    if (requestParams == null) {
+      requestParams =
+          new RequestParams.TransactionParams(
+              null, null, List.of(), List.of(), List.of(), List.of());
+    }
+
+    List<UUID> catIds = requestParams.catIds();
+    List<UUID> catTypeIds = requestParams.catTypeIds();
+    LocalDate beginDate = requestParams.beginDate();
+    LocalDate endDate = requestParams.endDate();
+    List<String> merchants = requestParams.merchants();
+    List<String> txnTypes = requestParams.txnTypes();
+
+    StringBuilder sql =
+        new StringBuilder(
+            """
+                SELECT
+                    t.id           AS txn_id,
+                    t.txn_date     AS txn_date,
+                    t.merchant     AS txn_merchant,
+                    t.total_amount AS txn_total_amount,
+                    t.notes        AS txn_notes,
+                    ti.id          AS item_id,
+                    ti.label       AS item_label,
+                    ti.amount      AS item_amount,
+                    ti.txn_type    AS item_txn_type,
+                    c.id           AS category_id,
+                    c.name         AS category_name,
+                    ct.id          AS category_type_id,
+                    ct.name        AS category_type_name
+                FROM transaction t
+                LEFT JOIN transaction_item ti
+                       ON ti.transaction_id = t.id
+                LEFT JOIN category c
+                       ON c.id = ti.category_id
+                LEFT JOIN category_type ct
+                       ON ct.id = c.category_type_id
+                """);
+    List<Object> params = new ArrayList<>();
+    final boolean[] whereAdded = {false};
+
+    Consumer<String> addWhere =
+        (condition) -> {
+          sql.append(whereAdded[0] ? " AND " : " WHERE ");
+          sql.append(condition);
+          whereAdded[0] = true;
+        };
+
+    if (beginDate != null && endDate != null) {
+      addWhere.accept("t.txn_date >= ? AND t.txn_date <= ?");
+      params.add(beginDate);
+      params.add(endDate);
+    }
+    if (!CommonUtilities.isEmpty(txnIds)) {
+      addWhere.accept("t.id IN (" + DaoUtils.placeholders(txnIds.size()) + ")");
+      params.addAll(txnIds);
+    }
+    if (!CommonUtilities.isEmpty(merchants)) {
+      addWhere.accept("t.merchant IN (" + DaoUtils.placeholders(merchants.size()) + ")");
+      params.addAll(merchants);
+    }
+    if (!CommonUtilities.isEmpty(txnTypes)) {
+      addWhere.accept("ti.txn_type IN (" + DaoUtils.placeholders(txnTypes.size()) + ")");
+      params.addAll(txnTypes);
+    }
+    if (!CommonUtilities.isEmpty(catIds)) {
+      addWhere.accept("ti.category_id IN (" + DaoUtils.placeholders(catIds.size()) + ")");
+      params.addAll(catIds);
+    }
+    if (!CommonUtilities.isEmpty(catTypeIds)) {
+      addWhere.accept("c.category_type_id IN (" + DaoUtils.placeholders(catTypeIds.size()) + ")");
+      params.addAll(catTypeIds);
+    }
+    sql.append(" ORDER BY t.txn_date DESC");
+
+    log.debug("[{}] Composite Transactions SQL=[{}]", requestId, sql);
+
+    try (PreparedStatement stmt = connection.prepareStatement(sql.toString())) {
+      if (!params.isEmpty()) {
+        DaoUtils.bindParams(stmt, params);
+      }
+
+      Map<UUID, TransactionResultBuilder> txnMap = new LinkedHashMap<>();
+
+      try (ResultSet rs = stmt.executeQuery()) {
+        while (rs.next()) {
+          UUID txnId = rs.getObject("txn_id", UUID.class);
+          TransactionResultBuilder txnBuilder = txnMap.get(txnId);
+          if (txnBuilder == null) {
+            txnBuilder =
+                new TransactionResultBuilder(
+                    txnId,
+                    rs.getDate("txn_date").toLocalDate(),
+                    rs.getString("txn_merchant"),
+                    rs.getDouble("txn_total_amount"),
+                    rs.getString("txn_notes"));
+            txnMap.put(txnId, txnBuilder);
+          }
+
+          UUID itemId = rs.getObject("item_id", UUID.class);
+          if (itemId != null) {
+            CategoryTypeResponse.CategoryType ct =
+                new CategoryTypeResponse.CategoryType(
+                    rs.getObject("category_type_id", UUID.class),
+                    rs.getString("category_type_name"));
+            CategoryResponse.Category c =
+                new CategoryResponse.Category(
+                    rs.getObject("category_id", UUID.class), ct, rs.getString("category_name"));
+
+            TransactionItemResponse.TransactionItem item =
+                new TransactionItemResponse.TransactionItem(
+                    itemId,
+                    new TransactionResponse.Transaction(txnId, null, null, 0.0, null, List.of()),
+                    c,
+                    rs.getString("item_label"),
+                    rs.getDouble("item_amount"),
+                    rs.getString("item_txn_type"));
+            txnMap.get(txnId).addItem(item);
+          }
+        }
+      }
+      return txnMap.values().stream().map(TransactionResultBuilder::build).toList();
+    }
+  }
+
+  public List<String> readAllMerchants() throws SQLException {
     String sql = "SELECT DISTINCT merchant FROM transaction ORDER BY merchant ASC";
-    List<Transaction> items = new ArrayList<>();
+    List<String> merchants = new ArrayList<>();
     try (PreparedStatement stmt = connection.prepareStatement(sql);
         ResultSet rs = stmt.executeQuery()) {
       while (rs.next()) {
-        items.add(new Transaction(null, null, rs.getString("merchant"), 0.0, null, null, null));
+        merchants.add(rs.getString("merchant"));
       }
     }
-    return items;
+    return merchants;
   }
 
   public PaginationResponse<Transaction> readAll(PaginationRequest pr) throws SQLException {
@@ -110,6 +250,33 @@ public class TransactionDao extends BaseDao<Transaction> {
 
       rs.next();
       return rs.getInt(1);
+    }
+  }
+
+  private static class TransactionResultBuilder {
+    private final UUID id;
+    private final LocalDate txnDate;
+    private final String merchant;
+    private final double totalAmount;
+    private final String notes;
+    private final List<TransactionItemResponse.TransactionItem> items = new ArrayList<>();
+
+    TransactionResultBuilder(
+        UUID id, LocalDate txnDate, String merchant, double totalAmount, String notes) {
+      this.id = id;
+      this.txnDate = txnDate;
+      this.merchant = merchant;
+      this.totalAmount = totalAmount;
+      this.notes = notes;
+    }
+
+    void addItem(TransactionItemResponse.TransactionItem item) {
+      items.add(item);
+    }
+
+    TransactionResponse.Transaction build() {
+      return new TransactionResponse.Transaction(
+          id, txnDate, merchant, totalAmount, notes, List.copyOf(items));
     }
   }
 }

@@ -149,6 +149,33 @@ public class TransactionItemDao extends BaseDao<TransactionItem> {
     }
   }
 
+  public List<TransactionItem> readByTransactionIds(List<UUID> txnIds) throws SQLException {
+    log.debug("[{}] Reading transaction items for txnIds: {}", requestId, txnIds);
+    if (CommonUtilities.isEmpty(txnIds)) {
+      return List.of();
+    }
+
+    String sql =
+        "SELECT * FROM "
+            + tableName()
+            + " WHERE transaction_id IN ("
+            + DaoUtils.placeholders(txnIds.size())
+            + ")";
+    log.debug("[{}] Read By Transaction Ids SQL=[{}]", requestId, sql);
+
+    try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+      DaoUtils.bindParams(stmt, txnIds);
+
+      try (ResultSet rs = stmt.executeQuery()) {
+        List<TransactionItem> results = new ArrayList<>();
+        while (rs.next()) {
+          results.add(mapper.map(rs));
+        }
+        return results;
+      }
+    }
+  }
+
   public int deleteByTransactionIds(List<UUID> txnIds) throws SQLException {
     if (CommonUtilities.isEmpty(txnIds)) {
       return 0;

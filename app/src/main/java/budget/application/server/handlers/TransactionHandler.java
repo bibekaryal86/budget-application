@@ -1,6 +1,7 @@
 package budget.application.server.handlers;
 
 import budget.application.common.Constants;
+import budget.application.model.dto.RequestParams;
 import budget.application.model.dto.TransactionRequest;
 import budget.application.model.dto.TransactionResponse;
 import budget.application.server.utils.ApiPaths;
@@ -47,14 +48,16 @@ public class TransactionHandler extends SimpleChannelInboundHandler<FullHttpRequ
       return;
     }
 
-    // READ ALL: GET /petssvc/api/v1/transactions
-    if (path.equals(ApiPaths.TRANSACTIONS_V1) && method.equals(HttpMethod.GET)) {
-      handleReadAll(requestId, ctx);
+    // READ: GET /petssvc/api/v1/transactions/merchants
+    if (path.equals(ApiPaths.TRANSACTIONS_V1_WITH_MERCHANTS) && method.equals(HttpMethod.GET)) {
+      handleReadMerchants(requestId, ctx);
       return;
     }
 
-    if (path.equals(ApiPaths.TRANSACTIONS_V1_WITH_MERCHANTS) && method.equals(HttpMethod.GET)) {
-      handleReadMerchants(requestId, ctx);
+    // READ ALL: GET /petssvc/api/v1/transactions
+    if (path.equals(ApiPaths.TRANSACTIONS_V1) && method.equals(HttpMethod.GET)) {
+      RequestParams.TransactionParams params = ServerUtils.getTransactionParams(decoder);
+      handleReadAll(requestId, ctx, params);
       return;
     }
 
@@ -91,21 +94,24 @@ public class TransactionHandler extends SimpleChannelInboundHandler<FullHttpRequ
     ServerUtils.sendResponse(ctx, HttpResponseStatus.CREATED, response);
   }
 
+  // READ MERCHANTS
+  private void handleReadMerchants(String requestId, ChannelHandlerContext ctx) throws Exception {
+    TransactionResponse.TransactionMerchants response = service.readTransactionMerchants(requestId);
+    ServerUtils.sendResponse(ctx, HttpResponseStatus.OK, response);
+  }
+
   // READ ALL
-  private void handleReadAll(String requestId, ChannelHandlerContext ctx) throws Exception {
-    TransactionResponse response = service.read(requestId, List.of());
+  private void handleReadAll(
+      String requestId, ChannelHandlerContext ctx, RequestParams.TransactionParams params)
+      throws Exception {
+    TransactionResponse response = service.read(requestId, List.of(), params);
     ServerUtils.sendResponse(ctx, HttpResponseStatus.OK, response);
   }
 
   // READ ONE
   private void handleReadOne(String requestId, ChannelHandlerContext ctx, UUID id)
       throws Exception {
-    TransactionResponse response = service.read(requestId, List.of(id));
-    ServerUtils.sendResponse(ctx, HttpResponseStatus.OK, response);
-  }
-
-  private void handleReadMerchants(String requestId, ChannelHandlerContext ctx) throws Exception {
-    TransactionResponse response = service.readTransactionMerchants(requestId);
+    TransactionResponse response = service.read(requestId, List.of(id), null);
     ServerUtils.sendResponse(ctx, HttpResponseStatus.OK, response);
   }
 

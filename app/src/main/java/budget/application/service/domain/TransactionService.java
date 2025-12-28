@@ -8,9 +8,9 @@ import budget.application.db.dao.TransactionDao;
 import budget.application.db.dao.TransactionItemDao;
 import budget.application.model.dto.PaginationRequest;
 import budget.application.model.dto.PaginationResponse;
+import budget.application.model.dto.RequestParams;
 import budget.application.model.dto.TransactionRequest;
 import budget.application.model.dto.TransactionResponse;
-import budget.application.model.dto.composite.TransactionWithItems;
 import budget.application.model.entity.Transaction;
 import budget.application.model.entity.TransactionItem;
 import budget.application.service.util.ResponseMetadataUtils;
@@ -23,9 +23,7 @@ import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,15 +45,15 @@ public class TransactionService {
         bs -> {
           TransactionDao txnDao = new TransactionDao(requestId, bs.connection());
           CategoryDao categoryDao = new CategoryDao(requestId, bs.connection());
-          TransactionItemDao itemRepo = new TransactionItemDao(requestId, bs.connection());
+          TransactionItemDao itemDao = new TransactionItemDao(requestId, bs.connection());
 
           Validations.validateTransaction(requestId, tr, categoryDao);
           Transaction txnIn =
               new Transaction(
                   null, tr.txnDate(), tr.merchant(), tr.totalAmount(), tr.notes(), null, null);
 
-          Transaction txnOut = txnDao.create(txnIn);
-          log.debug("[{}] Created transaction: Transaction=[{}]", requestId, txnOut);
+          UUID txnId = txnDao.create(txnIn).id();
+          log.debug("[{}] Created transaction: Transaction=[{}]", requestId, txnId);
 
           List<TransactionItem> txnItemsIn =
               tr.items().stream()
@@ -63,59 +61,58 @@ public class TransactionService {
                       item ->
                           new TransactionItem(
                               null,
-                              txnOut.id(),
+                              txnId,
                               item.categoryId(),
                               item.label(),
                               item.amount(),
                               item.txnType()))
                   .toList();
-          List<TransactionItem> txnItemsOut = itemRepo.createItems(txnItemsIn);
+          List<UUID> txnItemsIds =
+              itemDao.createItems(txnItemsIn).stream().map(TransactionItem::id).toList();
           log.debug(
-              "[{}] Created transaction items: TransactionItems=[{}]", requestId, txnItemsOut);
+              "[{}] Created transaction items: TransactionItems=[{}]", requestId, txnItemsIds);
 
+          List<TransactionResponse.Transaction> txns =
+              txnDao.readTransactions(List.of(txnId), null);
           return new TransactionResponse(
-              List.of(new TransactionWithItems(txnOut, txnItemsOut)),
-              ResponseMetadataUtils.defaultInsertResponseMetadata());
+              txns, ResponseMetadataUtils.defaultInsertResponseMetadata());
         });
   }
 
-  public TransactionResponse read(String requestId, List<UUID> ids) throws SQLException {
-    log.debug("[{}] Read transactions: Ids=[{}]", requestId, ids);
+  public TransactionResponse read(
+      String requestId, List<UUID> txnIds, RequestParams.TransactionParams requestParams)
+      throws SQLException {
+    log.debug(
+        "[{}] Read transactions: TxnIds=[{}], RequestParams=[{}]",
+        requestId,
+        txnIds,
+        requestParams);
     return tx.execute(
         bs -> {
           TransactionDao txnDao = new TransactionDao(requestId, bs.connection());
-          TransactionItemDao itemRepo = new TransactionItemDao(requestId, bs.connection());
-          List<Transaction> txns = txnDao.read(ids);
+          TransactionItemDao itemDao = new TransactionItemDao(requestId, bs.connection());
 
-          if (ids.size() == 1 && txns.isEmpty()) {
+          List<TransactionResponse.Transaction> txns =
+              txnDao.readTransactions(txnIds, requestParams);
+
+          if (txnIds.size() == 1 && txns.isEmpty()) {
             throw new Exceptions.NotFoundException(
-                requestId, "Transaction", ids.getFirst().toString());
+                requestId, "Transaction", txnIds.getFirst().toString());
           }
 
-          List<UUID> txnIds = txns.stream().map(Transaction::id).toList();
-          List<TransactionItem> items = itemRepo.readByTransactionIds(txnIds);
-          Map<UUID, List<TransactionItem>> txnItemsMap =
-              items.stream().collect(Collectors.groupingBy(TransactionItem::transactionId));
-          List<TransactionWithItems> txnWithItems =
-              txns.stream()
-                  .map(
-                      txn ->
-                          new TransactionWithItems(
-                              txn, txnItemsMap.getOrDefault(txn.id(), List.of())))
-                  .toList();
-          return new TransactionResponse(txnWithItems, ResponseMetadata.emptyResponseMetadata());
+          return new TransactionResponse(txns, ResponseMetadata.emptyResponseMetadata());
         });
   }
 
-  public TransactionResponse readTransactionMerchants(String requestId) throws SQLException {
-    log.debug("[{}] Read all transaction merchants", requestId);
+  public TransactionResponse.TransactionMerchants readTransactionMerchants(String requestId)
+      throws SQLException {
+    log.debug("[{}] Read transaction merchants", requestId);
     return tx.execute(
         bs -> {
           TransactionDao txnDao = new TransactionDao(requestId, bs.connection());
-          List<Transaction> txns = txnDao.readAllMerchants();
-          List<TransactionWithItems> txnWithItems =
-              txns.stream().map(txn -> new TransactionWithItems(txn, List.of())).toList();
-          return new TransactionResponse(txnWithItems, ResponseMetadata.emptyResponseMetadata());
+          List<String> txnMerchants = txnDao.readAllMerchants();
+          return new TransactionResponse.TransactionMerchants(
+              txnMerchants, ResponseMetadata.emptyResponseMetadata());
         });
   }
 
@@ -125,7 +122,7 @@ public class TransactionService {
     return tx.execute(
         bs -> {
           TransactionDao txnDao = new TransactionDao(requestId, bs.connection());
-          TransactionItemDao itemRepo = new TransactionItemDao(requestId, bs.connection());
+          TransactionItemDao itemDao = new TransactionItemDao(requestId, bs.connection());
           CategoryDao categoryDao = new CategoryDao(requestId, bs.connection());
 
           Validations.validateTransaction(requestId, tr, categoryDao);
@@ -145,9 +142,9 @@ public class TransactionService {
 
           List<TransactionItem> txnItemsOut = new ArrayList<>();
           if (CommonUtilities.isEmpty(tr.items())) {
-            txnItemsOut = itemRepo.readByTransactionIds(List.of(id));
+            txnItemsOut = itemDao.readByTransactionIds(List.of(id));
           } else {
-            int deleteCount = itemRepo.deleteByTransactionIds(List.of(id));
+            int deleteCount = itemDao.deleteByTransactionIds(List.of(id));
             log.debug(
                 "[{}] Deleted transaction items for transaction: txnId=[{}], deleteCount=[{}]",
                 requestId,
@@ -166,14 +163,15 @@ public class TransactionService {
                                 item.amount(),
                                 item.txnType()))
                     .toList();
-            txnItemsOut = itemRepo.createItems(txnItemsIn);
+            txnItemsOut = itemDao.createItems(txnItemsIn);
             log.debug(
                 "[{}] Recreated transaction items: TransactionItems=[{}]", requestId, txnItemsOut);
           }
 
+          List<TransactionResponse.Transaction> txnsOut =
+              txnDao.readTransactions(List.of(id), null);
           return new TransactionResponse(
-              List.of(new TransactionWithItems(txnOut, txnItemsOut)),
-              ResponseMetadataUtils.defaultUpdateResponseMetadata());
+              txnsOut, ResponseMetadataUtils.defaultUpdateResponseMetadata());
         });
   }
 
@@ -182,7 +180,7 @@ public class TransactionService {
     return tx.execute(
         bs -> {
           TransactionDao txnDao = new TransactionDao(requestId, bs.connection());
-          TransactionItemDao itemRepo = new TransactionItemDao(requestId, bs.connection());
+          TransactionItemDao itemDao = new TransactionItemDao(requestId, bs.connection());
 
           List<Transaction> txns = txnDao.read(ids);
           if (ids.size() == 1 && txns.isEmpty()) {
@@ -190,7 +188,7 @@ public class TransactionService {
                 requestId, "Transaction", ids.getFirst().toString());
           }
 
-          int deleteCountTxnItems = itemRepo.deleteByTransactionIds(ids);
+          int deleteCountTxnItems = itemDao.deleteByTransactionIds(ids);
           log.info(
               "[{}] Deleted transaction items for transactions: Ids=[{}], deleteCount=[{}]",
               requestId,
@@ -211,7 +209,7 @@ public class TransactionService {
     tx.executeVoid(
         bs -> {
           TransactionDao txnDao = new TransactionDao(requestId, bs.connection());
-          TransactionItemDao itemRepo = new TransactionItemDao(requestId, bs.connection());
+          TransactionItemDao itemDao = new TransactionItemDao(requestId, bs.connection());
           // Read all transactions
           int pageNumber = 1;
           int pageSize = 1000;
@@ -227,7 +225,7 @@ public class TransactionService {
 
             for (Transaction txn : txns) {
               UUID txnId = txn.id();
-              List<TransactionItem> items = itemRepo.readByTransactionIds(List.of(txnId));
+              List<TransactionItem> items = itemDao.readByTransactionIds(List.of(txnId));
               double sum = items.stream().mapToDouble(TransactionItem::amount).sum();
               if (Double.compare(sum, txn.totalAmount()) != 0) {
                 mmTxns.add(txn);
