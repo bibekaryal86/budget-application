@@ -43,7 +43,10 @@ public class Validations {
   }
 
   public static void validateTransactionItem(
-      String requestId, TransactionItemRequest tir, CategoryRepository categoryRepo, Boolean isCreateTxn) {
+      String requestId,
+      TransactionItemRequest tir,
+      CategoryRepository categoryRepo,
+      Boolean isCreateTxn) {
     if (tir == null) {
       throw new Exceptions.BadRequestException(
           String.format("[%s] Transaction item request cannot be null...", requestId));

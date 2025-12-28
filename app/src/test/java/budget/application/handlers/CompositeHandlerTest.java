@@ -11,6 +11,7 @@ import io.github.bibekaryal86.shdsvc.dtos.ResponseMetadata;
 import java.net.http.HttpResponse;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
@@ -119,7 +120,8 @@ public class CompositeHandlerTest extends IntegrationBaseTest {
 
   @Test
   void testCompositeCategories_filterByCategoryType1() throws Exception {
-    CompositeRequest req = new CompositeRequest(null, new CompositeRequest.CategoryComposite(ctId1));
+    CompositeRequest req =
+        new CompositeRequest(null, new CompositeRequest.CategoryComposite(List.of(ctId1)));
 
     HttpResponse<String> resp =
         httpPost(ApiPaths.COMPOSITE_V1_CATEGORIES, JsonUtils.toJson(req), Boolean.TRUE);
@@ -133,7 +135,8 @@ public class CompositeHandlerTest extends IntegrationBaseTest {
 
   @Test
   void testCompositeCategories_filterByCategoryType2() throws Exception {
-    CompositeRequest req = new CompositeRequest(null, new CompositeRequest.CategoryComposite(ctId2));
+    CompositeRequest req =
+        new CompositeRequest(null, new CompositeRequest.CategoryComposite(List.of(ctId2)));
 
     HttpResponse<String> resp =
         httpPost(ApiPaths.COMPOSITE_V1_CATEGORIES, JsonUtils.toJson(req), Boolean.TRUE);
@@ -176,7 +179,7 @@ public class CompositeHandlerTest extends IntegrationBaseTest {
   void testCompositeTransactions_emptyTransactionRequest() throws Exception {
     CompositeRequest req =
         new CompositeRequest(
-            new CompositeRequest.TransactionComposite(null, null, null, null, null), null);
+            new CompositeRequest.TransactionComposite(null, null, null, null, null, null), null);
 
     HttpResponse<String> resp =
         httpPost(ApiPaths.COMPOSITE_V1_TRANSACTIONS, JsonUtils.toJson(req), Boolean.TRUE);
@@ -194,7 +197,7 @@ public class CompositeHandlerTest extends IntegrationBaseTest {
     CompositeRequest req =
         new CompositeRequest(
             new CompositeRequest.TransactionComposite(
-                LocalDate.now().minusDays(75), null, null, null, null),
+                LocalDate.now().minusDays(75), null, null, null, null, null),
             null);
 
     HttpResponse<String> resp =
@@ -213,7 +216,7 @@ public class CompositeHandlerTest extends IntegrationBaseTest {
     CompositeRequest req =
         new CompositeRequest(
             new CompositeRequest.TransactionComposite(
-                null, LocalDate.now().plusDays(1), null, null, null),
+                null, LocalDate.now().plusDays(1), null, null, null, null),
             null);
 
     HttpResponse<String> resp =
@@ -232,7 +235,7 @@ public class CompositeHandlerTest extends IntegrationBaseTest {
     CompositeRequest req =
         new CompositeRequest(
             new CompositeRequest.TransactionComposite(
-                LocalDate.now().minusDays(75), LocalDate.now().plusDays(1), null, null, null),
+                LocalDate.now().minusDays(75), LocalDate.now().plusDays(1), null, null, null, null),
             null);
 
     HttpResponse<String> resp =
@@ -251,7 +254,12 @@ public class CompositeHandlerTest extends IntegrationBaseTest {
     CompositeRequest req =
         new CompositeRequest(
             new CompositeRequest.TransactionComposite(
-                LocalDate.now().minusDays(75), LocalDate.now().plusDays(1), null, cId2, null),
+                LocalDate.now().minusDays(75),
+                LocalDate.now().plusDays(1),
+                null,
+                List.of(cId2),
+                null,
+                null),
             null);
 
     HttpResponse<String> resp =
@@ -270,7 +278,12 @@ public class CompositeHandlerTest extends IntegrationBaseTest {
     CompositeRequest req =
         new CompositeRequest(
             new CompositeRequest.TransactionComposite(
-                LocalDate.now().minusDays(75), LocalDate.now().plusDays(1), null, null, ctId1),
+                LocalDate.now().minusDays(75),
+                LocalDate.now().plusDays(1),
+                null,
+                null,
+                List.of(ctId1),
+                null),
             null);
 
     HttpResponse<String> resp =
@@ -289,7 +302,12 @@ public class CompositeHandlerTest extends IntegrationBaseTest {
     CompositeRequest req =
         new CompositeRequest(
             new CompositeRequest.TransactionComposite(
-                LocalDate.now().minusDays(75), LocalDate.now().plusDays(1), null, cId2, ctId1),
+                LocalDate.now().minusDays(75),
+                LocalDate.now().plusDays(1),
+                null,
+                List.of(cId2),
+                List.of(ctId1),
+                null),
             null);
 
     HttpResponse<String> resp =
@@ -310,9 +328,34 @@ public class CompositeHandlerTest extends IntegrationBaseTest {
             new CompositeRequest.TransactionComposite(
                 LocalDate.now().minusDays(75),
                 LocalDate.now().plusDays(1),
-                "Merchant: " + tId2,
-                cId2,
-                ctId1),
+                List.of("Merchant: " + tId2),
+                List.of(cId2),
+                List.of(ctId1),
+                null),
+            null);
+
+    HttpResponse<String> resp =
+        httpPost(ApiPaths.COMPOSITE_V1_TRANSACTIONS, JsonUtils.toJson(req), Boolean.TRUE);
+
+    Assertions.assertEquals(200, resp.statusCode());
+    CompositeResponse response = JsonUtils.fromJson(resp.body(), CompositeResponse.class);
+
+    Assertions.assertNull(response.cats());
+    Assertions.assertEquals(ResponseMetadata.emptyResponseMetadata(), response.metadata());
+    Assertions.assertEquals(1, response.txns().size());
+  }
+
+  @Test
+  void testCompositeTransactions_filterByMerchantCategoryWithTypes() throws Exception {
+    CompositeRequest req =
+        new CompositeRequest(
+            new CompositeRequest.TransactionComposite(
+                LocalDate.now().minusDays(75),
+                LocalDate.now().plusDays(1),
+                List.of("Merchant: " + tId2),
+                List.of(cId2),
+                List.of(ctId1),
+                List.of("NEEDS", "INCOME")),
             null);
 
     HttpResponse<String> resp =

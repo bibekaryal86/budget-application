@@ -16,7 +16,8 @@ public record CompositeResponse(
       String notes,
       List<TransactionItemComposite> items) {}
 
-  public record TransactionItemComposite(UUID id, double amount, CategoryComposite category) {}
+  public record TransactionItemComposite(
+      UUID id, String label, double amount, String txnType, CategoryComposite category) {}
 
   public record CategoryComposite(UUID id, String name, CategoryTypeComposite categoryType) {}
 

@@ -27,3 +27,6 @@ The application uses a hierarchical structure to organize financial data, allowi
 * Banks & Accounts: Integration to track multiple physical bank accounts and credit cards.
 * Summary Engine: Automated monthly and yearly reports to visualize spending trends.
 * Budgeting Goals: Set limits on specific categories and track progress.
+
+TODO
+- add an endpoint to return all merchants

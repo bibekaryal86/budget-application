@@ -55,7 +55,8 @@ public class CompositeService {
 
     if (crtc == null) {
       return new CompositeRequest(
-          new CompositeRequest.TransactionComposite(defaultStart, defaultEnd, null, null, null),
+          new CompositeRequest.TransactionComposite(
+              defaultStart, defaultEnd, List.of(), List.of(), List.of(), List.of()),
           null);
     }
 
@@ -80,7 +81,7 @@ public class CompositeService {
 
     return new CompositeRequest(
         new CompositeRequest.TransactionComposite(
-            begin, end, crtc.merchant(), crtc.categoryId(), crtc.categoryTypeId()),
+            begin, end, crtc.merchants(), crtc.catIds(), crtc.catTypeIds(), crtc.txnTypes()),
         null);
   }
 }

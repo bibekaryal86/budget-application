@@ -1,7 +1,9 @@
 package budget.application.db.dao;
 
+import budget.application.db.util.DaoUtils;
 import budget.application.model.dto.request.CompositeRequest;
 import budget.application.model.dto.response.CompositeResponse;
+import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -12,7 +14,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -28,10 +30,10 @@ public class CompositeDao {
 
   public List<CompositeResponse.CategoryComposite> compositeCategories(CompositeRequest cr)
       throws SQLException {
-    log.info("[{}] Composite Categories Request=[{}]", requestId, cr);
+    log.debug("[{}] Composite Categories Request=[{}]", requestId, cr);
 
     CompositeRequest.CategoryComposite crcc = cr == null ? null : cr.categoryComposite();
-    UUID categoryTypeId = (crcc == null ? null : crcc.categoryTypeId());
+    List<UUID> catTypeIds = (crcc == null ? List.of() : crcc.catTypesId());
 
     StringBuilder sql =
         new StringBuilder(
@@ -48,19 +50,18 @@ public class CompositeDao {
                   ON ct.id = c.category_type_id
                 """);
 
-    if (categoryTypeId != null) {
-      sql.append(" WHERE c.category_type_id = ? ");
+    if (!CommonUtilities.isEmpty(catTypeIds)) {
+      sql.append(" WHERE ct.id IN (").append(DaoUtils.placeholders(catTypeIds.size())).append(") ");
     }
 
     sql.append(" ORDER BY ct.name, c.name ASC ");
 
     String finalSql = sql.toString();
-    log.info("[{}] Composite Categories SQL=[{}]", requestId, finalSql);
+    log.debug("[{}] Composite Categories SQL=[{}]", requestId, finalSql);
 
     PreparedStatement stmt = connection.prepareStatement(finalSql);
-
-    if (categoryTypeId != null) {
-      stmt.setObject(1, categoryTypeId);
+    if (!CommonUtilities.isEmpty(catTypeIds)) {
+      DaoUtils.bindParams(stmt, catTypeIds);
     }
 
     List<CompositeResponse.CategoryComposite> results = new ArrayList<>();
@@ -89,64 +90,77 @@ public class CompositeDao {
 
     CompositeRequest.TransactionComposite crtc = cr.transactionComposite();
 
-    UUID categoryId = crtc.categoryId();
-    UUID categoryTypeId = crtc.categoryTypeId();
+    List<UUID> catIds = crtc.catIds();
+    List<UUID> catTypeIds = crtc.catTypeIds();
     LocalDate beginDate = crtc.beginDate();
     LocalDate endDate = crtc.endDate();
-    String merchant = crtc.merchant();
+    List<String> merchants = crtc.merchants();
+    List<String> txnTypes = crtc.txnTypes();
 
     StringBuilder sql =
         new StringBuilder(
             """
-                SELECT
-                    t.id           AS txn_id,
-                    t.txn_date     AS txn_date,
-                    t.merchant     AS txn_merchant,
-                    t.total_amount AS txn_total_amount,
-                    t.notes        AS txn_notes,
+                          SELECT
+                              t.id           AS txn_id,
+                              t.txn_date     AS txn_date,
+                              t.merchant     AS txn_merchant,
+                              t.total_amount AS txn_total_amount,
+                              t.notes        AS txn_notes,
 
-                    ti.id          AS item_id,
-                    ti.label       AS item_label,
-                    ti.amount      AS item_amount,
+                              ti.id          AS item_id,
+                              ti.label       AS item_label,
+                              ti.amount      AS item_amount,
+                              ti.txn_type    AS item_txn_type,
 
-                    c.id           AS category_id,
-                    c.name         AS category_name,
+                              c.id           AS category_id,
+                              c.name         AS category_name,
 
-                    ct.id          AS category_type_id,
-                    ct.name        AS category_type_name
+                              ct.id          AS category_type_id,
+                              ct.name        AS category_type_name
 
-                FROM transaction t
-                LEFT JOIN transaction_item ti
-                       ON ti.transaction_id = t.id
-                LEFT JOIN category c
-                       ON c.id = ti.category_id
-                LEFT JOIN category_type ct
-                       ON ct.id = c.category_type_id
-                """);
+                          FROM transaction t
+                          LEFT JOIN transaction_item ti
+                                 ON ti.transaction_id = t.id
+                          LEFT JOIN category c
+                                 ON c.id = ti.category_id
+                          LEFT JOIN category_type ct
+                                 ON ct.id = c.category_type_id
+                          """);
 
     List<Object> params = new ArrayList<>();
     final boolean[] whereAdded = {false};
 
-    BiConsumer<String, Object> addFilter =
-        (condition, value) -> {
-          if (value != null) {
-            sql.append(whereAdded[0] ? " AND " : " WHERE ");
-            sql.append(condition);
-            params.add(value);
-            whereAdded[0] = true;
-          }
+    Consumer<String> addWhere =
+        (condition) -> {
+          sql.append(whereAdded[0] ? " AND " : " WHERE ");
+          sql.append(condition);
+          whereAdded[0] = true;
         };
 
-    addFilter.accept("t.merchant = ?", merchant);
-    addFilter.accept("ti.category_id = ?", categoryId);
-    addFilter.accept("c.category_type_id = ?", categoryTypeId);
-
     if (beginDate != null && endDate != null) {
-      sql.append(whereAdded[0] ? " AND " : " WHERE ");
-      sql.append("t.txn_date >= ? AND t.txn_date <= ?");
+      addWhere.accept("t.txn_date >= ? AND t.txn_date <= ?");
       params.add(beginDate);
       params.add(endDate);
-      whereAdded[0] = true;
+    }
+
+    if (!CommonUtilities.isEmpty(merchants)) {
+      addWhere.accept("t.merchant IN (" + DaoUtils.placeholders(merchants.size()) + ")");
+      params.addAll(merchants);
+    }
+
+    if (!CommonUtilities.isEmpty(catIds)) {
+      addWhere.accept("ti.category_id IN (" + DaoUtils.placeholders(catIds.size()) + ")");
+      params.addAll(catIds);
+    }
+
+    if (!CommonUtilities.isEmpty(catTypeIds)) {
+      addWhere.accept("c.category_type_id IN (" + DaoUtils.placeholders(catTypeIds.size()) + ")");
+      params.addAll(catTypeIds);
+    }
+
+    if (!CommonUtilities.isEmpty(txnTypes)) {
+      addWhere.accept("ti.txn_type IN (" + DaoUtils.placeholders(txnTypes.size()) + ")");
+      params.addAll(txnTypes);
     }
 
     sql.append(" ORDER BY t.txn_date DESC ");
@@ -155,10 +169,7 @@ public class CompositeDao {
     log.debug("[{}] Composite Transactions SQL=[{}]", requestId, finalSql);
 
     PreparedStatement stmt = connection.prepareStatement(finalSql);
-
-    for (int i = 0; i < params.size(); i++) {
-      stmt.setObject(i + 1, params.get(i));
-    }
+    DaoUtils.bindParams(stmt, params);
 
     Map<UUID, TransactionCompositeBuilder> txnMap = new LinkedHashMap<>();
 
@@ -189,7 +200,11 @@ public class CompositeDao {
 
           CompositeResponse.TransactionItemComposite item =
               new CompositeResponse.TransactionItemComposite(
-                  itemId, rs.getDouble("item_amount"), c);
+                  itemId,
+                  rs.getString("item_label"),
+                  rs.getDouble("item_amount"),
+                  rs.getString("item_txn_type"),
+                  c);
 
           txnMap.get(txnId).addItem(item);
         }
