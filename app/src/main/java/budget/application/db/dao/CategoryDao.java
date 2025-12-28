@@ -83,11 +83,14 @@ public class CategoryDao extends BaseDao<Category> {
             ON ct.id = c.category_type_id
           """);
 
+    boolean first = true;
     if (!CommonUtilities.isEmpty(catIds)) {
       sql.append(" WHERE c.id IN (").append(DaoUtils.placeholders(catIds.size())).append(")");
+      first = false;
     }
     if (!CommonUtilities.isEmpty(catTypeIds)) {
-      sql.append(" AND ct.id IN (").append(DaoUtils.placeholders(catTypeIds.size())).append(")");
+      sql.append(first ? " AND " : " WHERE ");
+      sql.append(" ct.id IN (").append(DaoUtils.placeholders(catTypeIds.size())).append(")");
     }
     sql.append(" ORDER BY ct.name, c.name ASC ");
 

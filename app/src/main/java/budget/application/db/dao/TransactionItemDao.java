@@ -80,23 +80,6 @@ public class TransactionItemDao extends BaseDao<TransactionItem> {
         catIds,
         txnTypes);
 
-    if (!CommonUtilities.isEmpty(catIds)) {
-      StringBuilder countSql = new StringBuilder("SELECT COUNT(*) FROM transaction_item ");
-      countSql
-          .append(" WHERE category_id IN (")
-          .append(DaoUtils.placeholders(catIds.size()))
-          .append(")");
-      int count = 0;
-      try (PreparedStatement ps = connection.prepareStatement(countSql.toString())) {
-        DaoUtils.bindParams(ps, catIds);
-        try (ResultSet rs = ps.executeQuery()) {
-          rs.next();
-          count = rs.getInt(1);
-        }
-      }
-      log.debug("[{}] Read Transaction Items Count: {}", requestId, count);
-    }
-
     StringBuilder sql =
         new StringBuilder(
             """
@@ -123,43 +106,42 @@ public class TransactionItemDao extends BaseDao<TransactionItem> {
                   ON c.category_type_id = ct.id
                 """);
 
-      List<Object> params = new ArrayList<>();
-      final boolean[] whereAdded = {false};
+    List<Object> params = new ArrayList<>();
+    final boolean[] whereAdded = {false};
 
-      Consumer<String> addWhere =
-              (condition) -> {
-                  sql.append(whereAdded[0] ? " AND " : " WHERE ");
-                  sql.append(condition);
-                  whereAdded[0] = true;
-              };
+    Consumer<String> addWhere =
+        (condition) -> {
+          sql.append(whereAdded[0] ? " AND " : " WHERE ");
+          sql.append(condition);
+          whereAdded[0] = true;
+        };
 
     if (!CommonUtilities.isEmpty(txnItemIds)) {
-        addWhere.accept("t.id IN (" + DaoUtils.placeholders(txnItemIds.size()) + ")");
+      addWhere.accept("ti.id IN (" + DaoUtils.placeholders(txnItemIds.size()) + ")");
       params.addAll(txnItemIds);
     }
     if (!CommonUtilities.isEmpty(txnIds)) {
-        addWhere.accept("ti.transaction_id IN (" + DaoUtils.placeholders(txnIds.size()) + ")");
-        params.addAll(txnIds);
+      addWhere.accept("ti.transaction_id IN (" + DaoUtils.placeholders(txnIds.size()) + ")");
+      params.addAll(txnIds);
     }
     if (!CommonUtilities.isEmpty(catIds)) {
-        addWhere.accept("ti.category_id IN (" + DaoUtils.placeholders(catIds.size()) + ")");
-        params.addAll(catIds);
+      addWhere.accept("ti.category_id IN (" + DaoUtils.placeholders(catIds.size()) + ")");
+      params.addAll(catIds);
     }
     if (!CommonUtilities.isEmpty(txnTypes)) {
-        addWhere.accept("ti.txn_type IN (" + DaoUtils.placeholders(txnTypes.size()) + ")");
-        params.addAll(txnTypes);
+      addWhere.accept("ti.txn_type IN (" + DaoUtils.placeholders(txnTypes.size()) + ")");
+      params.addAll(txnTypes);
     }
     sql.append(" ORDER BY ti.transaction_id ASC, t.txn_date DESC ");
 
     log.debug("[{}] Read Transaction Items SQL=[{}]", requestId, sql);
 
     try (PreparedStatement stmt = connection.prepareStatement(sql.toString())) {
-        if (!params.isEmpty()) {
-            DaoUtils.bindParams(stmt, params);
-        }
-
+      if (!params.isEmpty()) {
+        DaoUtils.bindParams(stmt, params);
+      }
+      List<TransactionItemResponse.TransactionItem> results = new ArrayList<>();
       try (ResultSet rs = stmt.executeQuery()) {
-        List<TransactionItemResponse.TransactionItem> results = new ArrayList<>();
         while (rs.next()) {
           results.add(txnItemRespMapper.map(rs));
         }
