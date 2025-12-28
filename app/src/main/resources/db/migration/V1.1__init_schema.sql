@@ -6,9 +6,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- ============================================
 CREATE TABLE category_type (
     id          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    name        VARCHAR(100) NOT NULL UNIQUE,
-    created_at  TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at  TIMESTAMP NOT NULL DEFAULT NOW()
+    name        VARCHAR(100) NOT NULL UNIQUE
 );
 
 CREATE INDEX idx_category_type_name ON category_type(name);
@@ -20,8 +18,6 @@ CREATE TABLE category (
     id               UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     category_type_id UUID NOT NULL REFERENCES category_type(id) ON DELETE RESTRICT,
     name             VARCHAR(255) NOT NULL,
-    created_at       TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at       TIMESTAMP NOT NULL DEFAULT NOW(),
     UNIQUE (category_type_id, name)
 );
 
@@ -52,7 +48,7 @@ CREATE TABLE transaction_item (
     transaction_id  UUID NOT NULL REFERENCES transaction(id) ON DELETE CASCADE,
     category_id     UUID NOT NULL REFERENCES category(id) ON DELETE RESTRICT,
     label           VARCHAR(255) NOT NULL,
-    amount          NUMERIC(12, 2) NOT NULL CHECK (amount >= 0)
+    amount          NUMERIC(12, 2) NOT NULL CHECK (amount >= 0),
     txn_type        VARCHAR(10) NOT NULL CHECK (txn_type IN ('NEEDS', 'WANTS', 'INCOME', 'SAVINGS', 'TRANSFER', 'OTHER'))
 );
 

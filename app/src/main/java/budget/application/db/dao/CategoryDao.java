@@ -3,7 +3,6 @@ package budget.application.db.dao;
 import budget.application.db.mapper.CategoryRowMapper;
 import budget.application.model.entity.Category;
 import java.sql.Connection;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -30,12 +29,12 @@ public class CategoryDao extends BaseDao<Category> {
 
   @Override
   protected List<String> updateColumns() {
-    return List.of("category_type_id", "name", "updated_at");
+    return List.of("category_type_id", "name");
   }
 
   @Override
   protected List<Object> updateValues(Category c) {
-    return List.of(c.categoryTypeId(), c.name().toUpperCase(), LocalDateTime.now());
+    return List.of(c.categoryTypeId(), c.name().toUpperCase());
   }
 
   @Override

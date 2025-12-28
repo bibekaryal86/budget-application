@@ -6,9 +6,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- ============================================
 CREATE TABLE category_type (
     id          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    name        VARCHAR(100) NOT NULL UNIQUE,
-    created_at  TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at  TIMESTAMP NOT NULL DEFAULT NOW()
+    name        VARCHAR(100) NOT NULL UNIQUE
 );
 
 CREATE INDEX idx_category_type_name ON category_type(name);
@@ -20,8 +18,6 @@ CREATE TABLE category (
     id               UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     category_type_id UUID NOT NULL REFERENCES category_type(id) ON DELETE RESTRICT,
     name             VARCHAR(255) NOT NULL,
-    created_at       TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at       TIMESTAMP NOT NULL DEFAULT NOW(),
     UNIQUE (category_type_id, name)
 );
 

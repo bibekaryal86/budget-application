@@ -35,7 +35,7 @@ public class CategoryService {
 
           Validations.validateCategory(requestId, cr, typeRepo);
 
-          Category cIn = new Category(null, cr.categoryTypeId(), cr.name(), null, null);
+          Category cIn = new Category(null, cr.categoryTypeId(), cr.name());
           Category cOut = repo.create(cIn);
           return new CategoryResponse(
               List.of(cOut), ResponseMetadataUtils.defaultInsertResponseMetadata());
@@ -72,7 +72,7 @@ public class CategoryService {
             throw new Exceptions.NotFoundException(requestId, "Category", id.toString());
           }
 
-          Category cIn = new Category(id, cr.categoryTypeId(), cr.name(), null, null);
+          Category cIn = new Category(id, cr.categoryTypeId(), cr.name());
           Category cOut = repo.update(cIn);
           return new CategoryResponse(
               List.of(cOut), ResponseMetadataUtils.defaultUpdateResponseMetadata());

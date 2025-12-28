@@ -33,7 +33,7 @@ public class CategoryTypeService {
         bs -> {
           CategoryTypeRepository repo = new CategoryTypeRepository(requestId, bs);
           Validations.validateCategoryType(requestId, ctr);
-          CategoryType ctIn = new CategoryType(null, ctr.name(), null, null);
+          CategoryType ctIn = new CategoryType(null, ctr.name());
           CategoryType ctOut = repo.create(ctIn);
           return new CategoryTypeResponse(
               List.of(ctOut), ResponseMetadataUtils.defaultInsertResponseMetadata());
@@ -70,7 +70,7 @@ public class CategoryTypeService {
             throw new Exceptions.NotFoundException(requestId, "CategoryType", id.toString());
           }
 
-          CategoryType ctIn = new CategoryType(id, ctr.name(), null, null);
+          CategoryType ctIn = new CategoryType(id, ctr.name());
           CategoryType ctOut = repo.update(ctIn);
           return new CategoryTypeResponse(
               List.of(ctOut), ResponseMetadataUtils.defaultUpdateResponseMetadata());
