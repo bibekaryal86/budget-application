@@ -1,6 +1,7 @@
 package budget.application.server.handlers;
 
 import budget.application.common.Constants;
+import budget.application.model.dto.RequestParams;
 import budget.application.model.dto.TransactionItemRequest;
 import budget.application.model.dto.TransactionItemResponse;
 import budget.application.server.utils.ApiPaths;
@@ -11,6 +12,7 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.QueryStringDecoder;
 import java.util.List;
 import java.util.UUID;
 import javax.sql.DataSource;
@@ -28,8 +30,9 @@ public class TransactionItemHandler extends SimpleChannelInboundHandler<FullHttp
 
   @Override
   protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest req) throws Exception {
+    QueryStringDecoder decoder = new QueryStringDecoder(req.uri());
     String requestId = ctx.channel().attr(Constants.REQUEST_ID).get();
-    String path = req.uri();
+    String path = decoder.path();
     HttpMethod method = req.method();
 
     if (!path.startsWith(ApiPaths.TRANSACTION_ITEMS_V1)) {
@@ -46,7 +49,8 @@ public class TransactionItemHandler extends SimpleChannelInboundHandler<FullHttp
 
     // READ ALL: GET /petssvc/api/v1/transaction-items
     if (path.equals(ApiPaths.TRANSACTION_ITEMS_V1) && method.equals(HttpMethod.GET)) {
-      handleReadAll(requestId, ctx);
+      RequestParams.TransactionItemParams params = ServerUtils.getTransactionItemParams(decoder);
+      handleReadAll(requestId, ctx, params);
       return;
     }
 
@@ -85,15 +89,21 @@ public class TransactionItemHandler extends SimpleChannelInboundHandler<FullHttp
   }
 
   // READ ALL
-  private void handleReadAll(String requestId, ChannelHandlerContext ctx) throws Exception {
-    TransactionItemResponse response = service.read(requestId, List.of());
+  private void handleReadAll(
+      String requestId, ChannelHandlerContext ctx, RequestParams.TransactionItemParams params)
+      throws Exception {
+    TransactionItemResponse response = service.read(requestId, List.of(), params);
     ServerUtils.sendResponse(ctx, HttpResponseStatus.OK, response);
   }
 
   // READ ONE
   private void handleReadOne(String requestId, ChannelHandlerContext ctx, UUID id)
       throws Exception {
-    TransactionItemResponse response = service.read(requestId, List.of(id));
+    TransactionItemResponse response =
+        service.read(
+            requestId,
+            List.of(id),
+            new RequestParams.TransactionItemParams(List.of(), List.of(), List.of()));
     ServerUtils.sendResponse(ctx, HttpResponseStatus.OK, response);
   }
 

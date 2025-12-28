@@ -4,7 +4,10 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
-public record RequestParams(TransactionParams transactionParams, CategoryParams categoryParams) {
+public record RequestParams(
+    TransactionParams transactionParams,
+    CategoryParams categoryParams,
+    TransactionItemParams transactionItemParams) {
 
   public record TransactionParams(
       LocalDate beginDate,
@@ -15,4 +18,7 @@ public record RequestParams(TransactionParams transactionParams, CategoryParams 
       List<String> txnTypes) {}
 
   public record CategoryParams(List<UUID> catTypesId) {}
+
+  public record TransactionItemParams(
+      List<UUID> txnIds, List<UUID> catIds, List<String> txnTypes) {}
 }

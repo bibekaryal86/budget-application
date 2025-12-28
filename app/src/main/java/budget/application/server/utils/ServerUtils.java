@@ -81,6 +81,14 @@ public class ServerUtils {
         beginDate, endDate, merchants, catIds, catTypeIds, txnTypes);
   }
 
+  public static RequestParams.TransactionItemParams getTransactionItemParams(
+      QueryStringDecoder decoder) {
+    List<UUID> txnIds = parseUUIDs(decoder, "txnIds");
+    List<UUID> catIds = parseUUIDs(decoder, "catIds");
+    List<String> txnTypes = parseStrings(decoder, "txnTypes");
+    return new RequestParams.TransactionItemParams(txnIds, catIds, txnTypes);
+  }
+
   private static List<UUID> parseUUIDs(QueryStringDecoder decoder, String paramName) {
     List<String> values = decoder.parameters().get(paramName);
     if (CommonUtilities.isEmpty(values)) {
@@ -99,7 +107,6 @@ public class ServerUtils {
     if (CommonUtilities.isEmpty(values)) {
       return null;
     }
-    ;
     return LocalDate.parse(values.getFirst());
   }
 
@@ -110,8 +117,8 @@ public class ServerUtils {
     }
     return values.stream()
         .flatMap(v -> Arrays.stream(v.split(",")))
+        .filter(s -> !CommonUtilities.isEmpty(s))
         .map(String::trim)
-        .filter(s -> !s.isEmpty())
         .toList();
   }
 }

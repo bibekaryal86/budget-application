@@ -17,8 +17,11 @@ import java.util.UUID;
 
 public class CategoryDao extends BaseDao<Category> {
 
+  private final RowMapper<CategoryResponse.Category> catRespMapper;
+
   public CategoryDao(String requestId, Connection connection) {
     super(requestId, connection, new CategoryRowMappers.CategoryRowMapper());
+    this.catRespMapper = new CategoryRowMappers.CategoryRowMapperResponse();
   }
 
   @Override
@@ -66,8 +69,7 @@ public class CategoryDao extends BaseDao<Category> {
 
   public List<CategoryResponse.Category> readCategories(List<UUID> catIds, List<UUID> catTypeIds)
       throws SQLException {
-    RowMapper<CategoryResponse.Category> catRespMapper =
-        new CategoryRowMappers.CategoryRowMapperResponse();
+    log.debug("[{}] Read Categories: CatIds=[{}], CatTypeIds=[{}]", requestId, catIds, catTypeIds);
     StringBuilder sql =
         new StringBuilder(
             """
@@ -89,23 +91,23 @@ public class CategoryDao extends BaseDao<Category> {
     }
     sql.append(" ORDER BY ct.name, c.name ASC ");
 
-    log.debug("[{}] Read All Categories SQL=[{}]", requestId, sql);
+    log.debug("[{}] Read Categories SQL=[{}]", requestId, sql);
 
-    PreparedStatement ps = connection.prepareStatement(sql.toString());
-    if (!CommonUtilities.isEmpty(catIds)) {
-      DaoUtils.bindParams(ps, catIds);
-    }
-    if (!CommonUtilities.isEmpty(catTypeIds)) {
-      DaoUtils.bindParams(ps, catTypeIds);
-    }
-
-    List<CategoryResponse.Category> results = new ArrayList<>();
-    try (ResultSet rs = ps.executeQuery()) {
-      while (rs.next()) {
-        results.add(catRespMapper.map(rs));
+    try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
+      if (!CommonUtilities.isEmpty(catIds)) {
+        DaoUtils.bindParams(ps, catIds);
       }
-    }
+      if (!CommonUtilities.isEmpty(catTypeIds)) {
+        DaoUtils.bindParams(ps, catTypeIds);
+      }
 
-    return results;
+      List<CategoryResponse.Category> results = new ArrayList<>();
+      try (ResultSet rs = ps.executeQuery()) {
+        while (rs.next()) {
+          results.add(catRespMapper.map(rs));
+        }
+      }
+      return results;
+    }
   }
 }

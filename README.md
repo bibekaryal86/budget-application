@@ -32,3 +32,5 @@ TODO
 - add an endpoint to return all merchants
 - transaction response to return list of categories, merchants and category type, transaction type used
 - check how path works with and without trailing slash
+- check all log statements to [ ] or keep just {}
+- history
