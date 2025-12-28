@@ -37,6 +37,7 @@ public class CategoryService {
 
           Category cIn = new Category(null, cr.categoryTypeId(), cr.name());
           UUID id = dao.create(cIn).id();
+          log.debug("[{}] Created category: Id=[{}]", requestId, id);
           CategoryResponse.Category cOut = dao.readCategories(List.of(id), List.of()).getFirst();
 
           return new CategoryResponse(

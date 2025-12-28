@@ -46,6 +46,7 @@ public class TransactionItemService {
                   tir.amount(),
                   tir.txnType());
           UUID id = dao.create(tiIn).id();
+          log.debug("[{}] Created transaction item: Id=[{}]", requestId, id);
           TransactionItemResponse.TransactionItem tiOut =
               dao.readTransactionItems(List.of(id), List.of(), List.of(), List.of()).getFirst();
           return new TransactionItemResponse(

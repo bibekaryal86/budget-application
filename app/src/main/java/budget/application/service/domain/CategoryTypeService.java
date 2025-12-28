@@ -31,12 +31,13 @@ public class CategoryTypeService {
     log.debug("[{}] Create category type: CategoryTypeRequest=[{}]", requestId, ctr);
     return tx.execute(
         bs -> {
-          CategoryTypeDao repo = new CategoryTypeDao(requestId, bs.connection());
+          CategoryTypeDao dao = new CategoryTypeDao(requestId, bs.connection());
           Validations.validateCategoryType(requestId, ctr);
           CategoryType ctIn = new CategoryType(null, ctr.name());
-          UUID id = repo.create(ctIn).id();
+          UUID id = dao.create(ctIn).id();
+          log.debug("[{}] Created category type: Id=[{}]", requestId, id);
           CategoryTypeResponse.CategoryType ctOut =
-              new CategoryTypeResponse.CategoryType(id, ctIn.name());
+              new CategoryTypeResponse.CategoryType(id, ctIn.name().toUpperCase());
           return new CategoryTypeResponse(
               List.of(ctOut), ResponseMetadataUtils.defaultInsertResponseMetadata());
         });
@@ -46,8 +47,8 @@ public class CategoryTypeService {
     log.debug("[{}] Read category types: Ids=[{}]", requestId, ids);
     return tx.execute(
         bs -> {
-          CategoryTypeDao repo = new CategoryTypeDao(requestId, bs.connection());
-          List<CategoryType> ctList = repo.read(ids);
+          CategoryTypeDao dao = new CategoryTypeDao(requestId, bs.connection());
+          List<CategoryType> ctList = dao.read(ids);
 
           if (ids.size() == 1 && ctList.isEmpty()) {
             throw new Exceptions.NotFoundException(
@@ -68,19 +69,19 @@ public class CategoryTypeService {
     log.debug("[{}] Update category type: Id=[{}], CategoryTypeRequest=[{}]", requestId, id, ctr);
     return tx.execute(
         bs -> {
-          CategoryTypeDao repo = new CategoryTypeDao(requestId, bs.connection());
+          CategoryTypeDao dao = new CategoryTypeDao(requestId, bs.connection());
           Validations.validateCategoryType(requestId, ctr);
 
-          List<CategoryType> ctList = repo.read(List.of(id));
+          List<CategoryType> ctList = dao.read(List.of(id));
 
           if (ctList.isEmpty()) {
             throw new Exceptions.NotFoundException(requestId, "CategoryType", id.toString());
           }
 
           CategoryType ctIn = new CategoryType(id, ctr.name());
-          repo.update(ctIn);
+          dao.update(ctIn);
           CategoryTypeResponse.CategoryType ctOut =
-              new CategoryTypeResponse.CategoryType(id, ctIn.name());
+              new CategoryTypeResponse.CategoryType(id, ctIn.name().toUpperCase());
           return new CategoryTypeResponse(
               List.of(ctOut), ResponseMetadataUtils.defaultUpdateResponseMetadata());
         });
@@ -90,16 +91,16 @@ public class CategoryTypeService {
     log.info("[{}] Delete category types: Ids=[{}]", requestId, ids);
     return tx.execute(
         bs -> {
-          CategoryTypeDao repo = new CategoryTypeDao(requestId, bs.connection());
+          CategoryTypeDao dao = new CategoryTypeDao(requestId, bs.connection());
 
-          List<CategoryType> ctList = repo.read(ids);
+          List<CategoryType> ctList = dao.read(ids);
 
           if (ids.size() == 1 && ctList.isEmpty()) {
             throw new Exceptions.NotFoundException(
                 requestId, "CategoryType", ids.getFirst().toString());
           }
 
-          int deleteCount = repo.delete(ids);
+          int deleteCount = dao.delete(ids);
           return new CategoryTypeResponse(
               List.of(), ResponseMetadataUtils.defaultDeleteResponseMetadata(deleteCount));
         });

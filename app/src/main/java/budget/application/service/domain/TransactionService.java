@@ -53,7 +53,7 @@ public class TransactionService {
                   null, tr.txnDate(), tr.merchant(), tr.totalAmount(), tr.notes(), null, null);
 
           UUID txnId = txnDao.create(txnIn).id();
-          log.debug("[{}] Created transaction: Transaction=[{}]", requestId, txnId);
+          log.debug("[{}] Created transaction: Id=[{}]", requestId, txnId);
 
           List<TransactionItem> txnItemsIn =
               tr.items().stream()

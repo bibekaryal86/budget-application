@@ -93,7 +93,7 @@ public class TransactionItemDao extends BaseDao<TransactionItem> {
                     t.total_amount AS txn_total_amount,
                     t.notes AS txn_notes,
                     c.id AS category_id,
-                    c.name AS category_name
+                    c.name AS category_name,
                     ct.id AS category_type_id,
                     ct.name AS category_type_name
                 FROM transaction_item ti
@@ -105,21 +105,27 @@ public class TransactionItemDao extends BaseDao<TransactionItem> {
                   ON c.category_type_id = ct.id
                 """);
 
+      boolean hasWhere = false;
+
     if (!CommonUtilities.isEmpty(txnItemIds)) {
       sql.append(" WHERE ti.id IN (").append(DaoUtils.placeholders(txnItemIds.size())).append(")");
+        hasWhere = true;
     }
     if (!CommonUtilities.isEmpty(txnIds)) {
-      sql.append(" AND ti.transaction_id IN (")
+        sql.append(hasWhere ? " AND " : " WHERE ");
+      sql.append(" ti.transaction_id IN (")
           .append(DaoUtils.placeholders(txnIds.size()))
           .append(")");
     }
     if (!CommonUtilities.isEmpty(catIds)) {
-      sql.append(" AND ti.category_type_id IN (")
-          .append(DaoUtils.placeholders(txnIds.size()))
+        sql.append(hasWhere ? " AND " : " WHERE ");
+      sql.append(" c.category_type_id IN (")
+          .append(DaoUtils.placeholders(catIds.size()))
           .append(")");
     }
     if (!CommonUtilities.isEmpty(txnTypes)) {
-      sql.append(" AND ti.txn_type IN (").append(DaoUtils.placeholders(txnIds.size())).append(")");
+        sql.append(hasWhere ? " AND " : " WHERE ");
+      sql.append(" ti.txn_type IN (").append(DaoUtils.placeholders(txnTypes.size())).append(")");
     }
     sql.append(" ORDER BY ti.transaction_id ASC, t.txn_date DESC ");
 
