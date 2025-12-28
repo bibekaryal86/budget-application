@@ -51,6 +51,11 @@ public class TransactionHandler extends SimpleChannelInboundHandler<FullHttpRequ
       return;
     }
 
+    if (path.equals(ApiPaths.TRANSACTIONS_V1_WITH_MERCHANTS) && method.equals(HttpMethod.GET)) {
+      handleReadMerchants(requestId, ctx);
+      return;
+    }
+
     // READ ONE: GET /petssvc/api/v1/transactions/{id}
     if (path.startsWith(ApiPaths.TRANSACTIONS_V1_WITH_ID) && method.equals(HttpMethod.GET)) {
       UUID id = ServerUtils.getEntityId(path, ApiPaths.TRANSACTIONS_V1_WITH_ID);
@@ -94,6 +99,11 @@ public class TransactionHandler extends SimpleChannelInboundHandler<FullHttpRequ
   private void handleReadOne(String requestId, ChannelHandlerContext ctx, UUID id)
       throws Exception {
     TransactionResponse response = service.read(requestId, List.of(id));
+    ServerUtils.sendResponse(ctx, HttpResponseStatus.OK, response);
+  }
+
+  private void handleReadMerchants(String requestId, ChannelHandlerContext ctx) throws Exception {
+    TransactionResponse response = service.readTransactionMerchants(requestId);
     ServerUtils.sendResponse(ctx, HttpResponseStatus.OK, response);
   }
 

@@ -20,6 +20,7 @@ public class ApiPaths {
 
   public static final String TRANSACTIONS_V1 = BASE_V1 + "/transactions";
   public static final String TRANSACTIONS_V1_WITH_ID = TRANSACTIONS_V1 + "/";
+  public static final String TRANSACTIONS_V1_WITH_MERCHANTS = TRANSACTIONS_V1 + "/merchants";
 
   public static final String TRANSACTION_ITEMS_V1 = BASE_V1 + "/transaction-items";
   public static final String TRANSACTION_ITEMS_V1_WITH_ID = TRANSACTION_ITEMS_V1 + "/";

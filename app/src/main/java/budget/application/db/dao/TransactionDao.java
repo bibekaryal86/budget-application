@@ -60,6 +60,18 @@ public class TransactionDao extends BaseDao<Transaction> {
     return "txn_date DESC";
   }
 
+  public List<Transaction> readAllMerchants() throws SQLException {
+    String sql = "SELECT DISTINCT merchant FROM transaction ORDER BY merchant ASC";
+    List<Transaction> items = new ArrayList<>();
+    try (PreparedStatement stmt = connection.prepareStatement(sql);
+        ResultSet rs = stmt.executeQuery()) {
+      while (rs.next()) {
+        items.add(new Transaction(null, null, rs.getString("merchant"), 0.0, null, null, null));
+      }
+    }
+    return items;
+  }
+
   public PaginationResponse<Transaction> readAll(PaginationRequest pr) throws SQLException {
     log.debug("[{}] Read All Transactions PaginationRequest=[{}]", requestId, pr);
     String sql =

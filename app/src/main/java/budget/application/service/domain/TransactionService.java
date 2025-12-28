@@ -107,6 +107,18 @@ public class TransactionService {
         });
   }
 
+  public TransactionResponse readTransactionMerchants(String requestId) throws SQLException {
+    log.debug("[{}] Read all transaction merchants", requestId);
+    return tx.execute(
+        bs -> {
+          TransactionRepository txnRepo = new TransactionRepository(requestId, bs);
+          List<Transaction> txns = txnRepo.readTransactionMerchants();
+          List<TransactionWithItems> txnWithItems =
+              txns.stream().map(txn -> new TransactionWithItems(txn, List.of())).toList();
+          return new TransactionResponse(txnWithItems, ResponseMetadata.emptyResponseMetadata());
+        });
+  }
+
   public TransactionResponse update(String requestId, UUID id, TransactionRequest tr)
       throws SQLException {
     log.debug("[{}] Update transaction: Id=[{}], TransactionRequest=[{}]", requestId, id, tr);

@@ -1,6 +1,8 @@
 package budget.application.handlers;
 
 import budget.application.IntegrationBaseTest;
+import budget.application.TestDataHelper;
+import budget.application.TestDataSource;
 import budget.application.model.dto.request.TransactionItemRequest;
 import budget.application.model.dto.request.TransactionRequest;
 import budget.application.model.dto.response.TransactionResponse;
@@ -10,6 +12,7 @@ import budget.application.service.util.ResponseMetadataUtils;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseWithMetadata;
 import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 import java.net.http.HttpResponse;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -118,6 +121,62 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
             .responseStatusInfo()
             .errMsg()
             .contains("[Transaction] Not found for"));
+  }
+
+  @Test
+  void testTransactionMerchants() throws Exception {
+    TestDataHelper helper = new TestDataHelper(TestDataSource.getDataSource());
+    UUID txnId1 = UUID.randomUUID();
+    UUID txnId2 = UUID.randomUUID();
+    UUID txnId3 = UUID.randomUUID();
+    helper.insertTransaction(txnId1, LocalDate.now(), 100.00);
+    helper.insertTransaction(txnId2, LocalDate.now(), 100.00);
+    helper.insertTransaction(txnId3, LocalDate.now(), 100.00);
+
+    HttpResponse<String> resp = httpGet(ApiPaths.TRANSACTIONS_V1_WITH_MERCHANTS, Boolean.TRUE);
+    Assertions.assertEquals(200, resp.statusCode());
+    TransactionResponse response = JsonUtils.fromJson(resp.body(), TransactionResponse.class);
+    Assertions.assertEquals(4, response.data().size());
+
+    // does not return transaction items
+    Assertions.assertEquals(0, response.data().getFirst().items().size());
+    Assertions.assertEquals(0, response.data().get(1).items().size());
+    Assertions.assertEquals(0, response.data().get(2).items().size());
+    Assertions.assertEquals(0, response.data().getLast().items().size());
+
+    // all fields except merchant are null
+    Assertions.assertNull(response.data().getFirst().transaction().id());
+    Assertions.assertNull(response.data().getFirst().transaction().txnDate());
+    Assertions.assertNull(response.data().getFirst().transaction().notes());
+    Assertions.assertNull(response.data().getFirst().transaction().createdAt());
+    Assertions.assertNull(response.data().getFirst().transaction().updatedAt());
+    Assertions.assertFalse(
+        CommonUtilities.isEmpty(response.data().getFirst().transaction().merchant()));
+
+    Assertions.assertNull(response.data().get(1).transaction().txnDate());
+    Assertions.assertNull(response.data().get(1).transaction().notes());
+    Assertions.assertNull(response.data().get(1).transaction().createdAt());
+    Assertions.assertNull(response.data().get(1).transaction().updatedAt());
+    Assertions.assertFalse(
+        CommonUtilities.isEmpty(response.data().get(1).transaction().merchant()));
+
+    Assertions.assertNull(response.data().get(2).transaction().txnDate());
+    Assertions.assertNull(response.data().get(2).transaction().notes());
+    Assertions.assertNull(response.data().get(2).transaction().createdAt());
+    Assertions.assertNull(response.data().get(2).transaction().updatedAt());
+    Assertions.assertFalse(
+        CommonUtilities.isEmpty(response.data().get(2).transaction().merchant()));
+
+    Assertions.assertNull(response.data().getLast().transaction().txnDate());
+    Assertions.assertNull(response.data().getLast().transaction().notes());
+    Assertions.assertNull(response.data().getLast().transaction().createdAt());
+    Assertions.assertNull(response.data().getLast().transaction().updatedAt());
+    Assertions.assertFalse(
+        CommonUtilities.isEmpty(response.data().getLast().transaction().merchant()));
+
+    helper.deleteTransaction(txnId1);
+    helper.deleteTransaction(txnId2);
+    helper.deleteTransaction(txnId3);
   }
 
   @Test

@@ -24,6 +24,10 @@ public class TransactionRepository {
     return txnDao.read(ids);
   }
 
+  public List<Transaction> readTransactionMerchants() throws SQLException {
+    return txnDao.readAllMerchants();
+  }
+
   public PaginationResponse<Transaction> readAll(PaginationRequest pr) throws SQLException {
     return txnDao.readAll(pr);
   }

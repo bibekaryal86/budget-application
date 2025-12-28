@@ -17,7 +17,7 @@ CREATE INDEX idx_category_type_name ON category_type(name);
 CREATE TABLE category (
     id               UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     category_type_id UUID NOT NULL REFERENCES category_type(id) ON DELETE RESTRICT,
-    name             VARCHAR(255) NOT NULL,
+    name             VARCHAR(100) NOT NULL,
     UNIQUE (category_type_id, name)
 );
 
