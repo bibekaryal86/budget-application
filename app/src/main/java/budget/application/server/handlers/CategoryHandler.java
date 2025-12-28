@@ -11,6 +11,7 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.QueryStringDecoder;
 import java.util.List;
 import java.util.UUID;
 import javax.sql.DataSource;
@@ -28,8 +29,9 @@ public class CategoryHandler extends SimpleChannelInboundHandler<FullHttpRequest
 
   @Override
   protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest req) throws Exception {
+    QueryStringDecoder decoder = new QueryStringDecoder(req.uri());
     String requestId = ctx.channel().attr(Constants.REQUEST_ID).get();
-    String path = req.uri();
+    String path = decoder.path();
     HttpMethod method = req.method();
 
     if (!path.startsWith(ApiPaths.CATEGORIES_V1)) {
@@ -46,7 +48,8 @@ public class CategoryHandler extends SimpleChannelInboundHandler<FullHttpRequest
 
     // READ ALL: GET /petssvc/api/v1/categories
     if (path.equals(ApiPaths.CATEGORIES_V1) && method.equals(HttpMethod.GET)) {
-      handleReadAll(requestId, ctx);
+      List<UUID> catTypeIds = ServerUtils.getCategoryParams(decoder).catTypesId();
+      handleReadAll(requestId, ctx, catTypeIds);
       return;
     }
 
@@ -84,15 +87,16 @@ public class CategoryHandler extends SimpleChannelInboundHandler<FullHttpRequest
   }
 
   // READ ALL
-  private void handleReadAll(String requestId, ChannelHandlerContext ctx) throws Exception {
-    CategoryResponse response = service.read(requestId, List.of());
+  private void handleReadAll(String requestId, ChannelHandlerContext ctx, List<UUID> catTypeIds)
+      throws Exception {
+    CategoryResponse response = service.read(requestId, List.of(), catTypeIds);
     ServerUtils.sendResponse(ctx, HttpResponseStatus.OK, response);
   }
 
   // READ ONE
   private void handleReadOne(String requestId, ChannelHandlerContext ctx, UUID id)
       throws Exception {
-    CategoryResponse response = service.read(requestId, List.of(id));
+    CategoryResponse response = service.read(requestId, List.of(id), List.of());
     ServerUtils.sendResponse(ctx, HttpResponseStatus.OK, response);
   }
 

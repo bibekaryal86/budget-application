@@ -4,7 +4,6 @@ import budget.application.common.Constants;
 import budget.application.server.handlers.AppTestsHandler;
 import budget.application.server.handlers.CategoryHandler;
 import budget.application.server.handlers.CategoryTypeHandler;
-import budget.application.server.handlers.CompositeHandler;
 import budget.application.server.handlers.TransactionHandler;
 import budget.application.server.handlers.TransactionItemHandler;
 import budget.application.server.utils.ApiPaths;
@@ -24,7 +23,6 @@ public class ServerRouter extends SimpleChannelInboundHandler<FullHttpRequest> {
   private final CategoryHandler categoryHandler;
   private final TransactionItemHandler transactionItemHandler;
   private final TransactionHandler transactionHandler;
-  private final CompositeHandler compositeHandler;
 
   public ServerRouter(DataSource dataSource, Email email) {
     this.appTestsHandler = new AppTestsHandler();
@@ -32,7 +30,6 @@ public class ServerRouter extends SimpleChannelInboundHandler<FullHttpRequest> {
     this.categoryHandler = new CategoryHandler(dataSource);
     this.transactionItemHandler = new TransactionItemHandler(dataSource);
     this.transactionHandler = new TransactionHandler(dataSource, email);
-    this.compositeHandler = new CompositeHandler(dataSource);
   }
 
   @Override
@@ -55,12 +52,6 @@ public class ServerRouter extends SimpleChannelInboundHandler<FullHttpRequest> {
     if (path.startsWith(ApiPaths.CATEGORY_TYPES_V1)) {
       log.info("[{}] Routing to CategoryTypeHandler: [{}]", requestId, path);
       categoryTypeHandler.channelRead(ctx, req.retain());
-      return;
-    }
-
-    if (path.startsWith(ApiPaths.COMPOSITES_V1)) {
-      log.info("[{}] Routing to CompositeHandler: [{}]", requestId, path);
-      compositeHandler.channelRead(ctx, req.retain());
       return;
     }
 

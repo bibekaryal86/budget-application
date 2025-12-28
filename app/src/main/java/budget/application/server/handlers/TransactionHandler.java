@@ -12,6 +12,7 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.QueryStringDecoder;
 import java.util.List;
 import java.util.UUID;
 import javax.sql.DataSource;
@@ -29,8 +30,9 @@ public class TransactionHandler extends SimpleChannelInboundHandler<FullHttpRequ
 
   @Override
   protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest req) throws Exception {
+    QueryStringDecoder decoder = new QueryStringDecoder(req.uri());
     String requestId = ctx.channel().attr(Constants.REQUEST_ID).get();
-    String path = req.uri();
+    String path = decoder.path();
     HttpMethod method = req.method();
 
     if (!path.startsWith(ApiPaths.TRANSACTIONS_V1)) {

@@ -34,7 +34,9 @@ public class CategoryTypeService {
           CategoryTypeDao repo = new CategoryTypeDao(requestId, bs.connection());
           Validations.validateCategoryType(requestId, ctr);
           CategoryType ctIn = new CategoryType(null, ctr.name());
-          CategoryType ctOut = repo.create(ctIn);
+          UUID id = repo.create(ctIn).id();
+          CategoryTypeResponse.CategoryType ctOut =
+              new CategoryTypeResponse.CategoryType(id, ctIn.name());
           return new CategoryTypeResponse(
               List.of(ctOut), ResponseMetadataUtils.defaultInsertResponseMetadata());
         });
@@ -52,7 +54,12 @@ public class CategoryTypeService {
                 requestId, "CategoryType", ids.getFirst().toString());
           }
 
-          return new CategoryTypeResponse(ctList, ResponseMetadata.emptyResponseMetadata());
+          List<CategoryTypeResponse.CategoryType> ctOutList =
+              ctList.stream()
+                  .map(ct -> new CategoryTypeResponse.CategoryType(ct.id(), ct.name()))
+                  .toList();
+
+          return new CategoryTypeResponse(ctOutList, ResponseMetadata.emptyResponseMetadata());
         });
   }
 
@@ -71,7 +78,9 @@ public class CategoryTypeService {
           }
 
           CategoryType ctIn = new CategoryType(id, ctr.name());
-          CategoryType ctOut = repo.update(ctIn);
+          repo.update(ctIn);
+          CategoryTypeResponse.CategoryType ctOut =
+              new CategoryTypeResponse.CategoryType(id, ctIn.name());
           return new CategoryTypeResponse(
               List.of(ctOut), ResponseMetadataUtils.defaultUpdateResponseMetadata());
         });

@@ -1,8 +1,10 @@
 package budget.application.server.utils;
 
 import budget.application.common.Exceptions;
+import budget.application.model.dto.RequestParams;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseMetadata;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseWithMetadata;
+import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
@@ -13,7 +15,11 @@ import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
+import io.netty.handler.codec.http.QueryStringDecoder;
 import io.netty.util.CharsetUtil;
+import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,5 +64,54 @@ public class ServerUtils {
             new ResponseMetadata.ResponseStatusInfo(errMsg),
             ResponseMetadata.emptyResponseCrudInfo(),
             ResponseMetadata.emptyResponsePageInfo()));
+  }
+
+  public static RequestParams.CategoryParams getCategoryParams(QueryStringDecoder decoder) {
+    return new RequestParams.CategoryParams(parseUUIDs(decoder, "catTypeIds"));
+  }
+
+  public static RequestParams.TransactionParams getTransactionParams(QueryStringDecoder decoder) {
+    LocalDate beginDate = parseDate(decoder, "beginDate");
+    LocalDate endDate = parseDate(decoder, "endDate");
+    List<String> merchants = parseStrings(decoder, "merchants");
+    List<UUID> catIds = parseUUIDs(decoder, "catIds");
+    List<UUID> catTypeIds = parseUUIDs(decoder, "catTypeIds");
+    List<String> txnTypes = parseStrings(decoder, "txnTypes");
+    return new RequestParams.TransactionParams(
+        beginDate, endDate, merchants, catIds, catTypeIds, txnTypes);
+  }
+
+  private static List<UUID> parseUUIDs(QueryStringDecoder decoder, String paramName) {
+    List<String> values = decoder.parameters().get(paramName);
+    if (CommonUtilities.isEmpty(values)) {
+      return List.of();
+    }
+    return values.stream()
+        .flatMap(v -> Arrays.stream(v.split(",")))
+        .filter(s -> !CommonUtilities.isEmpty(s))
+        .map(String::trim)
+        .map(UUID::fromString)
+        .toList();
+  }
+
+  private static LocalDate parseDate(QueryStringDecoder decoder, String paramName) {
+    List<String> values = decoder.parameters().get(paramName);
+    if (CommonUtilities.isEmpty(values)) {
+      return null;
+    }
+    ;
+    return LocalDate.parse(values.getFirst());
+  }
+
+  private static List<String> parseStrings(QueryStringDecoder decoder, String paramName) {
+    List<String> values = decoder.parameters().get(paramName);
+    if (CommonUtilities.isEmpty(values)) {
+      return List.of();
+    }
+    return values.stream()
+        .flatMap(v -> Arrays.stream(v.split(",")))
+        .map(String::trim)
+        .filter(s -> !s.isEmpty())
+        .toList();
   }
 }

@@ -1,8 +1,16 @@
 package budget.application.db.dao;
 
-import budget.application.db.mapper.CategoryRowMapper;
+import budget.application.db.mapper.CategoryRowMappers;
+import budget.application.db.mapper.RowMapper;
+import budget.application.db.util.DaoUtils;
+import budget.application.model.dto.CategoryResponse;
 import budget.application.model.entity.Category;
+import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -10,7 +18,7 @@ import java.util.UUID;
 public class CategoryDao extends BaseDao<Category> {
 
   public CategoryDao(String requestId, Connection connection) {
-    super(requestId, connection, new CategoryRowMapper());
+    super(requestId, connection, new CategoryRowMappers.CategoryRowMapper());
   }
 
   @Override
@@ -54,5 +62,50 @@ public class CategoryDao extends BaseDao<Category> {
     } catch (Exception e) {
       return Optional.empty();
     }
+  }
+
+  public List<CategoryResponse.Category> readCategories(List<UUID> catIds, List<UUID> catTypeIds)
+      throws SQLException {
+    RowMapper<CategoryResponse.Category> catRespMapper =
+        new CategoryRowMappers.CategoryRowMapperResponse();
+    StringBuilder sql =
+        new StringBuilder(
+            """
+          SELECT
+              c.id AS category_id,
+              c.name AS category_name,
+              ct.id AS category_type_id,
+              ct.name AS category_type_name
+          FROM category c
+          JOIN category_type ct
+            ON ct.id = c.category_type_id
+          """);
+
+    if (!CommonUtilities.isEmpty(catIds)) {
+      sql.append(" WHERE c.id IN (").append(DaoUtils.placeholders(catIds.size())).append(")");
+    }
+    if (!CommonUtilities.isEmpty(catTypeIds)) {
+      sql.append(" AND ct.id IN (").append(DaoUtils.placeholders(catTypeIds.size())).append(")");
+    }
+    sql.append(" ORDER BY ct.name, c.name ASC ");
+
+    log.debug("[{}] Read All Categories SQL=[{}]", requestId, sql);
+
+    PreparedStatement ps = connection.prepareStatement(sql.toString());
+    if (!CommonUtilities.isEmpty(catIds)) {
+      DaoUtils.bindParams(ps, catIds);
+    }
+    if (!CommonUtilities.isEmpty(catTypeIds)) {
+      DaoUtils.bindParams(ps, catTypeIds);
+    }
+
+    List<CategoryResponse.Category> results = new ArrayList<>();
+    try (ResultSet rs = ps.executeQuery()) {
+      while (rs.next()) {
+        results.add(catRespMapper.map(rs));
+      }
+    }
+
+    return results;
   }
 }

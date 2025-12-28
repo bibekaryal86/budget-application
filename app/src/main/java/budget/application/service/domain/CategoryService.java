@@ -36,22 +36,25 @@ public class CategoryService {
           Validations.validateCategory(requestId, cr, typeDao);
 
           Category cIn = new Category(null, cr.categoryTypeId(), cr.name());
-          Category cOut = dao.create(cIn);
+          UUID id = dao.create(cIn).id();
+          CategoryResponse.Category cOut = dao.readCategories(List.of(id), List.of()).getFirst();
+
           return new CategoryResponse(
               List.of(cOut), ResponseMetadataUtils.defaultInsertResponseMetadata());
         });
   }
 
-  public CategoryResponse read(String requestId, List<UUID> ids) throws SQLException {
-    log.debug("[{}] Read categories: Ids=[{}]", requestId, ids);
+  public CategoryResponse read(String requestId, List<UUID> catIds, List<UUID> catTypeIds)
+      throws SQLException {
+    log.debug("[{}] Read categories: CatIds=[{}], CatTypeIds=[{}}", requestId, catIds, catTypeIds);
     return tx.execute(
         bs -> {
           CategoryDao dao = new CategoryDao(requestId, bs.connection());
-          List<Category> cList = dao.read(ids);
+          List<CategoryResponse.Category> cList = dao.readCategories(catIds, catTypeIds);
 
-          if (ids.size() == 1 && cList.isEmpty()) {
+          if (catIds.size() == 1 && cList.isEmpty()) {
             throw new Exceptions.NotFoundException(
-                requestId, "Category", ids.getFirst().toString());
+                requestId, "Category", catIds.getFirst().toString());
           }
 
           return new CategoryResponse(cList, ResponseMetadata.emptyResponseMetadata());
@@ -73,7 +76,8 @@ public class CategoryService {
           }
 
           Category cIn = new Category(id, cr.categoryTypeId(), cr.name());
-          Category cOut = dao.update(cIn);
+          dao.update(cIn);
+          CategoryResponse.Category cOut = dao.readCategories(List.of(id), List.of()).getFirst();
           return new CategoryResponse(
               List.of(cOut), ResponseMetadataUtils.defaultUpdateResponseMetadata());
         });
