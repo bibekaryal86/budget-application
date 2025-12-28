@@ -1,6 +1,6 @@
 package budget.application.db.util;
 
-import budget.application.model.dto.response.DbHealthStatus;
+import budget.application.model.dto.DbHealthStatus;
 import com.zaxxer.hikari.HikariDataSource;
 import com.zaxxer.hikari.HikariPoolMXBean;
 import java.sql.Connection;

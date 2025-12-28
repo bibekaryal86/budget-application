@@ -1,4 +1,4 @@
-package budget.application.model.dto.request;
+package budget.application.model.dto;
 
 import java.time.LocalDateTime;
 import java.util.List;

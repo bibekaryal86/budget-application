@@ -1,8 +1,8 @@
 package budget.application.db.repository;
 
 import budget.application.db.dao.TransactionDao;
-import budget.application.model.dto.composite.PaginationResponse;
-import budget.application.model.dto.request.PaginationRequest;
+import budget.application.model.dto.PaginationResponse;
+import budget.application.model.dto.PaginationRequest;
 import budget.application.model.entity.Transaction;
 import java.sql.SQLException;
 import java.util.List;

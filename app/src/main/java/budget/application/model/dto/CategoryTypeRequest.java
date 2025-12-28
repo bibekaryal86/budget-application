@@ -1,3 +1,3 @@
-package budget.application.model.dto.request;
+package budget.application.model.dto;
 
 public record CategoryTypeRequest(String name) {}

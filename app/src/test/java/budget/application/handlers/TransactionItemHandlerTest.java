@@ -1,8 +1,8 @@
 package budget.application.handlers;
 
 import budget.application.IntegrationBaseTest;
-import budget.application.model.dto.request.TransactionItemRequest;
-import budget.application.model.dto.response.TransactionItemResponse;
+import budget.application.model.dto.TransactionItemRequest;
+import budget.application.model.dto.TransactionItemResponse;
 import budget.application.server.utils.ApiPaths;
 import budget.application.server.utils.JsonUtils;
 import budget.application.service.util.ResponseMetadataUtils;

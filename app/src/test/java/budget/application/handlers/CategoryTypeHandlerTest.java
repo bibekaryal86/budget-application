@@ -1,8 +1,8 @@
 package budget.application.handlers;
 
 import budget.application.IntegrationBaseTest;
-import budget.application.model.dto.request.CategoryTypeRequest;
-import budget.application.model.dto.response.CategoryTypeResponse;
+import budget.application.model.dto.CategoryTypeRequest;
+import budget.application.model.dto.CategoryTypeResponse;
 import budget.application.server.utils.ApiPaths;
 import budget.application.server.utils.JsonUtils;
 import budget.application.service.util.ResponseMetadataUtils;

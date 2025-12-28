@@ -1,8 +1,8 @@
 package budget.application.server.handlers;
 
 import budget.application.common.Constants;
-import budget.application.model.dto.request.TransactionRequest;
-import budget.application.model.dto.response.TransactionResponse;
+import budget.application.model.dto.TransactionRequest;
+import budget.application.model.dto.TransactionResponse;
 import budget.application.server.utils.ApiPaths;
 import budget.application.server.utils.ServerUtils;
 import budget.application.service.domain.TransactionService;

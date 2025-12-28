@@ -2,10 +2,10 @@ package budget.application.common;
 
 import budget.application.db.repository.CategoryRepository;
 import budget.application.db.repository.CategoryTypeRepository;
-import budget.application.model.dto.request.CategoryRequest;
-import budget.application.model.dto.request.CategoryTypeRequest;
-import budget.application.model.dto.request.TransactionItemRequest;
-import budget.application.model.dto.request.TransactionRequest;
+import budget.application.model.dto.CategoryRequest;
+import budget.application.model.dto.CategoryTypeRequest;
+import budget.application.model.dto.TransactionItemRequest;
+import budget.application.model.dto.TransactionRequest;
 import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 
 public class Validations {

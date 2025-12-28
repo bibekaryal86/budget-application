@@ -1,4 +1,4 @@
-package budget.application.model.dto.composite;
+package budget.application.model.dto;
 
 import java.util.List;
 

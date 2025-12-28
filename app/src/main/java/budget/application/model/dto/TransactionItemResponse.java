@@ -1,4 +1,4 @@
-package budget.application.model.dto.response;
+package budget.application.model.dto;
 
 import budget.application.model.entity.TransactionItem;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseMetadata;

@@ -1,8 +1,8 @@
 package budget.application.server.handlers;
 
 import budget.application.common.Constants;
-import budget.application.model.dto.request.CategoryTypeRequest;
-import budget.application.model.dto.response.CategoryTypeResponse;
+import budget.application.model.dto.CategoryTypeRequest;
+import budget.application.model.dto.CategoryTypeResponse;
 import budget.application.server.utils.ApiPaths;
 import budget.application.server.utils.ServerUtils;
 import budget.application.service.domain.CategoryTypeService;
