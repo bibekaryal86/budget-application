@@ -131,6 +131,23 @@ public class TransactionItemHandlerTest extends IntegrationBaseTest {
     response = JsonUtils.fromJson(resp.body(), CategoryResponse.class);
     Assertions.assertEquals(3, response.data().size());
 
+    resp =
+        httpGet(
+            ApiPaths.TRANSACTION_ITEMS_V1
+                + "?txnIds="
+                + TEST_ID
+                + ","
+                + tId1
+                + ",&catIds="
+                + TEST_ID
+                + ","
+                + cId2
+                + ",&txnTypes=NEEDS,INCOME",
+            Boolean.TRUE);
+    Assertions.assertEquals(200, resp.statusCode());
+    response = JsonUtils.fromJson(resp.body(), CategoryResponse.class);
+    Assertions.assertEquals(2, response.data().size());
+
     // CLEANUP
     helper.deleteTransactionItem(tiId1);
     helper.deleteTransactionItem(tiId2);
