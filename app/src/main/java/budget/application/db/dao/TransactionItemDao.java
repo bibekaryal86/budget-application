@@ -11,9 +11,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 public class TransactionItemDao extends BaseDao<TransactionItem> {
 
   public TransactionItemDao(String requestId, Connection connection) {

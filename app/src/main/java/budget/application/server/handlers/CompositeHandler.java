@@ -12,10 +12,11 @@ import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import javax.sql.DataSource;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 public class CompositeHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
+  private static final Logger log = LoggerFactory.getLogger(CompositeHandler.class);
 
   private final CompositeService service;
 

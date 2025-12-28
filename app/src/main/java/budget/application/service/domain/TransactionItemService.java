@@ -14,10 +14,11 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
 import javax.sql.DataSource;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 public class TransactionItemService {
+  private static final Logger log = LoggerFactory.getLogger(TransactionItemService.class);
 
   private final TransactionManager tx;
 
@@ -36,13 +37,13 @@ public class TransactionItemService {
           Validations.validateTransactionItem(requestId, tir, categoryRepo, Boolean.FALSE);
 
           TransactionItem tiIn =
-              TransactionItem.builder()
-                  .transactionId(tir.transactionId())
-                  .categoryId(tir.categoryId())
-                  .label(tir.label())
-                  .amount(tir.amount())
-                  .txnType(tir.txnType())
-                  .build();
+              new TransactionItem(
+                  null,
+                  tir.transactionId(),
+                  tir.categoryId(),
+                  tir.label(),
+                  tir.amount(),
+                  tir.txnType());
           TransactionItem tiOut = repo.create(tiIn);
           return new TransactionItemResponse(
               List.of(tiOut), ResponseMetadataUtils.defaultInsertResponseMetadata());
@@ -81,14 +82,13 @@ public class TransactionItemService {
           }
 
           TransactionItem tiIn =
-              TransactionItem.builder()
-                  .id(id)
-                  .transactionId(tir.transactionId())
-                  .categoryId(tir.categoryId())
-                  .label(tir.label())
-                  .amount(tir.amount())
-                  .txnType(tir.txnType())
-                  .build();
+              new TransactionItem(
+                  id,
+                  tir.transactionId(),
+                  tir.categoryId(),
+                  tir.label(),
+                  tir.amount(),
+                  tir.txnType());
           TransactionItem tiOut = repo.update(tiIn);
           return new TransactionItemResponse(
               List.of(tiOut), ResponseMetadataUtils.defaultUpdateResponseMetadata());

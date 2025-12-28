@@ -18,10 +18,11 @@ import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 import java.net.InetSocketAddress;
 import javax.sql.DataSource;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 public class ServerNetty {
+  private static final Logger log = LoggerFactory.getLogger(ServerNetty.class);
 
   private final DataSource dataSource;
   private final Email email;

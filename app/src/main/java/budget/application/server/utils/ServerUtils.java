@@ -15,10 +15,12 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.util.CharsetUtil;
 import java.util.UUID;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 public class ServerUtils {
+  private static final Logger log = LoggerFactory.getLogger(ServerUtils.class);
+
   private ServerUtils() {}
 
   public static void sendResponse(

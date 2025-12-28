@@ -10,10 +10,11 @@ import java.util.UUID;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import javax.sql.DataSource;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 public class DailyTxnReconScheduler {
+  private static final Logger log = LoggerFactory.getLogger(DailyTxnReconScheduler.class);
 
   private final ScheduledExecutorService executor;
   private final TransactionService svc;

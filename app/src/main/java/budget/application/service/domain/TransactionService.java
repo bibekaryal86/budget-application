@@ -27,10 +27,11 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import javax.sql.DataSource;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 public class TransactionService {
+  private static final Logger log = LoggerFactory.getLogger(TransactionService.class);
 
   private final TransactionManager tx;
   private final Email email;
@@ -50,12 +51,8 @@ public class TransactionService {
 
           Validations.validateTransaction(requestId, tr, categoryRepo);
           Transaction txnIn =
-              Transaction.builder()
-                  .txnDate(tr.txnDate())
-                  .merchant(tr.merchant())
-                  .totalAmount(tr.totalAmount())
-                  .notes(tr.notes())
-                  .build();
+              new Transaction(
+                  null, tr.txnDate(), tr.merchant(), tr.totalAmount(), tr.notes(), null, null);
 
           Transaction txnOut = txnRepo.create(txnIn);
           log.debug("[{}] Created transaction: Transaction=[{}]", requestId, txnOut);
@@ -64,13 +61,13 @@ public class TransactionService {
               tr.items().stream()
                   .map(
                       item ->
-                          TransactionItem.builder()
-                              .transactionId(txnOut.id())
-                              .categoryId(item.categoryId())
-                              .label(item.label())
-                              .amount(item.amount())
-                              .txnType(item.txnType())
-                              .build())
+                          new TransactionItem(
+                              null,
+                              txnOut.id(),
+                              item.categoryId(),
+                              item.label(),
+                              item.amount(),
+                              item.txnType()))
                   .toList();
           List<TransactionItem> txnItemsOut = itemRepo.createItems(txnItemsIn);
           log.debug(
@@ -127,13 +124,8 @@ public class TransactionService {
           }
 
           Transaction txnIn =
-              Transaction.builder()
-                  .id(id)
-                  .txnDate(tr.txnDate())
-                  .merchant(tr.merchant())
-                  .totalAmount(tr.totalAmount())
-                  .notes(tr.notes())
-                  .build();
+              new Transaction(
+                  id, tr.txnDate(), tr.merchant(), tr.totalAmount(), tr.notes(), null, null);
 
           // Update transaction
           Transaction txnOut = txnRepo.update(txnIn);
@@ -154,13 +146,13 @@ public class TransactionService {
                 tr.items().stream()
                     .map(
                         item ->
-                            TransactionItem.builder()
-                                .transactionId(id)
-                                .categoryId(item.categoryId())
-                                .label(item.label())
-                                .amount(item.amount())
-                                .txnType(item.txnType())
-                                .build())
+                            new TransactionItem(
+                                null,
+                                id,
+                                item.categoryId(),
+                                item.label(),
+                                item.amount(),
+                                item.txnType()))
                     .toList();
             txnItemsOut = itemRepo.createItems(txnItemsIn);
             log.debug(

@@ -8,10 +8,11 @@ import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.*;
 import java.util.Objects;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 public class ServerSecurity extends ChannelDuplexHandler {
+  private static final Logger log = LoggerFactory.getLogger(ServerSecurity.class);
 
   @Override
   public void channelRead(final ChannelHandlerContext ctx, final Object obj) throws Exception {

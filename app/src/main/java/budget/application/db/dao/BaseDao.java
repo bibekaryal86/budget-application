@@ -10,10 +10,11 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 public abstract class BaseDao<T> {
+  protected static final Logger log = LoggerFactory.getLogger(BaseDao.class);
 
   protected final Connection connection;
   protected final RowMapper<T> mapper;

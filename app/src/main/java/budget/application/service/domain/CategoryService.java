@@ -14,10 +14,11 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
 import javax.sql.DataSource;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 public class CategoryService {
+  private static final Logger log = LoggerFactory.getLogger(CategoryService.class);
 
   private final TransactionManager tx;
 
@@ -34,8 +35,7 @@ public class CategoryService {
 
           Validations.validateCategory(requestId, cr, typeRepo);
 
-          Category cIn =
-              Category.builder().name(cr.name()).categoryTypeId(cr.categoryTypeId()).build();
+          Category cIn = new Category(null, cr.categoryTypeId(), cr.name(), null, null);
           Category cOut = repo.create(cIn);
           return new CategoryResponse(
               List.of(cOut), ResponseMetadataUtils.defaultInsertResponseMetadata());
@@ -72,8 +72,7 @@ public class CategoryService {
             throw new Exceptions.NotFoundException(requestId, "Category", id.toString());
           }
 
-          Category cIn =
-              Category.builder().id(id).name(cr.name()).categoryTypeId(cr.categoryTypeId()).build();
+          Category cIn = new Category(id, cr.categoryTypeId(), cr.name(), null, null);
           Category cOut = repo.update(cIn);
           return new CategoryResponse(
               List.of(cOut), ResponseMetadataUtils.defaultUpdateResponseMetadata());

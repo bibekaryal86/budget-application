@@ -10,10 +10,11 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
 import javax.sql.DataSource;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 public class CompositeService {
+  private static final Logger log = LoggerFactory.getLogger(CompositeService.class);
 
   private final TransactionManager tx;
 

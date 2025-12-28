@@ -12,9 +12,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 public class TransactionDao extends BaseDao<Transaction> {
 
   public TransactionDao(String requestId, Connection connection) {

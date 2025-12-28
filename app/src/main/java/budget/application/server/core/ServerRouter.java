@@ -13,10 +13,12 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.FullHttpRequest;
 import javax.sql.DataSource;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 public class ServerRouter extends SimpleChannelInboundHandler<FullHttpRequest> {
+  private static final Logger log = LoggerFactory.getLogger(ServerRouter.class);
+
   private final AppTestsHandler appTestsHandler;
   private final CategoryTypeHandler categoryTypeHandler;
   private final CategoryHandler categoryHandler;

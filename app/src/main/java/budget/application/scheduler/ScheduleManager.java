@@ -5,10 +5,11 @@ import java.time.LocalTime;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import javax.sql.DataSource;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 public class ScheduleManager {
+  private static final Logger log = LoggerFactory.getLogger(ScheduleManager.class);
 
   private final ScheduledExecutorService executor;
   private final DailyTxnReconScheduler dailyTxnReconScheduler;
