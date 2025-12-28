@@ -79,6 +79,23 @@ public class TransactionItemDao extends BaseDao<TransactionItem> {
         catIds,
         txnTypes);
 
+    if (!CommonUtilities.isEmpty(catIds)) {
+      StringBuilder countSql = new StringBuilder("SELECT COUNT(*) FROM transaction_item ");
+      countSql
+          .append(" WHERE category_id IN (")
+          .append(DaoUtils.placeholders(catIds.size()))
+          .append(")");
+      int count = 0;
+      try (PreparedStatement ps = connection.prepareStatement(countSql.toString())) {
+        DaoUtils.bindParams(ps, catIds);
+        try (ResultSet rs = ps.executeQuery()) {
+          rs.next();
+          count = rs.getInt(1);
+        }
+      }
+      log.debug("[{}] Read Transaction Items Count: {}", requestId, count);
+    }
+
     StringBuilder sql =
         new StringBuilder(
             """
@@ -97,34 +114,32 @@ public class TransactionItemDao extends BaseDao<TransactionItem> {
                     ct.id AS category_type_id,
                     ct.name AS category_type_name
                 FROM transaction_item ti
-                JOIN transaction t
+                LEFT JOIN transaction t
                   ON ti.transaction_id = t.id
-                JOIN category c
+                LEFT JOIN category c
                   ON ti.category_id = c.id
-                JOIN category_type ct
+                LEFT JOIN category_type ct
                   ON c.category_type_id = ct.id
                 """);
 
-      boolean hasWhere = false;
+    boolean hasWhere = false;
 
     if (!CommonUtilities.isEmpty(txnItemIds)) {
       sql.append(" WHERE ti.id IN (").append(DaoUtils.placeholders(txnItemIds.size())).append(")");
-        hasWhere = true;
+      hasWhere = true;
     }
     if (!CommonUtilities.isEmpty(txnIds)) {
-        sql.append(hasWhere ? " AND " : " WHERE ");
+      sql.append(hasWhere ? " AND " : " WHERE ");
       sql.append(" ti.transaction_id IN (")
           .append(DaoUtils.placeholders(txnIds.size()))
           .append(")");
     }
     if (!CommonUtilities.isEmpty(catIds)) {
-        sql.append(hasWhere ? " AND " : " WHERE ");
-      sql.append(" c.category_type_id IN (")
-          .append(DaoUtils.placeholders(catIds.size()))
-          .append(")");
+      sql.append(hasWhere ? " AND " : " WHERE ");
+      sql.append(" ti.category_id IN (").append(DaoUtils.placeholders(catIds.size())).append(")");
     }
     if (!CommonUtilities.isEmpty(txnTypes)) {
-        sql.append(hasWhere ? " AND " : " WHERE ");
+      sql.append(hasWhere ? " AND " : " WHERE ");
       sql.append(" ti.txn_type IN (").append(DaoUtils.placeholders(txnTypes.size())).append(")");
     }
     sql.append(" ORDER BY ti.transaction_id ASC, t.txn_date DESC ");

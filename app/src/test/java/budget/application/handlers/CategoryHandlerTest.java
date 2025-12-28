@@ -10,13 +10,11 @@ import budget.application.server.utils.JsonUtils;
 import budget.application.service.util.ResponseMetadataUtils;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseWithMetadata;
 import java.net.http.HttpResponse;
-import java.sql.SQLException;
 import java.util.UUID;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 public class CategoryHandlerTest extends IntegrationBaseTest {
-    private static TestDataHelper helper;
 
   @Test
   void testCategories() throws Exception {
@@ -75,40 +73,40 @@ public class CategoryHandlerTest extends IntegrationBaseTest {
 
   @Test
   void testReadCategories() throws Exception {
-      // SETUP
-      helper = new TestDataHelper(TestDataSource.getDataSource());
-      UUID ctId1 = UUID.randomUUID();
-      UUID ctId2 = UUID.randomUUID();
-      UUID cId1 = UUID.randomUUID();
-      UUID cId2 = UUID.randomUUID();
-      UUID cId3 = UUID.randomUUID();
-      helper.insertCategoryType(ctId1, "CT ONE");
-      helper.insertCategoryType(ctId2, "CT TWO");
-      helper.insertCategory(cId1, ctId1, "C ONE");
-      helper.insertCategory(cId2, ctId1, "C TWO");
-      helper.insertCategory(cId3, ctId2, "C THREE");
+    // SETUP
+    TestDataHelper helper = new TestDataHelper(TestDataSource.getDataSource());
+    UUID ctId1 = UUID.randomUUID();
+    UUID ctId2 = UUID.randomUUID();
+    UUID cId1 = UUID.randomUUID();
+    UUID cId2 = UUID.randomUUID();
+    UUID cId3 = UUID.randomUUID();
+    helper.insertCategoryType(ctId1, "CT ONE");
+    helper.insertCategoryType(ctId2, "CT TWO");
+    helper.insertCategory(cId1, ctId1, "C ONE");
+    helper.insertCategory(cId2, ctId1, "C TWO");
+    helper.insertCategory(cId3, ctId2, "C THREE");
 
-      HttpResponse<String> resp = httpGet(ApiPaths.CATEGORIES_V1, Boolean.TRUE);
-      Assertions.assertEquals(200, resp.statusCode());
-      CategoryResponse response = JsonUtils.fromJson(resp.body(), CategoryResponse.class);
-      Assertions.assertEquals(4, response.data().size());
+    HttpResponse<String> resp = httpGet(ApiPaths.CATEGORIES_V1, Boolean.TRUE);
+    Assertions.assertEquals(200, resp.statusCode());
+    CategoryResponse response = JsonUtils.fromJson(resp.body(), CategoryResponse.class);
+    Assertions.assertEquals(4, response.data().size());
 
-      resp = httpGet(ApiPaths.CATEGORIES_V1 + "?catTypeIds=" + TEST_ID, Boolean.TRUE);
-      Assertions.assertEquals(200, resp.statusCode());
-      response = JsonUtils.fromJson(resp.body(), CategoryResponse.class);
-      Assertions.assertEquals(1, response.data().size());
+    resp = httpGet(ApiPaths.CATEGORIES_V1 + "?catTypeIds=" + TEST_ID, Boolean.TRUE);
+    Assertions.assertEquals(200, resp.statusCode());
+    response = JsonUtils.fromJson(resp.body(), CategoryResponse.class);
+    Assertions.assertEquals(1, response.data().size());
 
-      resp = httpGet(ApiPaths.CATEGORIES_V1 + "?catTypeIds=" + TEST_ID + "," + ctId1, Boolean.TRUE);
-      Assertions.assertEquals(200, resp.statusCode());
-      response = JsonUtils.fromJson(resp.body(), CategoryResponse.class);
-      Assertions.assertEquals(3, response.data().size());
+    resp = httpGet(ApiPaths.CATEGORIES_V1 + "?catTypeIds=" + TEST_ID + "," + ctId1, Boolean.TRUE);
+    Assertions.assertEquals(200, resp.statusCode());
+    response = JsonUtils.fromJson(resp.body(), CategoryResponse.class);
+    Assertions.assertEquals(3, response.data().size());
 
-      // CLEANUP
-      helper.deleteCategory(cId1);
-      helper.deleteCategory(cId2);
-      helper.deleteCategory(cId3);
-      helper.deleteCategoryType(ctId1);
-      helper.deleteCategoryType(ctId2);
+    // CLEANUP
+    helper.deleteCategory(cId1);
+    helper.deleteCategory(cId2);
+    helper.deleteCategory(cId3);
+    helper.deleteCategoryType(ctId1);
+    helper.deleteCategoryType(ctId2);
   }
 
   @Test

@@ -39,10 +39,8 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
     TransactionResponse response = JsonUtils.fromJson(resp.body(), TransactionResponse.class);
     Assertions.assertEquals(1, response.data().size());
     Assertions.assertEquals(2, response.data().getFirst().items().size());
-    Assertions.assertEquals(
-        req.merchant().toUpperCase(), response.data().getFirst().merchant());
-    Assertions.assertTrue(
-        CommonUtilities.isEmpty(response.data().getFirst().notes()));
+    Assertions.assertEquals(req.merchant().toUpperCase(), response.data().getFirst().merchant());
+    Assertions.assertTrue(CommonUtilities.isEmpty(response.data().getFirst().notes()));
     Assertions.assertEquals(
         req.items().getFirst().label().toUpperCase(),
         response.data().getFirst().items().getFirst().label());
@@ -65,8 +63,7 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
     response = JsonUtils.fromJson(resp.body(), TransactionResponse.class);
     Assertions.assertEquals(1, response.data().size());
     Assertions.assertEquals(id, response.data().getFirst().id().toString());
-    Assertions.assertEquals(
-        req.merchant().toUpperCase(), response.data().getFirst().merchant());
+    Assertions.assertEquals(req.merchant().toUpperCase(), response.data().getFirst().merchant());
     Assertions.assertEquals(
         req.items().getFirst().label().toUpperCase(),
         response.data().getFirst().items().getFirst().label());
@@ -89,12 +86,9 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
     response = JsonUtils.fromJson(resp.body(), TransactionResponse.class);
     Assertions.assertEquals(1, response.data().size());
     Assertions.assertEquals(2, response.data().getFirst().items().size());
-    Assertions.assertEquals(
-        req.merchant().toUpperCase(), response.data().getFirst().merchant());
-    Assertions.assertFalse(
-        CommonUtilities.isEmpty(response.data().getFirst().notes()));
-    Assertions.assertEquals(
-        req.notes().toUpperCase(), response.data().getFirst().notes());
+    Assertions.assertEquals(req.merchant().toUpperCase(), response.data().getFirst().merchant());
+    Assertions.assertFalse(CommonUtilities.isEmpty(response.data().getFirst().notes()));
+    Assertions.assertEquals(req.notes().toUpperCase(), response.data().getFirst().notes());
     Assertions.assertEquals(
         req.items().getFirst().label().toUpperCase(),
         response.data().getFirst().items().getFirst().label());
@@ -135,7 +129,8 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
 
     HttpResponse<String> resp = httpGet(ApiPaths.TRANSACTIONS_V1_WITH_MERCHANTS, Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());
-    TransactionResponse.TransactionMerchants response = JsonUtils.fromJson(resp.body(), TransactionResponse.TransactionMerchants.class);
+    TransactionResponse.TransactionMerchants response =
+        JsonUtils.fromJson(resp.body(), TransactionResponse.TransactionMerchants.class);
     Assertions.assertEquals(4, response.data().size());
 
     Assertions.assertTrue(response.data().contains("TEST MERCHANT"));
