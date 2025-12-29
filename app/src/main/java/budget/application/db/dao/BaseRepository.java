@@ -37,7 +37,7 @@ public class BaseRepository implements AutoCloseable {
       try {
         connection.setAutoCommit(true);
       } finally {
-        connection.close(); // <-- THIS WAS MISSING
+        connection.close();
       }
     }
   }
