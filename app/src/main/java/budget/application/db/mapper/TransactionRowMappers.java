@@ -14,7 +14,7 @@ public class TransactionRowMappers {
     public Transaction map(ResultSet rs) throws SQLException {
       return new Transaction(
           rs.getObject("id", UUID.class),
-          rs.getObject("txn_date", LocalDateTime.class),
+          rs.getDate("txn_date").toLocalDate(),
           rs.getString("merchant"),
           rs.getDouble("total_amount"),
           rs.getString("notes"),

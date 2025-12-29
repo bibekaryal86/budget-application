@@ -53,7 +53,7 @@ public class ServerUtils {
     try {
       return JsonUtils.fromJson(req.content().toString(CharsetUtil.UTF_8), type);
     } catch (Exception e) {
-      log.error("Error parsing request body: [{}]", e.getMessage());
+      log.error("Error parsing request body", e);
       return null;
     }
   }

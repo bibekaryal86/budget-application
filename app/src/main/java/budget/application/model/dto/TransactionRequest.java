@@ -1,10 +1,10 @@
 package budget.application.model.dto;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 
 public record TransactionRequest(
-    LocalDateTime txnDate,
+    LocalDate txnDate,
     String merchant,
     double totalAmount,
     String notes,
