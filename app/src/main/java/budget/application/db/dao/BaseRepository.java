@@ -29,10 +29,17 @@ public class BaseRepository implements AutoCloseable {
 
   @Override
   public void close() throws SQLException {
-    if (!completed) {
-      rollback();
+    try {
+      if (!completed) {
+        rollback();
+      }
+    } finally {
+      try {
+        connection.setAutoCommit(true);
+      } finally {
+        connection.close(); // <-- THIS WAS MISSING
+      }
     }
-    connection.setAutoCommit(true);
   }
 
   public Connection connection() {
