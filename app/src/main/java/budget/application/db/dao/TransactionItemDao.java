@@ -151,7 +151,7 @@ public class TransactionItemDao extends BaseDao<TransactionItem> {
   }
 
   public List<TransactionItem> readByTransactionIds(List<UUID> txnIds) throws SQLException {
-    log.debug("[{}] Reading transaction items for txnIds: {}", requestId, txnIds);
+    log.debug("[{}] Reading transaction items for TxnIds: {}", requestId, txnIds);
     if (CommonUtilities.isEmpty(txnIds)) {
       return List.of();
     }

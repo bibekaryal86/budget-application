@@ -27,12 +27,4 @@ The application uses a hierarchical structure to organize financial data, allowi
 * Banks & Accounts: Integration to track multiple physical bank accounts and credit cards.
 * Summary Engine: Automated monthly and yearly reports to visualize spending trends.
 * Budgeting Goals: Set limits on specific categories and track progress.
-
-## Limitations
-* Read works for `?param=xxx` but not for `/?param=xxx`
-
-TODO
-- transaction response to return list of categories, merchants and category type, transaction type used
-- check how path works with and without trailing slash
-- check all log statements to [ ] or keep just {}
-- history
+* Audit Trail: Track changes to data over time.

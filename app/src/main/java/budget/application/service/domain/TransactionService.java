@@ -146,7 +146,7 @@ public class TransactionService {
           } else {
             int deleteCount = itemDao.deleteByTransactionIds(List.of(id));
             log.debug(
-                "[{}] Deleted transaction items for transaction: txnId=[{}], deleteCount=[{}]",
+                "[{}] Deleted transaction items for transaction: TxnId=[{}], DeleteCount=[{}]",
                 requestId,
                 id,
                 deleteCount);
@@ -190,14 +190,14 @@ public class TransactionService {
 
           int deleteCountTxnItems = itemDao.deleteByTransactionIds(ids);
           log.info(
-              "[{}] Deleted transaction items for transactions: Ids=[{}], deleteCount=[{}]",
+              "[{}] Deleted transaction items for transactions: Ids=[{}], DeleteCount=[{}]",
               requestId,
               ids,
               deleteCountTxnItems);
 
           int deleteCount = txnDao.delete(ids);
           log.info(
-              "[{}] Deleted transactions: Ids=[{}], deleteCount=[{}]", requestId, ids, deleteCount);
+              "[{}] Deleted transactions: Ids=[{}], DeleteCount=[{}]", requestId, ids, deleteCount);
           return new TransactionResponse(
               List.of(), ResponseMetadataUtils.defaultDeleteResponseMetadata(deleteCount));
         });
@@ -230,7 +230,7 @@ public class TransactionService {
               if (Double.compare(sum, txn.totalAmount()) != 0) {
                 mmTxns.add(txn);
                 log.debug(
-                    "[{}] MISMATCH for txn=[{}] | total=[{}] | sum(items)=[{}]",
+                    "[{}] MISMATCH for Txn=[{}] | Total=[{}] | SUM(Items)=[{}]",
                     requestId,
                     txnId,
                     txn.totalAmount(),
