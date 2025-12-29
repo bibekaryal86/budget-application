@@ -9,6 +9,8 @@
 buildscript {
     dependencies {
         classpath 'org.yaml:snakeyaml:2.5'
+        classpath 'org.postgresql:postgresql:42.7.8'
+        classpath 'org.flywaydb:flyway-database-postgresql:11.20.0'
     }
 }
 
@@ -16,6 +18,7 @@ plugins {
     id 'application'
     id 'java'
     id 'com.diffplug.spotless' version '8.1.0'
+    id 'org.flywaydb.flyway' version '11.20.0'
 }
 
 java {
@@ -41,6 +44,7 @@ dependencies {
     implementation 'com.zaxxer:HikariCP:7.0.2'
 
     runtimeOnly 'org.postgresql:postgresql:42.7.8'
+    runtimeOnly 'org.flywaydb:flyway-database-postgresql:11.20.0'
 
     testImplementation 'org.junit.jupiter:junit-jupiter-api:6.0.1'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:6.0.1'
@@ -110,6 +114,26 @@ def loadAppCredentialsEnvVariables() {
 }
 
 def yamlProperties = loadAppCredentialsEnvVariables()
+def isGithubActions = System.getenv('CI') == 'true'
+
+flyway {
+    locations = ['classpath:db/migration']
+    schemas = ['public']
+
+    // for local development, use SANDBOX DB
+    def db_host = yamlProperties.getProperty('DB_HOST_SANDBOX')
+    def db_name = yamlProperties.getProperty('DB_NAME_SANDBOX')
+
+    if (db_host && db_name) {
+        url = "jdbc:postgresql://${db_host}:5432/${db_name}"
+        user = yamlProperties.getProperty('DB_USERNAME_SANDBOX')
+        password = yamlProperties.getProperty('DB_PASSWORD_SANDBOX')
+    } else if (!isGithubActions) {
+        throw new GradleException("Flyway DB Host and Name Configuration Error...")
+    } else {
+        println "Flyway DB Host and Name Configuration Warning..."
+    }
+}
 
 run {
     doFirst {
