@@ -33,6 +33,10 @@ public class Validations {
       throw new Exceptions.BadRequestException(
           String.format("[%s] Bank name cannot be empty...", requestId));
     }
+    if (ar.openingBalance() < 0) {
+      throw new Exceptions.BadRequestException(
+          String.format("[%s] Opening balance cannot be negative...", requestId));
+    }
     if (CommonUtilities.isEmpty(ar.status())) {
       throw new Exceptions.BadRequestException(
           String.format("[%s] Account status cannot be empty...", requestId));
