@@ -1,17 +1,13 @@
 package budget.application.handlers;
 
 import budget.application.IntegrationBaseTest;
-import budget.application.TestDataHelper;
-import budget.application.TestDataSource;
-import budget.application.model.dto.CategoryResponse;
 import budget.application.model.dto.TransactionItemRequest;
 import budget.application.model.dto.TransactionItemResponse;
-import budget.application.server.utils.ApiPaths;
-import budget.application.server.utils.JsonUtils;
+import budget.application.server.util.ApiPaths;
+import budget.application.server.util.JsonUtils;
 import budget.application.service.util.ResponseMetadataUtils;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseWithMetadata;
 import java.net.http.HttpResponse;
-import java.time.LocalDateTime;
 import java.util.UUID;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -73,93 +69,6 @@ public class TransactionItemHandlerTest extends IntegrationBaseTest {
             .responseStatusInfo()
             .errMsg()
             .contains("[TransactionItem] Not found for"));
-  }
-
-  @Test
-  void testReadTransactionItems() throws Exception {
-    // SETUP
-    TestDataHelper helper = new TestDataHelper(TestDataSource.getDataSource());
-    UUID ctId1 = UUID.randomUUID();
-    UUID ctId2 = UUID.randomUUID();
-    UUID cId1 = UUID.randomUUID();
-    UUID cId2 = UUID.randomUUID();
-    UUID cId3 = UUID.randomUUID();
-    UUID tId1 = UUID.randomUUID();
-    UUID tId2 = UUID.randomUUID();
-    UUID tId3 = UUID.randomUUID();
-    UUID tiId1 = UUID.randomUUID();
-    UUID tiId2 = UUID.randomUUID();
-    UUID tiId3 = UUID.randomUUID();
-
-    helper.insertCategoryType(ctId1, "CT ONE");
-    helper.insertCategoryType(ctId2, "CT TWO");
-
-    helper.insertCategory(cId1, ctId1, "C ONE");
-    helper.insertCategory(cId2, ctId1, "C TWO");
-    helper.insertCategory(cId3, ctId2, "C THREE");
-
-    helper.insertTransaction(tId1, LocalDateTime.now(), 100.00);
-    helper.insertTransaction(tId2, LocalDateTime.now().minusMonths(1L), 200.00);
-    helper.insertTransaction(tId3, LocalDateTime.now().minusMonths(2L), 300.00);
-
-    helper.insertTransactionItem(tiId1, tId1, cId1, 50, "NEEDS");
-    helper.insertTransactionItem(tiId2, tId1, cId2, 50, "NEEDS");
-    helper.insertTransactionItem(tiId3, tId2, cId2, 200, "INCOME");
-
-    HttpResponse<String> resp = httpGet(ApiPaths.TRANSACTION_ITEMS_V1, Boolean.TRUE);
-    Assertions.assertEquals(200, resp.statusCode());
-    CategoryResponse response = JsonUtils.fromJson(resp.body(), CategoryResponse.class);
-    Assertions.assertEquals(4, response.data().size());
-
-    resp = httpGet(ApiPaths.TRANSACTION_ITEMS_V1 + "?txnIds=" + TEST_ID, Boolean.TRUE);
-    Assertions.assertEquals(200, resp.statusCode());
-    response = JsonUtils.fromJson(resp.body(), CategoryResponse.class);
-    Assertions.assertEquals(1, response.data().size());
-
-    resp = httpGet(ApiPaths.TRANSACTION_ITEMS_V1 + "?catIds=" + TEST_ID + "," + cId2, Boolean.TRUE);
-    Assertions.assertEquals(200, resp.statusCode());
-    response = JsonUtils.fromJson(resp.body(), CategoryResponse.class);
-    Assertions.assertEquals(3, response.data().size());
-
-    resp = httpGet(ApiPaths.TRANSACTION_ITEMS_V1 + "?txnTypes=NEEDS,INCOME", Boolean.TRUE);
-    Assertions.assertEquals(200, resp.statusCode());
-    response = JsonUtils.fromJson(resp.body(), CategoryResponse.class);
-    Assertions.assertEquals(4, response.data().size());
-
-    resp = httpGet(ApiPaths.TRANSACTION_ITEMS_V1 + "?txnTypes=NEEDS", Boolean.TRUE);
-    Assertions.assertEquals(200, resp.statusCode());
-    response = JsonUtils.fromJson(resp.body(), CategoryResponse.class);
-    Assertions.assertEquals(3, response.data().size());
-
-    resp =
-        httpGet(
-            ApiPaths.TRANSACTION_ITEMS_V1
-                + "?txnIds="
-                + TEST_ID
-                + ","
-                + tId1
-                + ",&catIds="
-                + TEST_ID
-                + ","
-                + cId2
-                + ",&txnTypes=NEEDS,INCOME",
-            Boolean.TRUE);
-    Assertions.assertEquals(200, resp.statusCode());
-    response = JsonUtils.fromJson(resp.body(), CategoryResponse.class);
-    Assertions.assertEquals(2, response.data().size());
-
-    // CLEANUP
-    helper.deleteTransactionItem(tiId1);
-    helper.deleteTransactionItem(tiId2);
-    helper.deleteTransactionItem(tiId3);
-    helper.deleteTransaction(tId1);
-    helper.deleteTransaction(tId2);
-    helper.deleteTransaction(tId3);
-    helper.deleteCategory(cId1);
-    helper.deleteCategory(cId2);
-    helper.deleteCategory(cId3);
-    helper.deleteCategoryType(ctId1);
-    helper.deleteCategoryType(ctId2);
   }
 
   @Test

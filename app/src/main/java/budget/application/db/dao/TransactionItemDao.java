@@ -31,23 +31,23 @@ public class TransactionItemDao extends BaseDao<TransactionItem> {
 
   @Override
   protected List<String> insertColumns() {
-    return List.of("transaction_id", "category_id", "label", "amount", "txn_type");
+    return List.of("transaction_id", "category_id", "label", "amount", "exp_type");
   }
 
   @Override
   protected List<Object> insertValues(TransactionItem ti) {
     return List.of(
-        ti.transactionId(), ti.categoryId(), ti.label().toUpperCase(), ti.amount(), ti.txnType());
+        ti.transactionId(), ti.categoryId(), ti.label().toUpperCase(), ti.amount(), ti.expType());
   }
 
   @Override
   protected List<String> updateColumns() {
-    return List.of("category_id", "label", "amount", "txn_type");
+    return List.of("category_id", "label", "amount", "exp_type");
   }
 
   @Override
   protected List<Object> updateValues(TransactionItem ti) {
-    return List.of(ti.categoryId(), ti.label().toUpperCase(), ti.amount(), ti.txnType());
+    return List.of(ti.categoryId(), ti.label().toUpperCase(), ti.amount(), ti.expType());
   }
 
   @Override
@@ -69,16 +69,9 @@ public class TransactionItemDao extends BaseDao<TransactionItem> {
     return itemsOut;
   }
 
-  public List<TransactionItemResponse.TransactionItem> readTransactionItems(
-      List<UUID> txnItemIds, List<UUID> txnIds, List<UUID> catIds, List<String> txnTypes)
+  public List<TransactionItemResponse.TransactionItem> readTransactionItems(List<UUID> txnItemIds)
       throws SQLException {
-    log.debug(
-        "[{}] Read Transaction Items: txnItemIds={}, txnIds={}, catIds={}, txnTypes={}",
-        requestId,
-        txnItemIds,
-        txnIds,
-        catIds,
-        txnTypes);
+    log.debug("[{}] Read Transaction Items: txnItemIds={}", requestId, txnItemIds);
 
     StringBuilder sql =
         new StringBuilder(
@@ -87,7 +80,7 @@ public class TransactionItemDao extends BaseDao<TransactionItem> {
                     ti.id AS txn_item_id,
                     ti.label AS txn_item_label,
                     ti.amount AS txn_item_amount,
-                    ti.txn_type AS txn_item_type,
+                    ti.exp_type AS txn_exp_type,
                     t.id AS txn_id,
                     t.txn_date AS txn_date,
                     t.merchant AS txn_merchant,
@@ -120,18 +113,7 @@ public class TransactionItemDao extends BaseDao<TransactionItem> {
       addWhere.accept("ti.id IN (" + DaoUtils.placeholders(txnItemIds.size()) + ")");
       params.addAll(txnItemIds);
     }
-    if (!CommonUtilities.isEmpty(txnIds)) {
-      addWhere.accept("ti.transaction_id IN (" + DaoUtils.placeholders(txnIds.size()) + ")");
-      params.addAll(txnIds);
-    }
-    if (!CommonUtilities.isEmpty(catIds)) {
-      addWhere.accept("ti.category_id IN (" + DaoUtils.placeholders(catIds.size()) + ")");
-      params.addAll(catIds);
-    }
-    if (!CommonUtilities.isEmpty(txnTypes)) {
-      addWhere.accept("ti.txn_type IN (" + DaoUtils.placeholders(txnTypes.size()) + ")");
-      params.addAll(txnTypes);
-    }
+
     sql.append(" ORDER BY ti.transaction_id ASC, t.txn_date DESC ");
 
     log.debug("[{}] Read Transaction Items SQL=[{}]", requestId, sql);

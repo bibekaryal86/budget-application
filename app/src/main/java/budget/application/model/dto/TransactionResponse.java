@@ -12,6 +12,7 @@ public record TransactionResponse(List<Transaction> data, ResponseMetadata metad
       String merchant,
       double totalAmount,
       String notes,
+      AccountResponse.Account account,
       List<TransactionItemResponse.TransactionItem> items) {}
 
   public record TransactionMerchants(List<String> data, ResponseMetadata metadata) {}

@@ -47,7 +47,7 @@ public class CategoryService {
 
   public CategoryResponse read(String requestId, List<UUID> catIds, List<UUID> catTypeIds)
       throws SQLException {
-    log.debug("[{}] Read categories: CatIds=[{}], CatTypeIds=[{}}", requestId, catIds, catTypeIds);
+    log.debug("[{}] Read categories: CatIds=[{}], CatTypeIds=[{}]", requestId, catIds, catTypeIds);
     return tx.execute(
         bs -> {
           CategoryDao dao = new CategoryDao(requestId, bs.connection());

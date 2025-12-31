@@ -1,8 +1,8 @@
 package budget.application.handlers;
 
 import budget.application.IntegrationBaseTest;
-import budget.application.server.utils.ApiPaths;
-import budget.application.server.utils.JsonUtils;
+import budget.application.server.util.ApiPaths;
+import budget.application.server.util.JsonUtils;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseWithMetadata;
 import java.net.http.HttpResponse;
 import org.junit.jupiter.api.Assertions;

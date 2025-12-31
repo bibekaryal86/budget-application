@@ -19,7 +19,7 @@ public class TransactionItemRowMappers {
           rs.getObject("category_id", UUID.class),
           rs.getString("label"),
           rs.getDouble("amount"),
-          rs.getString("txn_type"));
+          rs.getString("exp_type"));
     }
   }
 
@@ -37,7 +37,7 @@ public class TransactionItemRowMappers {
               rs.getString("category_name")),
           rs.getString("txn_item_label"),
           rs.getDouble("txn_item_amount"),
-          rs.getString("txn_item_type"));
+          rs.getString("txn_exp_type"));
     }
   }
 }

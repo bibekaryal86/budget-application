@@ -1,4 +1,4 @@
-package budget.application.server.utils;
+package budget.application.server.util;
 
 import budget.application.common.Exceptions;
 import budget.application.model.dto.RequestParams;
@@ -76,17 +76,13 @@ public class ServerUtils {
     List<String> merchants = parseStrings(decoder, "merchants");
     List<UUID> catIds = parseUUIDs(decoder, "catIds");
     List<UUID> catTypeIds = parseUUIDs(decoder, "catTypeIds");
-    List<String> txnTypes = parseStrings(decoder, "txnTypes");
+    List<UUID> accIds = parseUUIDs(decoder, "accIds");
+    List<String> expTypes = parseStrings(decoder, "expTypes");
+    if (!expTypes.isEmpty()) {
+        log.debug("expTypes: {}", expTypes);
+    }
     return new RequestParams.TransactionParams(
-        beginDate, endDate, merchants, catIds, catTypeIds, txnTypes);
-  }
-
-  public static RequestParams.TransactionItemParams getTransactionItemParams(
-      QueryStringDecoder decoder) {
-    List<UUID> txnIds = parseUUIDs(decoder, "txnIds");
-    List<UUID> catIds = parseUUIDs(decoder, "catIds");
-    List<String> txnTypes = parseStrings(decoder, "txnTypes");
-    return new RequestParams.TransactionItemParams(txnIds, catIds, txnTypes);
+        beginDate, endDate, merchants, catIds, catTypeIds, accIds, expTypes);
   }
 
   private static List<UUID> parseUUIDs(QueryStringDecoder decoder, String paramName) {

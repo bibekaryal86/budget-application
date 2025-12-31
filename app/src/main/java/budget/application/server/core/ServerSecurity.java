@@ -1,7 +1,7 @@
 package budget.application.server.core;
 
 import budget.application.common.Constants;
-import budget.application.server.utils.ServerUtils;
+import budget.application.server.util.ServerUtils;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseWithMetadata;
 import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 import io.netty.channel.ChannelDuplexHandler;

@@ -1,7 +1,8 @@
 # budget-service
 
 create an api to serve home page
-add txn type validation based on category
+add exp type validation based on category
+    if category is not income or savings, then exp type must be present
 cache category and category type, api to reset
 
 A streamlined, lightweight personal finance tracker built with a focus on high performance and zero framework overhead.

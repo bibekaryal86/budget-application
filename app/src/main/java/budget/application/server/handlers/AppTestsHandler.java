@@ -1,8 +1,8 @@
 package budget.application.server.handlers;
 
 import budget.application.common.Constants;
-import budget.application.server.utils.ApiPaths;
-import budget.application.server.utils.ServerUtils;
+import budget.application.server.util.ApiPaths;
+import budget.application.server.util.ServerUtils;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.FullHttpRequest;

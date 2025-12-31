@@ -80,20 +80,50 @@ public final class TestDataHelper {
     }
   }
 
+    public UUID insertAccount(UUID id, UUID name) throws SQLException {
+        try (Connection c = ds.getConnection();
+             PreparedStatement stmt =
+                     c.prepareStatement(
+                             """
+                                          INSERT INTO account (id, name, account_type, bank_name, opening_balance, status)
+                                          VALUES (?, ?, 'CHECKING', 'TEST BANK', 1000.00, 'ACTIVE')
+                                      """)) {
+
+            stmt.setObject(1, id);
+            stmt.setObject(2, name);
+            stmt.executeUpdate();
+        }
+        return id;
+    }
+
+    public void deleteAccount(UUID id) throws SQLException {
+        try (Connection c = ds.getConnection();
+             PreparedStatement stmt =
+                     c.prepareStatement(
+                             """
+                                          DELETE FROM account WHERE id = ?
+                                      """)) {
+
+            stmt.setObject(1, id);
+            stmt.executeUpdate();
+        }
+    }
+
   public UUID insertTransaction(UUID id, LocalDateTime txnDate, double totalAmount)
       throws SQLException {
     try (Connection c = ds.getConnection();
         PreparedStatement stmt =
             c.prepareStatement(
                 """
-                INSERT INTO transaction (id, txn_date, merchant, total_amount)
-                VALUES (?, ?, ?, ?)
+                INSERT INTO transaction (id, txn_date, merchant, account_id, total_amount)
+                VALUES (?, ?, ?, ?, ?)
             """)) {
 
       stmt.setObject(1, id);
       stmt.setObject(2, txnDate);
       stmt.setString(3, "Merchant: " + id);
-      stmt.setDouble(4, totalAmount);
+      stmt.setObject(4, IntegrationBaseTest.TEST_ID);
+      stmt.setDouble(5, totalAmount);
       stmt.executeUpdate();
     }
     return id;
@@ -118,7 +148,7 @@ public final class TestDataHelper {
         PreparedStatement stmt =
             c.prepareStatement(
                 """
-                INSERT INTO transaction_item (id, transaction_id, category_id, label, amount, txn_type)
+                INSERT INTO transaction_item (id, transaction_id, category_id, label, amount, exp_type)
                 VALUES (?, ?, ?, ?, ?, ?)
             """)) {
       stmt.setObject(1, id);

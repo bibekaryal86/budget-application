@@ -3,12 +3,12 @@ package budget.application.model.entity;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-public record Transaction(
+public record Account(
     UUID id,
-    LocalDateTime txnDate,
-    String merchant,
-    UUID accountId,
-    double totalAmount,
-    String notes,
+    String name,
+    String accountType,
+    String bankName,
+    double openingBalance,
+    String status,
     LocalDateTime createdAt,
     LocalDateTime updatedAt) {}

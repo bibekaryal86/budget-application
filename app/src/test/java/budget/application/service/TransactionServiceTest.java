@@ -66,11 +66,11 @@ public class TransactionServiceTest extends IntegrationBaseTest {
     UUID txnId1 = helper.insertTransaction(UUID.randomUUID(), LocalDateTime.now(), 100.00);
     helper.insertTransactionItem(UUID.randomUUID(), txnId1, TEST_ID, 25, "NEEDS");
     helper.insertTransactionItem(UUID.randomUUID(), txnId1, TEST_ID, 50.00, "WANTS");
-    helper.insertTransactionItem(UUID.randomUUID(), txnId1, TEST_ID, 50, "INCOME");
+    helper.insertTransactionItem(UUID.randomUUID(), txnId1, TEST_ID, 50, "");
     UUID txnId2 = helper.insertTransaction(UUID.randomUUID(), LocalDateTime.now(), 200.00);
-    helper.insertTransactionItem(UUID.randomUUID(), txnId2, TEST_ID, 100, "TRANSFER");
-    helper.insertTransactionItem(UUID.randomUUID(), txnId2, TEST_ID, 50.00, "OTHER");
-    helper.insertTransactionItem(UUID.randomUUID(), txnId2, TEST_ID, 50, "OTHER");
+    helper.insertTransactionItem(UUID.randomUUID(), txnId2, TEST_ID, 100, "");
+    helper.insertTransactionItem(UUID.randomUUID(), txnId2, TEST_ID, 50.00, "");
+    helper.insertTransactionItem(UUID.randomUUID(), txnId2, TEST_ID, 50, "");
     UUID txnId3 = helper.insertTransaction(UUID.randomUUID(), LocalDateTime.now(), 100.00);
 
     service.reconcileAll("req-multi");

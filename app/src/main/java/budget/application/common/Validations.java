@@ -2,6 +2,7 @@ package budget.application.common;
 
 import budget.application.db.dao.CategoryDao;
 import budget.application.db.dao.CategoryTypeDao;
+import budget.application.model.dto.AccountRequest;
 import budget.application.model.dto.CategoryRequest;
 import budget.application.model.dto.CategoryTypeRequest;
 import budget.application.model.dto.TransactionItemRequest;
@@ -10,6 +11,37 @@ import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 
 public class Validations {
   private Validations() {}
+
+  public static void validateAccount(String requestId, AccountRequest ar) {
+    if (ar == null) {
+      throw new Exceptions.BadRequestException(
+          String.format("[%s] Account request cannot be null...", requestId));
+    }
+    if (CommonUtilities.isEmpty(ar.name())) {
+      throw new Exceptions.BadRequestException(
+          String.format("[%s] Account name cannot be empty...", requestId));
+    }
+    if (CommonUtilities.isEmpty(ar.accountType())) {
+      throw new Exceptions.BadRequestException(
+          String.format("[%s] Account type cannot be empty...", requestId));
+    }
+    if (!Constants.ACCOUNT_TYPES.contains(ar.accountType())) {
+      throw new Exceptions.BadRequestException(
+          String.format("[%s] Account type is invalid...", requestId));
+    }
+    if (CommonUtilities.isEmpty(ar.bankName())) {
+      throw new Exceptions.BadRequestException(
+          String.format("[%s] Bank name cannot be empty...", requestId));
+    }
+    if (CommonUtilities.isEmpty(ar.status())) {
+      throw new Exceptions.BadRequestException(
+          String.format("[%s] Account status cannot be empty...", requestId));
+    }
+    if (!Constants.ACCOUNT_STATUSES.contains(ar.status())) {
+      throw new Exceptions.BadRequestException(
+          String.format("[%s] Account status is invalid...", requestId));
+    }
+  }
 
   public static void validateCategory(
       String requestId, CategoryRequest cr, CategoryTypeDao categoryTypeDao) {
@@ -64,11 +96,11 @@ public class Validations {
       throw new Exceptions.BadRequestException(
           String.format("[%s] Transaction item amount cannot be zero or negative...", requestId));
     }
-    if (CommonUtilities.isEmpty(tir.txnType())) {
+    if (CommonUtilities.isEmpty(tir.expType())) {
       throw new Exceptions.BadRequestException(
           String.format("[%s] Transaction item type cannot be empty...", requestId));
     }
-    if (!Constants.TRANSACTION_TYPES.contains(tir.txnType())) {
+    if (!Constants.TRANSACTION_TYPES.contains(tir.expType())) {
       throw new Exceptions.BadRequestException(
           String.format("[%s] Transaction item type is invalid...", requestId));
     }
@@ -87,6 +119,10 @@ public class Validations {
     if (CommonUtilities.isEmpty(tr.merchant())) {
       throw new Exceptions.BadRequestException(
           String.format("[%s] Transaction merchant cannot be empty...", requestId));
+    }
+    if (tr.accountId() == null) {
+        throw new Exceptions.BadRequestException(
+          String.format("[%s] Transaction account cannot be null...", requestId));
     }
     if (tr.totalAmount() <= 0) {
       throw new Exceptions.BadRequestException(

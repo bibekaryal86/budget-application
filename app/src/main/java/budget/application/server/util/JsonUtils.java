@@ -1,4 +1,4 @@
-package budget.application.server.utils;
+package budget.application.server.util;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonGenerator;

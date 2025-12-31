@@ -67,8 +67,10 @@ public class Constants {
   public static final int MAX_CONTENT_LENGTH = 1048576; // 1MB
   public static final String CONTENT_LENGTH_DEFAULT = "0";
 
-  public static final List<String> TRANSACTION_TYPES =
-      List.of("NEEDS", "WANTS", "INCOME", "SAVINGS", "TRANSFER", "OTHER");
+  public static final List<String> TRANSACTION_TYPES = List.of("NEEDS", "WANTS");
+  public static final List<String> ACCOUNT_TYPES =
+      List.of("CASH", "CREDIT", "LOAN", "CHECKING", "SAVINGS", "INVESTMENT", "OTHER");
+  public static final List<String> ACCOUNT_STATUSES = List.of("ACTIVE", "INACTIVE");
 
   static {
     IS_PRODUCTION =

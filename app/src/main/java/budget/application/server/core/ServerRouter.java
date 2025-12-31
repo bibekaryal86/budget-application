@@ -1,12 +1,13 @@
 package budget.application.server.core;
 
 import budget.application.common.Constants;
+import budget.application.server.handlers.AccountHandler;
 import budget.application.server.handlers.AppTestsHandler;
 import budget.application.server.handlers.CategoryHandler;
 import budget.application.server.handlers.CategoryTypeHandler;
 import budget.application.server.handlers.TransactionHandler;
 import budget.application.server.handlers.TransactionItemHandler;
-import budget.application.server.utils.ApiPaths;
+import budget.application.server.util.ApiPaths;
 import io.github.bibekaryal86.shdsvc.Email;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -19,6 +20,7 @@ public class ServerRouter extends SimpleChannelInboundHandler<FullHttpRequest> {
   private static final Logger log = LoggerFactory.getLogger(ServerRouter.class);
 
   private final AppTestsHandler appTestsHandler;
+  private final AccountHandler accountHandler;
   private final CategoryTypeHandler categoryTypeHandler;
   private final CategoryHandler categoryHandler;
   private final TransactionItemHandler transactionItemHandler;
@@ -26,6 +28,7 @@ public class ServerRouter extends SimpleChannelInboundHandler<FullHttpRequest> {
 
   public ServerRouter(DataSource dataSource, Email email) {
     this.appTestsHandler = new AppTestsHandler();
+    this.accountHandler = new AccountHandler(dataSource);
     this.categoryTypeHandler = new CategoryTypeHandler(dataSource);
     this.categoryHandler = new CategoryHandler(dataSource);
     this.transactionItemHandler = new TransactionItemHandler(dataSource);
@@ -40,6 +43,12 @@ public class ServerRouter extends SimpleChannelInboundHandler<FullHttpRequest> {
     if (path.startsWith(ApiPaths.APP_TESTS)) {
       log.info("[{}] Routing to AppTestsHandler: [{}]", requestId, path);
       appTestsHandler.channelRead(ctx, req.retain());
+      return;
+    }
+
+    if (path.startsWith(ApiPaths.ACCOUNTS_V1)) {
+      log.info("[{}] Routing to AccountHandler: [{}]", requestId, path);
+      accountHandler.channelRead(ctx, req.retain());
       return;
     }
 

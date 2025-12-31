@@ -4,7 +4,6 @@ import budget.application.common.Exceptions;
 import budget.application.common.Validations;
 import budget.application.db.dao.CategoryDao;
 import budget.application.db.dao.TransactionItemDao;
-import budget.application.model.dto.RequestParams;
 import budget.application.model.dto.TransactionItemRequest;
 import budget.application.model.dto.TransactionItemResponse;
 import budget.application.model.entity.TransactionItem;
@@ -44,34 +43,24 @@ public class TransactionItemService {
                   tir.categoryId(),
                   tir.label(),
                   tir.amount(),
-                  tir.txnType());
+                  tir.expType());
           UUID id = dao.create(tiIn).id();
           log.debug("[{}] Created transaction item: Id=[{}]", requestId, id);
 
           List<TransactionItemResponse.TransactionItem> tiOut =
-              dao.readTransactionItems(List.of(id), List.of(), List.of(), List.of());
+              dao.readTransactionItems(List.of(id));
           return new TransactionItemResponse(
               tiOut, ResponseMetadataUtils.defaultInsertResponseMetadata());
         });
   }
 
-  public TransactionItemResponse read(
-      String requestId, List<UUID> txnItemIds, RequestParams.TransactionItemParams txnItemParams)
-      throws SQLException {
-    log.debug(
-        "[{}] Read transaction items: Ids=[{}], TxnItemParams=[{}]",
-        requestId,
-        txnItemIds,
-        txnItemParams);
+  public TransactionItemResponse read(String requestId, List<UUID> txnItemIds) throws SQLException {
+    log.debug("[{}] Read transaction items: Ids={}", requestId, txnItemIds);
     return tx.execute(
         bs -> {
           TransactionItemDao dao = new TransactionItemDao(requestId, bs.connection());
           List<TransactionItemResponse.TransactionItem> tiList =
-              dao.readTransactionItems(
-                  txnItemIds,
-                  txnItemParams.txnIds(),
-                  txnItemParams.catIds(),
-                  txnItemParams.txnTypes());
+              dao.readTransactionItems(txnItemIds);
 
           if (txnItemIds.size() == 1 && tiList.isEmpty()) {
             throw new Exceptions.NotFoundException(
@@ -104,10 +93,10 @@ public class TransactionItemService {
                   tir.categoryId(),
                   tir.label(),
                   tir.amount(),
-                  tir.txnType());
+                  tir.expType());
           dao.update(tiIn);
           TransactionItemResponse.TransactionItem tiOut =
-              dao.readTransactionItems(List.of(id), List.of(), List.of(), List.of()).getFirst();
+              dao.readTransactionItems(List.of(id)).getFirst();
           return new TransactionItemResponse(
               List.of(tiOut), ResponseMetadataUtils.defaultUpdateResponseMetadata());
         });

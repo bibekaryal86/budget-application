@@ -1,11 +1,11 @@
 package budget.application.server.handlers;
 
 import budget.application.common.Constants;
-import budget.application.model.dto.CategoryTypeRequest;
-import budget.application.model.dto.CategoryTypeResponse;
+import budget.application.model.dto.AccountRequest;
+import budget.application.model.dto.AccountResponse;
 import budget.application.server.util.ApiPaths;
 import budget.application.server.util.ServerUtils;
-import budget.application.service.domain.CategoryTypeService;
+import budget.application.service.domain.AccountService;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.FullHttpRequest;
@@ -17,13 +17,13 @@ import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class CategoryTypeHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
-  private static final Logger log = LoggerFactory.getLogger(CategoryTypeHandler.class);
+public class AccountHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
+  private static final Logger log = LoggerFactory.getLogger(AccountHandler.class);
 
-  private final CategoryTypeService service;
+  private final AccountService service;
 
-  public CategoryTypeHandler(DataSource dataSource) {
-    this.service = new CategoryTypeService(dataSource);
+  public AccountHandler(DataSource dataSource) {
+    this.service = new AccountService(dataSource);
   }
 
   @Override
@@ -32,41 +32,41 @@ public class CategoryTypeHandler extends SimpleChannelInboundHandler<FullHttpReq
     String path = req.uri();
     HttpMethod method = req.method();
 
-    if (!path.startsWith(ApiPaths.CATEGORY_TYPES_V1)) {
+    if (!path.startsWith(ApiPaths.ACCOUNTS_V1)) {
       ctx.fireChannelRead(req.retain());
       return;
     }
     log.info("[{}] Request: Method=[{}] Path=[{}]", requestId, method, path);
 
-    // CREATE: POST /petssvc/api/v1/category-types
-    if (path.equals(ApiPaths.CATEGORY_TYPES_V1) && method.equals(HttpMethod.POST)) {
+    // CREATE: POST /petssvc/api/v1/accounts
+    if (path.equals(ApiPaths.ACCOUNTS_V1) && method.equals(HttpMethod.POST)) {
       handleCreate(requestId, ctx, req);
       return;
     }
 
-    // READ ALL: GET /petssvc/api/v1/category-types
-    if (path.equals(ApiPaths.CATEGORY_TYPES_V1) && method.equals(HttpMethod.GET)) {
+    // READ ALL: GET /petssvc/api/v1/accounts
+    if (path.equals(ApiPaths.ACCOUNTS_V1) && method.equals(HttpMethod.GET)) {
       handleReadAll(requestId, ctx);
       return;
     }
 
-    // READ ONE: GET /petssvc/api/v1/category-types/{id}
-    if (path.startsWith(ApiPaths.CATEGORY_TYPES_V1_WITH_ID) && method.equals(HttpMethod.GET)) {
-      UUID id = ServerUtils.getEntityId(path, ApiPaths.CATEGORY_TYPES_V1_WITH_ID);
+    // READ ONE: GET /petssvc/api/v1/accounts/{id}
+    if (path.startsWith(ApiPaths.ACCOUNTS_V1_WITH_ID) && method.equals(HttpMethod.GET)) {
+      UUID id = ServerUtils.getEntityId(path, ApiPaths.ACCOUNTS_V1_WITH_ID);
       handleReadOne(requestId, ctx, id);
       return;
     }
 
-    // UPDATE: PUT /petssvc/api/v1/category-types/{id}
-    if (path.startsWith(ApiPaths.CATEGORY_TYPES_V1_WITH_ID) && method.equals(HttpMethod.PUT)) {
-      UUID id = ServerUtils.getEntityId(path, ApiPaths.CATEGORY_TYPES_V1_WITH_ID);
+    // UPDATE: PUT /petssvc/api/v1/accounts/{id}
+    if (path.startsWith(ApiPaths.ACCOUNTS_V1_WITH_ID) && method.equals(HttpMethod.PUT)) {
+      UUID id = ServerUtils.getEntityId(path, ApiPaths.ACCOUNTS_V1_WITH_ID);
       handleUpdate(requestId, ctx, req, id);
       return;
     }
 
-    // DELETE: DELETE /petssvc/api/v1/category-types/{id}
-    if (path.startsWith(ApiPaths.CATEGORY_TYPES_V1_WITH_ID) && method.equals(HttpMethod.DELETE)) {
-      UUID id = ServerUtils.getEntityId(path, ApiPaths.CATEGORY_TYPES_V1_WITH_ID);
+    // DELETE: DELETE /petssvc/api/v1/accounts/{id}
+    if (path.startsWith(ApiPaths.ACCOUNTS_V1_WITH_ID) && method.equals(HttpMethod.DELETE)) {
+      UUID id = ServerUtils.getEntityId(path, ApiPaths.ACCOUNTS_V1_WITH_ID);
       handleDelete(requestId, ctx, id);
       return;
     }
@@ -78,35 +78,35 @@ public class CategoryTypeHandler extends SimpleChannelInboundHandler<FullHttpReq
   // CREATE
   private void handleCreate(String requestId, ChannelHandlerContext ctx, FullHttpRequest req)
       throws Exception {
-    CategoryTypeRequest request = ServerUtils.getRequestBody(req, CategoryTypeRequest.class);
-    CategoryTypeResponse response = service.create(requestId, request);
+    AccountRequest request = ServerUtils.getRequestBody(req, AccountRequest.class);
+    AccountResponse response = service.create(requestId, request);
     ServerUtils.sendResponse(ctx, HttpResponseStatus.CREATED, response);
   }
 
   // READ ALL
   private void handleReadAll(String requestId, ChannelHandlerContext ctx) throws Exception {
-    CategoryTypeResponse response = service.read(requestId, List.of());
+    AccountResponse response = service.read(requestId, List.of());
     ServerUtils.sendResponse(ctx, HttpResponseStatus.OK, response);
   }
 
   // READ ONE
   private void handleReadOne(String requestId, ChannelHandlerContext ctx, UUID id)
       throws Exception {
-    CategoryTypeResponse response = service.read(requestId, List.of(id));
+    AccountResponse response = service.read(requestId, List.of(id));
     ServerUtils.sendResponse(ctx, HttpResponseStatus.OK, response);
   }
 
   // UPDATE
   private void handleUpdate(
       String requestId, ChannelHandlerContext ctx, FullHttpRequest req, UUID id) throws Exception {
-    CategoryTypeRequest request = ServerUtils.getRequestBody(req, CategoryTypeRequest.class);
-    CategoryTypeResponse response = service.update(requestId, id, request);
+    AccountRequest request = ServerUtils.getRequestBody(req, AccountRequest.class);
+    AccountResponse response = service.update(requestId, id, request);
     ServerUtils.sendResponse(ctx, HttpResponseStatus.OK, response);
   }
 
   // DELETE
   private void handleDelete(String requestId, ChannelHandlerContext ctx, UUID id) throws Exception {
-    CategoryTypeResponse response = service.delete(requestId, List.of(id));
+    AccountResponse response = service.delete(requestId, List.of(id));
     ServerUtils.sendResponse(ctx, HttpResponseStatus.OK, response);
   }
 }

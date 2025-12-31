@@ -11,5 +11,5 @@ public record TransactionItemResponse(List<TransactionItem> data, ResponseMetada
       CategoryResponse.Category category,
       String label,
       double amount,
-      String txnType) {}
+      String expType) {}
 }

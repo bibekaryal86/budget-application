@@ -2,7 +2,7 @@ package budget.application.server.handlers;
 
 import budget.application.common.Constants;
 import budget.application.common.Exceptions;
-import budget.application.server.utils.ServerUtils;
+import budget.application.server.util.ServerUtils;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseWithMetadata;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;

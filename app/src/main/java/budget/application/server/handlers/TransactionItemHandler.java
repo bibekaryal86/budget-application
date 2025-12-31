@@ -1,11 +1,10 @@
 package budget.application.server.handlers;
 
 import budget.application.common.Constants;
-import budget.application.model.dto.RequestParams;
 import budget.application.model.dto.TransactionItemRequest;
 import budget.application.model.dto.TransactionItemResponse;
-import budget.application.server.utils.ApiPaths;
-import budget.application.server.utils.ServerUtils;
+import budget.application.server.util.ApiPaths;
+import budget.application.server.util.ServerUtils;
 import budget.application.service.domain.TransactionItemService;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -49,8 +48,7 @@ public class TransactionItemHandler extends SimpleChannelInboundHandler<FullHttp
 
     // READ ALL: GET /petssvc/api/v1/transaction-items
     if (path.equals(ApiPaths.TRANSACTION_ITEMS_V1) && method.equals(HttpMethod.GET)) {
-      RequestParams.TransactionItemParams params = ServerUtils.getTransactionItemParams(decoder);
-      handleReadAll(requestId, ctx, params);
+      handleReadAll(requestId, ctx);
       return;
     }
 
@@ -89,21 +87,15 @@ public class TransactionItemHandler extends SimpleChannelInboundHandler<FullHttp
   }
 
   // READ ALL
-  private void handleReadAll(
-      String requestId, ChannelHandlerContext ctx, RequestParams.TransactionItemParams params)
-      throws Exception {
-    TransactionItemResponse response = service.read(requestId, List.of(), params);
+  private void handleReadAll(String requestId, ChannelHandlerContext ctx) throws Exception {
+    TransactionItemResponse response = service.read(requestId, List.of());
     ServerUtils.sendResponse(ctx, HttpResponseStatus.OK, response);
   }
 
   // READ ONE
   private void handleReadOne(String requestId, ChannelHandlerContext ctx, UUID id)
       throws Exception {
-    TransactionItemResponse response =
-        service.read(
-            requestId,
-            List.of(id),
-            new RequestParams.TransactionItemParams(List.of(), List.of(), List.of()));
+    TransactionItemResponse response = service.read(requestId, List.of(id));
     ServerUtils.sendResponse(ctx, HttpResponseStatus.OK, response);
   }
 

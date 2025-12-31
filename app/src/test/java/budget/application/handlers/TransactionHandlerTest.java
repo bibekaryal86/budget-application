@@ -3,12 +3,12 @@ package budget.application.handlers;
 import budget.application.IntegrationBaseTest;
 import budget.application.TestDataHelper;
 import budget.application.TestDataSource;
-import budget.application.model.dto.CategoryResponse;
+import budget.application.model.dto.TransactionResponse;
 import budget.application.model.dto.TransactionItemRequest;
 import budget.application.model.dto.TransactionRequest;
 import budget.application.model.dto.TransactionResponse;
-import budget.application.server.utils.ApiPaths;
-import budget.application.server.utils.JsonUtils;
+import budget.application.server.util.ApiPaths;
+import budget.application.server.util.JsonUtils;
 import budget.application.service.util.ResponseMetadataUtils;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseWithMetadata;
 import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
@@ -29,6 +29,7 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
         new TransactionRequest(
             LocalDateTime.now(),
             "Test Merchant",
+            TEST_ID,
             100.00,
             "",
             List.of(
@@ -77,6 +78,7 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
         new TransactionRequest(
             LocalDateTime.now(),
             "Merchant Test",
+            TEST_ID,
             100.00,
             "Txn Note",
             List.of(
@@ -147,47 +149,47 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
 
     helper.insertTransactionItem(tiId1, tId1, cId1, 50, "NEEDS");
     helper.insertTransactionItem(tiId2, tId1, cId2, 50, "NEEDS");
-    helper.insertTransactionItem(tiId3, tId2, cId2, 200, "INCOME");
+    helper.insertTransactionItem(tiId3, tId2, cId2, 200, "");
 
     HttpResponse<String> resp = httpGet(ApiPaths.TRANSACTIONS_V1, Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());
-    CategoryResponse response = JsonUtils.fromJson(resp.body(), CategoryResponse.class);
+    TransactionResponse response = JsonUtils.fromJson(resp.body(), TransactionResponse.class);
     Assertions.assertEquals(4, response.data().size());
 
     resp = httpGet(ApiPaths.TRANSACTIONS_V1 + "?catTypeIds=" + TEST_ID + "," + ctId1, Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());
-    response = JsonUtils.fromJson(resp.body(), CategoryResponse.class);
+    response = JsonUtils.fromJson(resp.body(), TransactionResponse.class);
     Assertions.assertEquals(3, response.data().size());
 
     resp = httpGet(ApiPaths.TRANSACTIONS_V1 + "?merchants=TEST%20MERCHANT", Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());
-    response = JsonUtils.fromJson(resp.body(), CategoryResponse.class);
+    response = JsonUtils.fromJson(resp.body(), TransactionResponse.class);
     Assertions.assertEquals(1, response.data().size());
 
     resp = httpGet(ApiPaths.TRANSACTIONS_V1 + "?catIds=" + TEST_ID + "," + cId2, Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());
-    response = JsonUtils.fromJson(resp.body(), CategoryResponse.class);
+    response = JsonUtils.fromJson(resp.body(), TransactionResponse.class);
     Assertions.assertEquals(3, response.data().size());
 
-    resp = httpGet(ApiPaths.TRANSACTIONS_V1 + "?txnTypes=NEEDS,INCOME", Boolean.TRUE);
+    resp = httpGet(ApiPaths.TRANSACTIONS_V1 + "?expTypes=NEEDS,WANTS", Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());
-    response = JsonUtils.fromJson(resp.body(), CategoryResponse.class);
-    Assertions.assertEquals(3, response.data().size());
+    response = JsonUtils.fromJson(resp.body(), TransactionResponse.class);
+    Assertions.assertEquals(2, response.data().size());
 
     LocalDate beginDate = LocalDate.of(2025, 1, 1);
     LocalDate endDate = LocalDateTime.now().toLocalDate();
     resp =
         httpGet(
-            ApiPaths.TRANSACTION_ITEMS_V1
-                + "?txnIds="
+            ApiPaths.TRANSACTIONS_V1
+                + "?accIds="
                 + TEST_ID
-                + ","
-                + tId1
-                + ",&catIds="
+                + "&catIds="
                 + TEST_ID
                 + ","
                 + cId2
-                + ",&txnTypes=NEEDS,INCOME"
+                + "&catTypeIds="
+                + TEST_ID
+                + "&expTypes=NEEDS,"
                 + "&merchants=TEST%20MERCHANT,SOME_MERCHANT"
                 + "&beginDate="
                 + beginDate
@@ -195,7 +197,7 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
                 + endDate,
             Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());
-    response = JsonUtils.fromJson(resp.body(), CategoryResponse.class);
+    response = JsonUtils.fromJson(resp.body(), TransactionResponse.class);
     Assertions.assertEquals(2, response.data().size());
 
     // CLEANUP
@@ -258,17 +260,22 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
     Assertions.assertEquals(400, resp.statusCode());
     Assertions.assertTrue(resp.body().contains("Transaction request cannot be null..."));
 
-    TransactionRequest req = new TransactionRequest(LocalDateTime.now(), "", 100.00, "", List.of());
+    TransactionRequest req = new TransactionRequest(LocalDateTime.now(), "", null, 100.00, "", List.of());
     resp = httpPost(ApiPaths.TRANSACTIONS_V1, JsonUtils.toJson(req), Boolean.TRUE);
     Assertions.assertEquals(400, resp.statusCode());
     Assertions.assertTrue(resp.body().contains("Transaction merchant cannot be empty..."));
 
-    req = new TransactionRequest(LocalDateTime.now(), "Some Merchant", 0.00, "", List.of());
+      req = new TransactionRequest(LocalDateTime.now(), "Some Merchant", null,0.00, "", List.of());
+      resp = httpPost(ApiPaths.TRANSACTIONS_V1, JsonUtils.toJson(req), Boolean.TRUE);
+      Assertions.assertEquals(400, resp.statusCode());
+      Assertions.assertTrue(resp.body().contains("Transaction account cannot be null..."));
+
+    req = new TransactionRequest(LocalDateTime.now(), "Some Merchant", TEST_ID,0.00, "", List.of());
     resp = httpPost(ApiPaths.TRANSACTIONS_V1, JsonUtils.toJson(req), Boolean.TRUE);
     Assertions.assertEquals(400, resp.statusCode());
     Assertions.assertTrue(resp.body().contains("Transaction total cannot be negative..."));
 
-    req = new TransactionRequest(LocalDateTime.now(), "Some Merchant", 100.00, "", List.of());
+    req = new TransactionRequest(LocalDateTime.now(), "Some Merchant",TEST_ID, 100.00, "", List.of());
     resp = httpPost(ApiPaths.TRANSACTIONS_V1, JsonUtils.toJson(req), Boolean.TRUE);
     Assertions.assertEquals(400, resp.statusCode());
     Assertions.assertTrue(resp.body().contains("Transaction must have at least one item..."));
@@ -277,6 +284,7 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
         new TransactionRequest(
             LocalDateTime.now(),
             "Some Merchant",
+                TEST_ID,
             100.00,
             "",
             List.of(
@@ -290,6 +298,7 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
         new TransactionRequest(
             LocalDateTime.now(),
             "Some Merchant",
+                TEST_ID,
             100.00,
             "",
             List.of(
@@ -304,6 +313,7 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
         new TransactionRequest(
             LocalDateTime.now(),
             "Some Merchant",
+                TEST_ID,
             100.00,
             "",
             List.of(
@@ -317,6 +327,7 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
         new TransactionRequest(
             LocalDateTime.now(),
             "Some Merchant",
+                TEST_ID,
             100.00,
             "",
             List.of(
@@ -352,6 +363,7 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
         new TransactionRequest(
             LocalDateTime.now(),
             "Test Merchant",
+                TEST_ID,
             100.00,
             "",
             List.of(

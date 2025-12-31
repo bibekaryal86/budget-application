@@ -2,6 +2,7 @@ package budget.application.db.dao;
 
 import budget.application.db.mapper.TransactionRowMappers;
 import budget.application.db.util.DaoUtils;
+import budget.application.model.dto.AccountResponse;
 import budget.application.model.dto.CategoryResponse;
 import budget.application.model.dto.CategoryTypeResponse;
 import budget.application.model.dto.PaginationRequest;
@@ -37,18 +38,22 @@ public class TransactionDao extends BaseDao<Transaction> {
 
   @Override
   protected List<String> insertColumns() {
-    return List.of("txn_date", "merchant", "total_amount", "notes");
+    return List.of("txn_date", "merchant", "account_id", "total_amount", "notes");
   }
 
   @Override
   protected List<Object> insertValues(Transaction t) {
     return List.of(
-        t.txnDate(), t.merchant().toUpperCase(), t.totalAmount(), t.notes().toUpperCase());
+        t.txnDate(),
+        t.merchant().toUpperCase(),
+        t.accountId(),
+        t.totalAmount(),
+        t.notes().toUpperCase());
   }
 
   @Override
   protected List<String> updateColumns() {
-    return List.of("txn_date", "merchant", "total_amount", "notes", "updated_at");
+    return List.of("txn_date", "merchant", "account_id", "total_amount", "notes", "updated_at");
   }
 
   @Override
@@ -56,6 +61,7 @@ public class TransactionDao extends BaseDao<Transaction> {
     return List.of(
         t.txnDate(),
         t.merchant().toUpperCase(),
+        t.accountId(),
         t.totalAmount(),
         t.notes().toUpperCase(),
         LocalDateTime.now());
@@ -78,7 +84,7 @@ public class TransactionDao extends BaseDao<Transaction> {
     if (requestParams == null) {
       requestParams =
           new RequestParams.TransactionParams(
-              null, null, List.of(), List.of(), List.of(), List.of());
+              null, null, List.of(), List.of(), List.of(), List.of(), List.of());
     }
 
     List<UUID> catIds = requestParams.catIds();
@@ -86,7 +92,8 @@ public class TransactionDao extends BaseDao<Transaction> {
     LocalDate beginDate = requestParams.beginDate();
     LocalDate endDate = requestParams.endDate();
     List<String> merchants = requestParams.merchants();
-    List<String> txnTypes = requestParams.txnTypes();
+    List<UUID> accIds = requestParams.accIds();
+    List<String> expTypes = requestParams.expTypes();
 
     StringBuilder sql =
         new StringBuilder(
@@ -100,12 +107,20 @@ public class TransactionDao extends BaseDao<Transaction> {
                     ti.id          AS item_id,
                     ti.label       AS item_label,
                     ti.amount      AS item_amount,
-                    ti.txn_type    AS item_txn_type,
+                    ti.exp_type    AS item_exp_type,
                     c.id           AS category_id,
                     c.name         AS category_name,
                     ct.id          AS category_type_id,
-                    ct.name        AS category_type_name
+                    ct.name        AS category_type_name,
+                    a.id           AS account_id,
+                    a.name         AS account_name,
+                    a.account_type AS account_type,
+                    a.bank_name    AS account_bank_name,
+                    a.opening_balance AS account_opening_balance,
+                    a.status       AS account_status
                 FROM transaction t
+                JOIN account a
+                    ON t.account_id = a.id
                 LEFT JOIN transaction_item ti
                        ON ti.transaction_id = t.id
                 LEFT JOIN category c
@@ -136,9 +151,13 @@ public class TransactionDao extends BaseDao<Transaction> {
       addWhere.accept("t.merchant IN (" + DaoUtils.placeholders(merchants.size()) + ")");
       params.addAll(merchants);
     }
-    if (!CommonUtilities.isEmpty(txnTypes)) {
-      addWhere.accept("ti.txn_type IN (" + DaoUtils.placeholders(txnTypes.size()) + ")");
-      params.addAll(txnTypes);
+    if (!CommonUtilities.isEmpty(accIds)) {
+      addWhere.accept("t.account_id IN (" + DaoUtils.placeholders(accIds.size()) + ")");
+      params.addAll(accIds);
+    }
+    if (!CommonUtilities.isEmpty(expTypes)) {
+      addWhere.accept("ti.exp_type IN (" + DaoUtils.placeholders(expTypes.size()) + ")");
+      params.addAll(expTypes);
     }
     if (!CommonUtilities.isEmpty(catIds)) {
       addWhere.accept("ti.category_id IN (" + DaoUtils.placeholders(catIds.size()) + ")");
@@ -148,9 +167,11 @@ public class TransactionDao extends BaseDao<Transaction> {
       addWhere.accept("c.category_type_id IN (" + DaoUtils.placeholders(catTypeIds.size()) + ")");
       params.addAll(catTypeIds);
     }
+
     sql.append(" ORDER BY t.txn_date DESC");
 
     log.debug("[{}] Composite Transactions SQL=[{}]", requestId, sql);
+    log.debug("[{}] Composite Transactions Params=[{}]", requestId, params);
 
     try (PreparedStatement stmt = connection.prepareStatement(sql.toString())) {
       if (!params.isEmpty()) {
@@ -164,11 +185,20 @@ public class TransactionDao extends BaseDao<Transaction> {
           UUID txnId = rs.getObject("txn_id", UUID.class);
           TransactionResultBuilder txnBuilder = txnMap.get(txnId);
           if (txnBuilder == null) {
+            AccountResponse.Account account =
+                new AccountResponse.Account(
+                    rs.getObject("account_id", UUID.class),
+                    rs.getString("account_name"),
+                    rs.getString("account_type"),
+                    rs.getString("account_bank_name"),
+                    rs.getDouble("account_opening_balance"),
+                    rs.getString("account_status"));
             txnBuilder =
                 new TransactionResultBuilder(
                     txnId,
                     rs.getObject("txn_date", LocalDateTime.class),
                     rs.getString("txn_merchant"),
+                    account,
                     rs.getDouble("txn_total_amount"),
                     rs.getString("txn_notes"));
             txnMap.put(txnId, txnBuilder);
@@ -187,11 +217,12 @@ public class TransactionDao extends BaseDao<Transaction> {
             TransactionItemResponse.TransactionItem item =
                 new TransactionItemResponse.TransactionItem(
                     itemId,
-                    new TransactionResponse.Transaction(txnId, null, null, 0.0, null, List.of()),
+                    new TransactionResponse.Transaction(
+                        txnId, null, null, 0.0, null, null, List.of()),
                     c,
                     rs.getString("item_label"),
                     rs.getDouble("item_amount"),
-                    rs.getString("item_txn_type"));
+                    rs.getString("item_exp_type"));
             txnMap.get(txnId).addItem(item);
           }
         }
@@ -257,15 +288,22 @@ public class TransactionDao extends BaseDao<Transaction> {
     private final UUID id;
     private final LocalDateTime txnDate;
     private final String merchant;
+    private final AccountResponse.Account account;
     private final double totalAmount;
     private final String notes;
     private final List<TransactionItemResponse.TransactionItem> items = new ArrayList<>();
 
     TransactionResultBuilder(
-        UUID id, LocalDateTime txnDate, String merchant, double totalAmount, String notes) {
+        UUID id,
+        LocalDateTime txnDate,
+        String merchant,
+        AccountResponse.Account account,
+        double totalAmount,
+        String notes) {
       this.id = id;
       this.txnDate = txnDate;
       this.merchant = merchant;
+      this.account = account;
       this.totalAmount = totalAmount;
       this.notes = notes;
     }
@@ -276,7 +314,7 @@ public class TransactionDao extends BaseDao<Transaction> {
 
     TransactionResponse.Transaction build() {
       return new TransactionResponse.Transaction(
-          id, txnDate, merchant, totalAmount, notes, List.copyOf(items));
+          id, txnDate, merchant, totalAmount, notes, account, List.copyOf(items));
     }
   }
 }
