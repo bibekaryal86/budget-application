@@ -14,7 +14,7 @@ public class TransactionRowMappers {
     public Transaction map(ResultSet rs) throws SQLException {
       return new Transaction(
           rs.getObject("id", UUID.class),
-              rs.getObject("txn_date", LocalDateTime.class),
+          rs.getObject("txn_date", LocalDateTime.class),
           rs.getString("merchant"),
           rs.getDouble("total_amount"),
           rs.getString("notes"),
@@ -30,7 +30,7 @@ public class TransactionRowMappers {
     public TransactionResponse.Transaction map(ResultSet rs) throws SQLException {
       return new TransactionResponse.Transaction(
           rs.getObject("txn_id", UUID.class),
-              rs.getObject("txn_date", LocalDateTime.class),
+          rs.getObject("txn_date", LocalDateTime.class),
           rs.getString("txn_merchant"),
           rs.getDouble("txn_total_amount"),
           rs.getString("txn_notes"),

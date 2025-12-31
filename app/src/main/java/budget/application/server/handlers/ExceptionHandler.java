@@ -21,8 +21,8 @@ public class ExceptionHandler extends ChannelInboundHandlerAdapter {
     String message = cause.getMessage();
 
     if (message.contains(requestId)) {
-        message = message.replace(requestId, "");
-        message = message.replace("[]", "");
+      message = message.replace(requestId, "");
+      message = message.replace("[]", "");
     }
 
     log.error("[{}] Exception caught", requestId, cause);

@@ -38,8 +38,10 @@ public class ServerNetty {
   }
 
   public void start() throws Exception {
-    bossGroup = new MultiThreadIoEventLoopGroup(Constants.BOSS_GROUP_THREADS, NioIoHandler.newFactory());
-    workerGroup = new MultiThreadIoEventLoopGroup(Constants.WORKER_GROUP_THREADS, NioIoHandler.newFactory());
+    bossGroup =
+        new MultiThreadIoEventLoopGroup(Constants.BOSS_GROUP_THREADS, NioIoHandler.newFactory());
+    workerGroup =
+        new MultiThreadIoEventLoopGroup(Constants.WORKER_GROUP_THREADS, NioIoHandler.newFactory());
 
     try {
       final ServerBootstrap serverBootstrap = new ServerBootstrap();

@@ -6,7 +6,6 @@ import budget.application.TestDataSource;
 import budget.application.service.domain.TransactionService;
 import io.github.bibekaryal86.shdsvc.Email;
 import io.github.bibekaryal86.shdsvc.dtos.EmailRequest;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
