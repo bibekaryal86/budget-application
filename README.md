@@ -1,5 +1,9 @@
 # budget-service
 
+create an api to serve home page
+add txn type validation based on category
+cache category and category type, api to reset
+
 A streamlined, lightweight personal finance tracker built with a focus on high performance and zero framework overhead.
 This application provides a robust backend for managing expenses and income through a structured category system.
 

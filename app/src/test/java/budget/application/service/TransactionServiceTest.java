@@ -7,6 +7,7 @@ import budget.application.service.domain.TransactionService;
 import io.github.bibekaryal86.shdsvc.Email;
 import io.github.bibekaryal86.shdsvc.dtos.EmailRequest;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import javax.sql.DataSource;
@@ -50,7 +51,7 @@ public class TransactionServiceTest extends IntegrationBaseTest {
 
   @Test
   void testReconcileAll_OneMismatch_EmailSent() throws Exception {
-    UUID txnId = helper.insertTransaction(UUID.randomUUID(), LocalDate.now(), 200.00);
+    UUID txnId = helper.insertTransaction(UUID.randomUUID(), LocalDateTime.now(), 200.00);
     helper.insertTransactionItem(UUID.randomUUID(), txnId, TEST_ID, 50.00, "NEEDS");
 
     service.reconcileAll("req-one");
@@ -63,15 +64,15 @@ public class TransactionServiceTest extends IntegrationBaseTest {
 
   @Test
   void testReconcileAll_MultipleMismatches_EmailContainsAll() throws Exception {
-    UUID txnId1 = helper.insertTransaction(UUID.randomUUID(), LocalDate.now(), 100.00);
+    UUID txnId1 = helper.insertTransaction(UUID.randomUUID(), LocalDateTime.now(), 100.00);
     helper.insertTransactionItem(UUID.randomUUID(), txnId1, TEST_ID, 25, "NEEDS");
     helper.insertTransactionItem(UUID.randomUUID(), txnId1, TEST_ID, 50.00, "WANTS");
     helper.insertTransactionItem(UUID.randomUUID(), txnId1, TEST_ID, 50, "INCOME");
-    UUID txnId2 = helper.insertTransaction(UUID.randomUUID(), LocalDate.now(), 200.00);
+    UUID txnId2 = helper.insertTransaction(UUID.randomUUID(), LocalDateTime.now(), 200.00);
     helper.insertTransactionItem(UUID.randomUUID(), txnId2, TEST_ID, 100, "TRANSFER");
     helper.insertTransactionItem(UUID.randomUUID(), txnId2, TEST_ID, 50.00, "OTHER");
     helper.insertTransactionItem(UUID.randomUUID(), txnId2, TEST_ID, 50, "OTHER");
-    UUID txnId3 = helper.insertTransaction(UUID.randomUUID(), LocalDate.now(), 100.00);
+    UUID txnId3 = helper.insertTransaction(UUID.randomUUID(), LocalDateTime.now(), 100.00);
 
     service.reconcileAll("req-multi");
     ArgumentCaptor<EmailRequest> captor = ArgumentCaptor.forClass(EmailRequest.class);

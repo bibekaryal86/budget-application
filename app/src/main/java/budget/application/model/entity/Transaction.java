@@ -6,7 +6,7 @@ import java.util.UUID;
 
 public record Transaction(
     UUID id,
-    LocalDate txnDate,
+    LocalDateTime txnDate,
     String merchant,
     double totalAmount,
     String notes,

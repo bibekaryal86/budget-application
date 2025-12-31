@@ -167,7 +167,7 @@ public class TransactionDao extends BaseDao<Transaction> {
             txnBuilder =
                 new TransactionResultBuilder(
                     txnId,
-                    rs.getDate("txn_date").toLocalDate(),
+                    rs.getObject("txn_date", LocalDateTime.class),
                     rs.getString("txn_merchant"),
                     rs.getDouble("txn_total_amount"),
                     rs.getString("txn_notes"));
@@ -255,14 +255,14 @@ public class TransactionDao extends BaseDao<Transaction> {
 
   private static class TransactionResultBuilder {
     private final UUID id;
-    private final LocalDate txnDate;
+    private final LocalDateTime txnDate;
     private final String merchant;
     private final double totalAmount;
     private final String notes;
     private final List<TransactionItemResponse.TransactionItem> items = new ArrayList<>();
 
     TransactionResultBuilder(
-        UUID id, LocalDate txnDate, String merchant, double totalAmount, String notes) {
+        UUID id, LocalDateTime txnDate, String merchant, double totalAmount, String notes) {
       this.id = id;
       this.txnDate = txnDate;
       this.merchant = merchant;

@@ -1,4 +1,4 @@
-package budget.application.model.dto;
+package budget.application.model.utils;
 
 public record DbHealthStatus(
     boolean dbHealthy,

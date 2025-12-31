@@ -6,6 +6,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -80,7 +81,7 @@ public final class TestDataHelper {
     }
   }
 
-  public UUID insertTransaction(UUID id, LocalDate txnDate, double totalAmount)
+  public UUID insertTransaction(UUID id, LocalDateTime txnDate, double totalAmount)
       throws SQLException {
     try (Connection c = ds.getConnection();
         PreparedStatement stmt =
@@ -187,7 +188,7 @@ public final class TestDataHelper {
           totalAmount = itemAmount * itemCount + 1.0;
         }
 
-        insertTransaction(txnId, LocalDate.of(2024, 1, 1), totalAmount);
+        insertTransaction(txnId, LocalDateTime.of(2024, 1, 1, 0, 0, 0), totalAmount);
 
         for (int j = 0; j < itemCount; j++) {
           List<String> txnTypes = Constants.TRANSACTION_TYPES;

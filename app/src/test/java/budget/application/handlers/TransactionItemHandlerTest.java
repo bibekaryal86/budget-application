@@ -11,7 +11,7 @@ import budget.application.server.utils.JsonUtils;
 import budget.application.service.util.ResponseMetadataUtils;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseWithMetadata;
 import java.net.http.HttpResponse;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -98,9 +98,9 @@ public class TransactionItemHandlerTest extends IntegrationBaseTest {
     helper.insertCategory(cId2, ctId1, "C TWO");
     helper.insertCategory(cId3, ctId2, "C THREE");
 
-    helper.insertTransaction(tId1, LocalDate.now(), 100.00);
-    helper.insertTransaction(tId2, LocalDate.now().minusMonths(1L), 200.00);
-    helper.insertTransaction(tId3, LocalDate.now().minusMonths(2L), 300.00);
+    helper.insertTransaction(tId1, LocalDateTime.now(), 100.00);
+    helper.insertTransaction(tId2, LocalDateTime.now().minusMonths(1L), 200.00);
+    helper.insertTransaction(tId3, LocalDateTime.now().minusMonths(2L), 300.00);
 
     helper.insertTransactionItem(tiId1, tId1, cId1, 50, "NEEDS");
     helper.insertTransactionItem(tiId2, tId1, cId2, 50, "NEEDS");

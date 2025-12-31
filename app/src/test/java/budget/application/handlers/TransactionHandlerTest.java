@@ -27,7 +27,7 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
     // CREATE
     TransactionRequest req =
         new TransactionRequest(
-            LocalDate.now(),
+            LocalDateTime.now(),
             "Test Merchant",
             100.00,
             "",
@@ -75,7 +75,7 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
     // UPDATE
     req =
         new TransactionRequest(
-            LocalDate.now(),
+            LocalDateTime.now(),
             "Merchant Test",
             100.00,
             "Txn Note",
@@ -141,9 +141,9 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
     helper.insertCategory(cId2, ctId1, "C TWO");
     helper.insertCategory(cId3, ctId2, "C THREE");
 
-    helper.insertTransaction(tId1, LocalDate.now(), 100.00);
-    helper.insertTransaction(tId2, LocalDate.now().minusMonths(1L), 200.00);
-    helper.insertTransaction(tId3, LocalDate.now().minusMonths(2L), 300.00);
+    helper.insertTransaction(tId1, LocalDateTime.now(), 100.00);
+    helper.insertTransaction(tId2, LocalDateTime.now().minusMonths(1L), 200.00);
+    helper.insertTransaction(tId3, LocalDateTime.now().minusMonths(2L), 300.00);
 
     helper.insertTransactionItem(tiId1, tId1, cId1, 50, "NEEDS");
     helper.insertTransactionItem(tiId2, tId1, cId2, 50, "NEEDS");
@@ -175,7 +175,7 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
     Assertions.assertEquals(3, response.data().size());
 
     LocalDate beginDate = LocalDate.of(2025, 1, 1);
-    LocalDate endDate = LocalDate.now();
+    LocalDate endDate = LocalDateTime.now().toLocalDate();
     resp =
         httpGet(
             ApiPaths.TRANSACTION_ITEMS_V1
@@ -218,9 +218,9 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
     UUID txnId1 = UUID.randomUUID();
     UUID txnId2 = UUID.randomUUID();
     UUID txnId3 = UUID.randomUUID();
-    helper.insertTransaction(txnId1, LocalDate.now(), 100.00);
-    helper.insertTransaction(txnId2, LocalDate.now(), 100.00);
-    helper.insertTransaction(txnId3, LocalDate.now(), 100.00);
+    helper.insertTransaction(txnId1, LocalDateTime.now(), 100.00);
+    helper.insertTransaction(txnId2, LocalDateTime.now(), 100.00);
+    helper.insertTransaction(txnId3, LocalDateTime.now(), 100.00);
 
     HttpResponse<String> resp = httpGet(ApiPaths.TRANSACTIONS_V1_WITH_MERCHANTS, Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());
@@ -258,24 +258,24 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
     Assertions.assertEquals(400, resp.statusCode());
     Assertions.assertTrue(resp.body().contains("Transaction request cannot be null..."));
 
-    TransactionRequest req = new TransactionRequest(LocalDate.now(), "", 100.00, "", List.of());
+    TransactionRequest req = new TransactionRequest(LocalDateTime.now(), "", 100.00, "", List.of());
     resp = httpPost(ApiPaths.TRANSACTIONS_V1, JsonUtils.toJson(req), Boolean.TRUE);
     Assertions.assertEquals(400, resp.statusCode());
     Assertions.assertTrue(resp.body().contains("Transaction merchant cannot be empty..."));
 
-    req = new TransactionRequest(LocalDate.now(), "Some Merchant", 0.00, "", List.of());
+    req = new TransactionRequest(LocalDateTime.now(), "Some Merchant", 0.00, "", List.of());
     resp = httpPost(ApiPaths.TRANSACTIONS_V1, JsonUtils.toJson(req), Boolean.TRUE);
     Assertions.assertEquals(400, resp.statusCode());
     Assertions.assertTrue(resp.body().contains("Transaction total cannot be negative..."));
 
-    req = new TransactionRequest(LocalDate.now(), "Some Merchant", 100.00, "", List.of());
+    req = new TransactionRequest(LocalDateTime.now(), "Some Merchant", 100.00, "", List.of());
     resp = httpPost(ApiPaths.TRANSACTIONS_V1, JsonUtils.toJson(req), Boolean.TRUE);
     Assertions.assertEquals(400, resp.statusCode());
     Assertions.assertTrue(resp.body().contains("Transaction must have at least one item..."));
 
     req =
         new TransactionRequest(
-            LocalDate.now(),
+            LocalDateTime.now(),
             "Some Merchant",
             100.00,
             "",
@@ -288,7 +288,7 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
 
     req =
         new TransactionRequest(
-            LocalDate.now(),
+            LocalDateTime.now(),
             "Some Merchant",
             100.00,
             "",
@@ -302,7 +302,7 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
 
     req =
         new TransactionRequest(
-            LocalDate.now(),
+            LocalDateTime.now(),
             "Some Merchant",
             100.00,
             "",
@@ -315,7 +315,7 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
 
     req =
         new TransactionRequest(
-            LocalDate.now(),
+            LocalDateTime.now(),
             "Some Merchant",
             100.00,
             "",
@@ -350,7 +350,7 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
     UUID randomId = UUID.randomUUID();
     TransactionRequest req =
         new TransactionRequest(
-            LocalDate.now(),
+            LocalDateTime.now(),
             "Test Merchant",
             100.00,
             "",
