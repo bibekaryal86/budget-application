@@ -80,34 +80,34 @@ public final class TestDataHelper {
     }
   }
 
-    public UUID insertAccount(UUID id, UUID name) throws SQLException {
-        try (Connection c = ds.getConnection();
-             PreparedStatement stmt =
-                     c.prepareStatement(
-                             """
+  public UUID insertAccount(UUID id, UUID name) throws SQLException {
+    try (Connection c = ds.getConnection();
+        PreparedStatement stmt =
+            c.prepareStatement(
+                """
                                           INSERT INTO account (id, name, account_type, bank_name, opening_balance, status)
                                           VALUES (?, ?, 'CHECKING', 'TEST BANK', 1000.00, 'ACTIVE')
                                       """)) {
 
-            stmt.setObject(1, id);
-            stmt.setObject(2, name);
-            stmt.executeUpdate();
-        }
-        return id;
+      stmt.setObject(1, id);
+      stmt.setObject(2, name);
+      stmt.executeUpdate();
     }
+    return id;
+  }
 
-    public void deleteAccount(UUID id) throws SQLException {
-        try (Connection c = ds.getConnection();
-             PreparedStatement stmt =
-                     c.prepareStatement(
-                             """
+  public void deleteAccount(UUID id) throws SQLException {
+    try (Connection c = ds.getConnection();
+        PreparedStatement stmt =
+            c.prepareStatement(
+                """
                                           DELETE FROM account WHERE id = ?
                                       """)) {
 
-            stmt.setObject(1, id);
-            stmt.executeUpdate();
-        }
+      stmt.setObject(1, id);
+      stmt.executeUpdate();
     }
+  }
 
   public UUID insertTransaction(UUID id, LocalDateTime txnDate, double totalAmount)
       throws SQLException {
@@ -120,7 +120,7 @@ public final class TestDataHelper {
             """)) {
 
       stmt.setObject(1, id);
-      stmt.setObject(2, txnDate);
+      stmt.setObject(2, txnDate.toLocalDate());
       stmt.setString(3, "Merchant: " + id);
       stmt.setObject(4, IntegrationBaseTest.TEST_ID);
       stmt.setDouble(5, totalAmount);

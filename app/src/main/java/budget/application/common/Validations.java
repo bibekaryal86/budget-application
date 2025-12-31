@@ -121,7 +121,7 @@ public class Validations {
           String.format("[%s] Transaction merchant cannot be empty...", requestId));
     }
     if (tr.accountId() == null) {
-        throw new Exceptions.BadRequestException(
+      throw new Exceptions.BadRequestException(
           String.format("[%s] Transaction account cannot be null...", requestId));
     }
     if (tr.totalAmount() <= 0) {

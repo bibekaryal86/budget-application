@@ -44,7 +44,7 @@ public class TransactionDao extends BaseDao<Transaction> {
   @Override
   protected List<Object> insertValues(Transaction t) {
     return List.of(
-        t.txnDate(),
+        t.txnDate().toLocalDate(),
         t.merchant().toUpperCase(),
         t.accountId(),
         t.totalAmount(),
@@ -59,7 +59,7 @@ public class TransactionDao extends BaseDao<Transaction> {
   @Override
   protected List<Object> updateValues(Transaction t) {
     return List.of(
-        t.txnDate(),
+        t.txnDate().toLocalDate(),
         t.merchant().toUpperCase(),
         t.accountId(),
         t.totalAmount(),

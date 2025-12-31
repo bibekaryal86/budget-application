@@ -79,7 +79,7 @@ public class ServerUtils {
     List<UUID> accIds = parseUUIDs(decoder, "accIds");
     List<String> expTypes = parseStrings(decoder, "expTypes");
     if (!expTypes.isEmpty()) {
-        log.debug("expTypes: {}", expTypes);
+      log.debug("expTypes: {}", expTypes);
     }
     return new RequestParams.TransactionParams(
         beginDate, endDate, merchants, catIds, catTypeIds, accIds, expTypes);

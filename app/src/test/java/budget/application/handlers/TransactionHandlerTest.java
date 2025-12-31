@@ -3,7 +3,6 @@ package budget.application.handlers;
 import budget.application.IntegrationBaseTest;
 import budget.application.TestDataHelper;
 import budget.application.TestDataSource;
-import budget.application.model.dto.TransactionResponse;
 import budget.application.model.dto.TransactionItemRequest;
 import budget.application.model.dto.TransactionRequest;
 import budget.application.model.dto.TransactionResponse;
@@ -198,7 +197,7 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
             Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());
     response = JsonUtils.fromJson(resp.body(), TransactionResponse.class);
-    Assertions.assertEquals(2, response.data().size());
+    Assertions.assertEquals(1, response.data().size());
 
     // CLEANUP
     helper.deleteTransactionItem(tiId1);
@@ -260,22 +259,26 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
     Assertions.assertEquals(400, resp.statusCode());
     Assertions.assertTrue(resp.body().contains("Transaction request cannot be null..."));
 
-    TransactionRequest req = new TransactionRequest(LocalDateTime.now(), "", null, 100.00, "", List.of());
+    TransactionRequest req =
+        new TransactionRequest(LocalDateTime.now(), "", null, 100.00, "", List.of());
     resp = httpPost(ApiPaths.TRANSACTIONS_V1, JsonUtils.toJson(req), Boolean.TRUE);
     Assertions.assertEquals(400, resp.statusCode());
     Assertions.assertTrue(resp.body().contains("Transaction merchant cannot be empty..."));
 
-      req = new TransactionRequest(LocalDateTime.now(), "Some Merchant", null,0.00, "", List.of());
-      resp = httpPost(ApiPaths.TRANSACTIONS_V1, JsonUtils.toJson(req), Boolean.TRUE);
-      Assertions.assertEquals(400, resp.statusCode());
-      Assertions.assertTrue(resp.body().contains("Transaction account cannot be null..."));
+    req = new TransactionRequest(LocalDateTime.now(), "Some Merchant", null, 0.00, "", List.of());
+    resp = httpPost(ApiPaths.TRANSACTIONS_V1, JsonUtils.toJson(req), Boolean.TRUE);
+    Assertions.assertEquals(400, resp.statusCode());
+    Assertions.assertTrue(resp.body().contains("Transaction account cannot be null..."));
 
-    req = new TransactionRequest(LocalDateTime.now(), "Some Merchant", TEST_ID,0.00, "", List.of());
+    req =
+        new TransactionRequest(LocalDateTime.now(), "Some Merchant", TEST_ID, 0.00, "", List.of());
     resp = httpPost(ApiPaths.TRANSACTIONS_V1, JsonUtils.toJson(req), Boolean.TRUE);
     Assertions.assertEquals(400, resp.statusCode());
     Assertions.assertTrue(resp.body().contains("Transaction total cannot be negative..."));
 
-    req = new TransactionRequest(LocalDateTime.now(), "Some Merchant",TEST_ID, 100.00, "", List.of());
+    req =
+        new TransactionRequest(
+            LocalDateTime.now(), "Some Merchant", TEST_ID, 100.00, "", List.of());
     resp = httpPost(ApiPaths.TRANSACTIONS_V1, JsonUtils.toJson(req), Boolean.TRUE);
     Assertions.assertEquals(400, resp.statusCode());
     Assertions.assertTrue(resp.body().contains("Transaction must have at least one item..."));
@@ -284,7 +287,7 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
         new TransactionRequest(
             LocalDateTime.now(),
             "Some Merchant",
-                TEST_ID,
+            TEST_ID,
             100.00,
             "",
             List.of(
@@ -298,7 +301,7 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
         new TransactionRequest(
             LocalDateTime.now(),
             "Some Merchant",
-                TEST_ID,
+            TEST_ID,
             100.00,
             "",
             List.of(
@@ -313,7 +316,7 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
         new TransactionRequest(
             LocalDateTime.now(),
             "Some Merchant",
-                TEST_ID,
+            TEST_ID,
             100.00,
             "",
             List.of(
@@ -327,7 +330,7 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
         new TransactionRequest(
             LocalDateTime.now(),
             "Some Merchant",
-                TEST_ID,
+            TEST_ID,
             100.00,
             "",
             List.of(
@@ -363,7 +366,7 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
         new TransactionRequest(
             LocalDateTime.now(),
             "Test Merchant",
-                TEST_ID,
+            TEST_ID,
             100.00,
             "",
             List.of(
