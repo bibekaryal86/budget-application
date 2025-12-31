@@ -18,7 +18,13 @@ public class ExceptionHandler extends ChannelInboundHandlerAdapter {
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
     final String requestId = ctx.channel().attr(Constants.REQUEST_ID).get();
     final String className = cause.getClass().getSimpleName();
-    final String message = cause.getMessage();
+    String message = cause.getMessage();
+
+    if (message.contains(requestId)) {
+        message = message.replace(requestId, "");
+        message = message.replace("[]", "");
+    }
+
     log.error("[{}] Exception caught", requestId, cause);
     ResponseWithMetadata response =
         ServerUtils.getResponseWithMetadata(
