@@ -72,7 +72,7 @@ public class TransactionService {
                               item.categoryId(),
                               item.label(),
                               item.amount(),
-                              item.expType())) // TODO need this validated and set as empty string
+                              item.expType()))
                   .toList();
           List<UUID> txnItemsIds =
               itemDao.createItems(txnItemsIn).stream().map(TransactionItem::id).toList();
