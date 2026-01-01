@@ -310,7 +310,7 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
                     TEST_ID, UUID.randomUUID(), "Test Label2", 50.00, "WANTS")));
     resp = httpPost(ApiPaths.TRANSACTIONS_V1, JsonUtils.toJson(req), Boolean.TRUE);
     Assertions.assertEquals(400, resp.statusCode());
-    Assertions.assertTrue(resp.body().contains("Category type does not exist..."));
+    Assertions.assertTrue(resp.body().contains("Category does not exist..."));
 
     req =
         new TransactionRequest(

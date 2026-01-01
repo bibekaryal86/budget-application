@@ -59,9 +59,9 @@ public class CategoryDao extends BaseDao<Category> {
     return "name ASC";
   }
 
-  public Optional<Category> readByIdNoEx(UUID id) {
+  public Optional<CategoryResponse.Category> readByIdNoEx(UUID uuid) {
     try {
-      return read(List.of(id)).stream().findFirst();
+      return readCategories(List.of(uuid), List.of()).stream().findFirst();
     } catch (Exception e) {
       return Optional.empty();
     }

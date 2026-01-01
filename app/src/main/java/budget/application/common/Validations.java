@@ -4,6 +4,7 @@ import budget.application.db.dao.CategoryDao;
 import budget.application.db.dao.CategoryTypeDao;
 import budget.application.model.dto.AccountRequest;
 import budget.application.model.dto.CategoryRequest;
+import budget.application.model.dto.CategoryResponse;
 import budget.application.model.dto.CategoryTypeRequest;
 import budget.application.model.dto.TransactionItemRequest;
 import budget.application.model.dto.TransactionRequest;
@@ -100,17 +101,22 @@ public class Validations {
       throw new Exceptions.BadRequestException(
           String.format("[%s] Transaction item amount cannot be zero or negative...", requestId));
     }
-    if (CommonUtilities.isEmpty(tir.expType())) {
+
+    CategoryResponse.Category category = categoryDao.readByIdNoEx(tir.categoryId()).orElse(null);
+    if (category == null) {
       throw new Exceptions.BadRequestException(
-          String.format("[%s] Transaction item type cannot be empty...", requestId));
+          String.format("[%s] Category does not exist...", requestId));
     }
-    if (!Constants.TRANSACTION_TYPES.contains(tir.expType())) {
-      throw new Exceptions.BadRequestException(
-          String.format("[%s] Transaction item type is invalid...", requestId));
-    }
-    if (categoryDao.readByIdNoEx(tir.categoryId()).isEmpty()) {
-      throw new Exceptions.BadRequestException(
-          String.format("[%s] Category type does not exist...", requestId));
+
+    if (!Constants.NO_EXPENSE_CATEGORY_TYPES.contains(category.categoryType().name())) {
+      if (CommonUtilities.isEmpty(tir.expType())) {
+        throw new Exceptions.BadRequestException(
+            String.format("[%s] Transaction item type cannot be empty...", requestId));
+      }
+      if (!Constants.TRANSACTION_TYPES.contains(tir.expType())) {
+        throw new Exceptions.BadRequestException(
+            String.format("[%s] Transaction item type is invalid...", requestId));
+      }
     }
   }
 

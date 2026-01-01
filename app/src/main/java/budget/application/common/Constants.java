@@ -72,6 +72,12 @@ public class Constants {
       List.of("CASH", "CREDIT", "LOAN", "CHECKING", "SAVINGS", "INVESTMENT", "OTHER");
   public static final List<String> ACCOUNT_STATUSES = List.of("ACTIVE", "INACTIVE");
 
+  public static final String CATEGORY_TYPE_INCOME_NAME = "INCOME";
+  public static final String CATEGORY_TYPE_SAVINGS_NAME = "EXPENSE";
+  public static final String CATEGORY_TYPE_TRANSFER_NAME = "TRANSFER";
+  public static final List<String> NO_EXPENSE_CATEGORY_TYPES =
+      List.of(CATEGORY_TYPE_INCOME_NAME, CATEGORY_TYPE_SAVINGS_NAME, CATEGORY_TYPE_TRANSFER_NAME);
+
   static {
     IS_PRODUCTION =
         Objects.equals(
