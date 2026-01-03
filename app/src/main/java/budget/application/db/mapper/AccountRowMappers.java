@@ -16,7 +16,7 @@ public class AccountRowMappers {
           rs.getString("name"),
           rs.getString("account_type"),
           rs.getString("bank_name"),
-          rs.getDouble("opening_balance"),
+          rs.getBigDecimal("opening_balance"),
           rs.getString("status"),
           rs.getObject("created_at", LocalDateTime.class),
           rs.getObject("updated_at", LocalDateTime.class));
@@ -31,7 +31,7 @@ public class AccountRowMappers {
           rs.getString("name"),
           rs.getString("account_type"),
           rs.getString("bank_name"),
-          rs.getDouble("opening_balance"),
+          rs.getBigDecimal("opening_balance"),
           rs.getString("status"));
     }
   }

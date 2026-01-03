@@ -9,6 +9,7 @@ import budget.application.model.dto.CategoryTypeRequest;
 import budget.application.model.dto.TransactionItemRequest;
 import budget.application.model.dto.TransactionRequest;
 import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
+import java.math.BigDecimal;
 
 public class Validations {
   private Validations() {}
@@ -34,9 +35,9 @@ public class Validations {
       throw new Exceptions.BadRequestException(
           String.format("[%s] Bank name cannot be empty...", requestId));
     }
-    if (ar.openingBalance() < 0) {
+    if (ar.openingBalance() == null || ar.openingBalance().intValue() < 0) {
       throw new Exceptions.BadRequestException(
-          String.format("[%s] Opening balance cannot be negative...", requestId));
+          String.format("[%s] Opening balance cannot be null or negative...", requestId));
     }
     if (CommonUtilities.isEmpty(ar.status())) {
       throw new Exceptions.BadRequestException(
@@ -97,9 +98,9 @@ public class Validations {
       throw new Exceptions.BadRequestException(
           String.format("[%s] Transaction item label cannot be empty...", requestId));
     }
-    if (tir.amount() <= 0) {
+    if (tir.amount() == null || tir.amount().intValue() <= 0) {
       throw new Exceptions.BadRequestException(
-          String.format("[%s] Transaction item amount cannot be zero or negative...", requestId));
+          String.format("[%s] Transaction item amount cannot be null or negative...", requestId));
     }
 
     CategoryResponse.Category category = categoryDao.readByIdNoEx(tir.categoryId()).orElse(null);
@@ -134,16 +135,19 @@ public class Validations {
       throw new Exceptions.BadRequestException(
           String.format("[%s] Transaction account cannot be null...", requestId));
     }
-    if (tr.totalAmount() <= 0) {
+    if (tr.totalAmount() == null || tr.totalAmount().intValue() <= 0) {
       throw new Exceptions.BadRequestException(
-          String.format("[%s] Transaction total cannot be negative...", requestId));
+          String.format("[%s] Transaction total cannot be null or negative...", requestId));
     }
     if (CommonUtilities.isEmpty(tr.items())) {
       throw new Exceptions.BadRequestException(
           String.format("[%s] Transaction must have at least one item...", requestId));
     }
-    double sum = tr.items().stream().mapToDouble(TransactionItemRequest::amount).sum();
-    if (Double.compare(sum, tr.totalAmount()) != 0) {
+    BigDecimal sumItems =
+        tr.items().stream()
+            .map(TransactionItemRequest::amount)
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+    if (sumItems.compareTo(tr.totalAmount()) != 0) {
       throw new Exceptions.BadRequestException(
           String.format("[%s] Total amount does not match sum of items...", requestId));
     }

@@ -1,6 +1,7 @@
 package budget.application.model.dto;
 
 import io.github.bibekaryal86.shdsvc.dtos.ResponseMetadata;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -10,7 +11,7 @@ public record TransactionResponse(List<Transaction> data, ResponseMetadata metad
       UUID id,
       LocalDateTime txnDate,
       String merchant,
-      double totalAmount,
+      BigDecimal totalAmount,
       String notes,
       AccountResponse.Account account,
       List<TransactionItemResponse.TransactionItem> items) {}

@@ -1,5 +1,6 @@
 package budget.application.model.entity;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -8,7 +9,7 @@ public record Transaction(
     LocalDateTime txnDate,
     String merchant,
     UUID accountId,
-    double totalAmount,
+    BigDecimal totalAmount,
     String notes,
     LocalDateTime createdAt,
     LocalDateTime updatedAt) {}

@@ -1,5 +1,6 @@
 package budget.application.model.entity;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -8,7 +9,7 @@ public record Account(
     String name,
     String accountType,
     String bankName,
-    double openingBalance,
+    BigDecimal openingBalance,
     String status,
     LocalDateTime createdAt,
     LocalDateTime updatedAt) {}

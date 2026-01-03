@@ -7,6 +7,7 @@ import budget.application.server.util.ApiPaths;
 import budget.application.server.util.JsonUtils;
 import budget.application.service.util.ResponseMetadataUtils;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseWithMetadata;
+import java.math.BigDecimal;
 import java.net.http.HttpResponse;
 import java.util.UUID;
 import org.junit.jupiter.api.Assertions;
@@ -17,7 +18,8 @@ public class AccountHandlerTest extends IntegrationBaseTest {
   @Test
   void testAccounts() throws Exception {
     // CREATE
-    AccountRequest req = new AccountRequest("Name Test", "CASH", "Bank Test", 100.0, "ACTIVE");
+    AccountRequest req =
+        new AccountRequest("Name Test", "CASH", "Bank Test", new BigDecimal("100.00"), "ACTIVE");
     HttpResponse<String> resp = httpPost(ApiPaths.ACCOUNTS_V1, JsonUtils.toJson(req), Boolean.TRUE);
     Assertions.assertEquals(201, resp.statusCode());
     AccountResponse response = JsonUtils.fromJson(resp.body(), AccountResponse.class);
@@ -41,7 +43,9 @@ public class AccountHandlerTest extends IntegrationBaseTest {
     Assertions.assertEquals(1, response.data().size());
 
     // UPDATE
-    req = new AccountRequest("Name Updated", "CASH", "Bank Updated ", 100.0, "ACTIVE");
+    req =
+        new AccountRequest(
+            "Name Updated", "CASH", "Bank Updated ", new BigDecimal("100.00"), "ACTIVE");
     resp = httpPut(ApiPaths.ACCOUNTS_V1_WITH_ID + id, JsonUtils.toJson(req), Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());
     response = JsonUtils.fromJson(resp.body(), AccountResponse.class);
@@ -90,32 +94,38 @@ public class AccountHandlerTest extends IntegrationBaseTest {
     Assertions.assertEquals(400, resp.statusCode());
     Assertions.assertTrue(resp.body().contains("Account request cannot be null..."));
 
-    AccountRequest req = new AccountRequest(null, null, "", 0.0, "");
+    AccountRequest req = new AccountRequest(null, null, "", null, "");
     resp = httpPost(ApiPaths.ACCOUNTS_V1, JsonUtils.toJson(req), Boolean.TRUE);
     Assertions.assertEquals(400, resp.statusCode());
     Assertions.assertTrue(resp.body().contains("Account name cannot be empty..."));
 
-    req = new AccountRequest("Some name", "", "", 0.0, "");
+    req = new AccountRequest("Some name", "", "", null, "");
     resp = httpPost(ApiPaths.ACCOUNTS_V1, JsonUtils.toJson(req), Boolean.TRUE);
     Assertions.assertEquals(400, resp.statusCode());
     Assertions.assertTrue(resp.body().contains("Account type cannot be empty..."));
 
-    req = new AccountRequest("Some name", "CREDIT", "", 0.0, "");
+    req = new AccountRequest("Some name", "CREDIT", "", null, "");
     resp = httpPost(ApiPaths.ACCOUNTS_V1, JsonUtils.toJson(req), Boolean.TRUE);
     Assertions.assertEquals(400, resp.statusCode());
     Assertions.assertTrue(resp.body().contains("Bank name cannot be empty..."));
 
-    req = new AccountRequest("Some name", "CREDIT", "Some bank", -1.0, "");
+    req = new AccountRequest("Some name", "CREDIT", "Some bank", null, "");
     resp = httpPost(ApiPaths.ACCOUNTS_V1, JsonUtils.toJson(req), Boolean.TRUE);
     Assertions.assertEquals(400, resp.statusCode());
-    Assertions.assertTrue(resp.body().contains("Opening balance cannot be negative..."));
+    Assertions.assertTrue(resp.body().contains("Opening balance cannot be null or negative..."));
 
-    req = new AccountRequest("Some name", "CREDIT", "Some bank", 0.0, "");
+    req = new AccountRequest("Some name", "CREDIT", "Some bank", new BigDecimal("-1.0"), "");
+    resp = httpPost(ApiPaths.ACCOUNTS_V1, JsonUtils.toJson(req), Boolean.TRUE);
+    Assertions.assertEquals(400, resp.statusCode());
+    Assertions.assertTrue(resp.body().contains("Opening balance cannot be null or negative..."));
+
+    req = new AccountRequest("Some name", "CREDIT", "Some bank", new BigDecimal("0.00"), "");
     resp = httpPost(ApiPaths.ACCOUNTS_V1, JsonUtils.toJson(req), Boolean.TRUE);
     Assertions.assertEquals(400, resp.statusCode());
     Assertions.assertTrue(resp.body().contains("Account status cannot be empty..."));
 
-    req = new AccountRequest("Some name", "CREDIT", "Some bank", 0.0, "SOMETHING");
+    req =
+        new AccountRequest("Some name", "CREDIT", "Some bank", new BigDecimal("0.00"), "SOMETHING");
     resp = httpPost(ApiPaths.ACCOUNTS_V1, JsonUtils.toJson(req), Boolean.TRUE);
     Assertions.assertEquals(400, resp.statusCode());
     Assertions.assertTrue(resp.body().contains("Account status is invalid..."));
@@ -141,7 +151,8 @@ public class AccountHandlerTest extends IntegrationBaseTest {
   @Test
   void testAccountsNotFound() throws Exception {
     UUID randomId = UUID.randomUUID();
-    AccountRequest req = new AccountRequest("Some name", "CREDIT", "Some bank", 0.0, "ACTIVE");
+    AccountRequest req =
+        new AccountRequest("Some name", "CREDIT", "Some bank", new BigDecimal("0.00"), "ACTIVE");
     HttpResponse<String> resp =
         httpPut(ApiPaths.ACCOUNTS_V1_WITH_ID + randomId, JsonUtils.toJson(req), Boolean.TRUE);
     Assertions.assertEquals(404, resp.statusCode());

@@ -12,6 +12,7 @@ import budget.application.model.dto.TransactionItemResponse;
 import budget.application.model.dto.TransactionResponse;
 import budget.application.model.entity.Transaction;
 import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -191,7 +192,7 @@ public class TransactionDao extends BaseDao<Transaction> {
                     rs.getString("account_name"),
                     rs.getString("account_type"),
                     rs.getString("account_bank_name"),
-                    rs.getDouble("account_opening_balance"),
+                    rs.getBigDecimal("account_opening_balance"),
                     rs.getString("account_status"));
             txnBuilder =
                 new TransactionResultBuilder(
@@ -199,7 +200,7 @@ public class TransactionDao extends BaseDao<Transaction> {
                     rs.getObject("txn_date", LocalDateTime.class),
                     rs.getString("txn_merchant"),
                     account,
-                    rs.getDouble("txn_total_amount"),
+                    rs.getBigDecimal("txn_total_amount"),
                     rs.getString("txn_notes"));
             txnMap.put(txnId, txnBuilder);
           }
@@ -218,10 +219,10 @@ public class TransactionDao extends BaseDao<Transaction> {
                 new TransactionItemResponse.TransactionItem(
                     itemId,
                     new TransactionResponse.Transaction(
-                        txnId, null, null, 0.0, null, null, List.of()),
+                        txnId, null, null, null, null, null, List.of()),
                     c,
                     rs.getString("item_label"),
-                    rs.getDouble("item_amount"),
+                    rs.getBigDecimal("item_amount"),
                     rs.getString("item_exp_type"));
             txnMap.get(txnId).addItem(item);
           }
@@ -289,7 +290,7 @@ public class TransactionDao extends BaseDao<Transaction> {
     private final LocalDateTime txnDate;
     private final String merchant;
     private final AccountResponse.Account account;
-    private final double totalAmount;
+    private final BigDecimal totalAmount;
     private final String notes;
     private final List<TransactionItemResponse.TransactionItem> items = new ArrayList<>();
 
@@ -298,7 +299,7 @@ public class TransactionDao extends BaseDao<Transaction> {
         LocalDateTime txnDate,
         String merchant,
         AccountResponse.Account account,
-        double totalAmount,
+        BigDecimal totalAmount,
         String notes) {
       this.id = id;
       this.txnDate = txnDate;

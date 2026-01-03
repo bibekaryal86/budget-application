@@ -20,6 +20,7 @@ import io.github.bibekaryal86.shdsvc.dtos.EmailRequest;
 import io.github.bibekaryal86.shdsvc.dtos.EmailResponse;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseMetadata;
 import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
+import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -240,15 +241,18 @@ public class TransactionService {
             for (Transaction txn : txns) {
               UUID txnId = txn.id();
               List<TransactionItem> items = itemDao.readByTransactionIds(List.of(txnId));
-              double sum = items.stream().mapToDouble(TransactionItem::amount).sum();
-              if (Double.compare(sum, txn.totalAmount()) != 0) {
+              BigDecimal sumItems =
+                  items.stream()
+                      .map(TransactionItem::amount)
+                      .reduce(BigDecimal.ZERO, BigDecimal::add);
+              if (sumItems.compareTo(txn.totalAmount()) != 0) {
                 mmTxns.add(txn);
                 log.debug(
                     "[{}] MISMATCH for Txn=[{}] | Total=[{}] | SUM(Items)=[{}]",
                     requestId,
                     txnId,
                     txn.totalAmount(),
-                    sum);
+                    sumItems);
               }
             }
             pageNumber++;
