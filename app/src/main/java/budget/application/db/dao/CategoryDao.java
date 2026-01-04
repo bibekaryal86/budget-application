@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 public class CategoryDao extends BaseDao<Category> {
 
@@ -83,29 +84,35 @@ public class CategoryDao extends BaseDao<Category> {
             ON ct.id = c.category_type_id
           """);
 
-    boolean first = true;
+    List<Object> params = new ArrayList<>();
+    final boolean[] whereAdded = {false};
+
+    Consumer<String> addWhere =
+        (condition) -> {
+          sql.append(whereAdded[0] ? " AND " : " WHERE ");
+          sql.append(condition);
+          whereAdded[0] = true;
+        };
+
     if (!CommonUtilities.isEmpty(catIds)) {
-      sql.append(" WHERE c.id IN (").append(DaoUtils.placeholders(catIds.size())).append(")");
-      first = false;
+      addWhere.accept("c.id IN (" + DaoUtils.placeholders(catIds.size()) + ")");
+      params.addAll(catIds);
     }
     if (!CommonUtilities.isEmpty(catTypeIds)) {
-      sql.append(first ? " AND " : " WHERE ");
-      sql.append(" ct.id IN (").append(DaoUtils.placeholders(catTypeIds.size())).append(")");
+      addWhere.accept("c.category_type_id IN (" + DaoUtils.placeholders(catTypeIds.size()) + ")");
+      params.addAll(catTypeIds);
     }
     sql.append(" ORDER BY ct.name, c.name ASC ");
 
     log.debug("[{}] Read Categories SQL=[{}]", requestId, sql);
 
-    try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
-      if (!CommonUtilities.isEmpty(catIds)) {
-        DaoUtils.bindParams(ps, catIds);
-      }
-      if (!CommonUtilities.isEmpty(catTypeIds)) {
-        DaoUtils.bindParams(ps, catTypeIds);
+    try (PreparedStatement stmt = connection.prepareStatement(sql.toString())) {
+      if (!params.isEmpty()) {
+        DaoUtils.bindParams(stmt, params);
       }
 
       List<CategoryResponse.Category> results = new ArrayList<>();
-      try (ResultSet rs = ps.executeQuery()) {
+      try (ResultSet rs = stmt.executeQuery()) {
         while (rs.next()) {
           results.add(catRespMapper.map(rs));
         }

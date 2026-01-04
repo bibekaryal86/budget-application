@@ -71,7 +71,7 @@ public class TransactionItemDao extends BaseDao<TransactionItem> {
 
   public List<TransactionItemResponse.TransactionItem> readTransactionItems(List<UUID> txnItemIds)
       throws SQLException {
-    log.debug("[{}] Read Transaction Items: txnItemIds={}", requestId, txnItemIds);
+    log.debug("[{}] Read Transaction Items: TxnItemIds={}", requestId, txnItemIds);
 
     StringBuilder sql =
         new StringBuilder(

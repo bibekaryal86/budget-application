@@ -172,7 +172,6 @@ public class TransactionDao extends BaseDao<Transaction> {
     sql.append(" ORDER BY t.txn_date DESC");
 
     log.debug("[{}] Composite Transactions SQL=[{}]", requestId, sql);
-    log.debug("[{}] Composite Transactions Params=[{}]", requestId, params);
 
     try (PreparedStatement stmt = connection.prepareStatement(sql.toString())) {
       if (!params.isEmpty()) {

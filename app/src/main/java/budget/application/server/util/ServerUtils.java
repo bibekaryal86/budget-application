@@ -78,11 +78,15 @@ public class ServerUtils {
     List<UUID> catTypeIds = parseUUIDs(decoder, "catTypeIds");
     List<UUID> accIds = parseUUIDs(decoder, "accIds");
     List<String> expTypes = parseStrings(decoder, "expTypes");
-    if (!expTypes.isEmpty()) {
-      log.debug("expTypes: {}", expTypes);
-    }
     return new RequestParams.TransactionParams(
         beginDate, endDate, merchants, catIds, catTypeIds, accIds, expTypes);
+  }
+
+  public static RequestParams.BudgetParams getBudgetParams(QueryStringDecoder decoder) {
+    int budgetMonth = parseInt(decoder, "budgetMonth");
+    int budgetYear = parseInt(decoder, "budgetYear");
+    List<UUID> catIds = parseUUIDs(decoder, "catIds");
+    return new RequestParams.BudgetParams(budgetMonth, budgetYear, catIds);
   }
 
   private static List<UUID> parseUUIDs(QueryStringDecoder decoder, String paramName) {
@@ -116,5 +120,19 @@ public class ServerUtils {
         .filter(s -> !CommonUtilities.isEmpty(s))
         .map(String::trim)
         .toList();
+  }
+
+  private static int parseInt(QueryStringDecoder decoder, String paramName) {
+    List<String> values = decoder.parameters().get(paramName);
+    if (CommonUtilities.isEmpty(values)) {
+      return 0;
+    }
+    return values.stream()
+        .flatMap(v -> Arrays.stream(v.split(",")))
+        .filter(s -> !CommonUtilities.isEmpty(s))
+        .map(String::trim)
+        .findFirst()
+        .map(Integer::parseInt)
+        .orElse(0);
   }
 }

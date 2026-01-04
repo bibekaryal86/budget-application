@@ -31,8 +31,8 @@ public class TransactionHandler extends SimpleChannelInboundHandler<FullHttpRequ
 
   @Override
   protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest req) throws Exception {
-    QueryStringDecoder decoder = new QueryStringDecoder(req.uri());
     String requestId = ctx.channel().attr(Constants.REQUEST_ID).get();
+    QueryStringDecoder decoder = new QueryStringDecoder(req.uri());
     String path = decoder.path();
     HttpMethod method = req.method();
 

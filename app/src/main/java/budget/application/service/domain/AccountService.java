@@ -59,15 +59,14 @@ public class AccountService {
         });
   }
 
-  public AccountResponse read(String requestId, List<UUID> accIds) throws SQLException {
-    log.debug("[{}] Read accounts: AccIds={}", requestId, accIds);
+  public AccountResponse read(String requestId, List<UUID> ids) throws SQLException {
+    log.debug("[{}] Read accounts: Ids={}", requestId, ids);
     return tx.execute(
         bs -> {
           AccountDao dao = new AccountDao(requestId, bs.connection());
-          List<Account> aList = dao.read(accIds);
-          if (accIds.size() == 1 && aList.isEmpty()) {
-            throw new Exceptions.NotFoundException(
-                requestId, "Account", accIds.getFirst().toString());
+          List<Account> aList = dao.read(ids);
+          if (ids.size() == 1 && aList.isEmpty()) {
+            throw new Exceptions.NotFoundException(requestId, "Account", ids.getFirst().toString());
           }
 
           List<AccountResponse.Account> accounts =

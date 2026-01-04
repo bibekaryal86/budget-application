@@ -3,6 +3,7 @@ package budget.application.common;
 import budget.application.db.dao.CategoryDao;
 import budget.application.db.dao.CategoryTypeDao;
 import budget.application.model.dto.AccountRequest;
+import budget.application.model.dto.BudgetRequest;
 import budget.application.model.dto.CategoryRequest;
 import budget.application.model.dto.CategoryResponse;
 import budget.application.model.dto.CategoryTypeRequest;
@@ -46,6 +47,36 @@ public class Validations {
     if (!Constants.ACCOUNT_STATUSES.contains(ar.status())) {
       throw new Exceptions.BadRequestException(
           String.format("[%s] Account status is invalid...", requestId));
+    }
+  }
+
+  public static void validateBudget(String requestId, BudgetRequest br, CategoryDao categoryDao) {
+    if (br == null) {
+      throw new Exceptions.BadRequestException(
+          String.format("[%s] Budget request cannot be null...", requestId));
+    }
+    if (br.categoryId() == null) {
+      throw new Exceptions.BadRequestException(
+          String.format("[%s] Budget category cannot be null...", requestId));
+    }
+    if (br.budgetMonth() < 1 || br.budgetMonth() > 12) {
+      throw new Exceptions.BadRequestException(
+          String.format("[%s] Budget month should be between 1 and 12...", requestId));
+    }
+    if (br.budgetYear() < 2026 || br.budgetYear() > 2100) {
+      throw new Exceptions.BadRequestException(
+          String.format("[%s] Budget year should be between 2025 and 2300...", requestId));
+    }
+
+    if (br.amount() == null || br.amount().intValue() < 1) {
+      throw new Exceptions.BadRequestException(
+          String.format("[%s] Budget amount cannot be zero or negative...", requestId));
+    }
+
+    CategoryResponse.Category category = categoryDao.readByIdNoEx(br.categoryId()).orElse(null);
+    if (category == null) {
+      throw new Exceptions.BadRequestException(
+          String.format("[%s] Category does not exist...", requestId));
     }
   }
 

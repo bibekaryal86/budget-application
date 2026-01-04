@@ -3,6 +3,7 @@ package budget.application.server.core;
 import budget.application.common.Constants;
 import budget.application.server.handlers.AccountHandler;
 import budget.application.server.handlers.AppTestsHandler;
+import budget.application.server.handlers.BudgetHandler;
 import budget.application.server.handlers.CategoryHandler;
 import budget.application.server.handlers.CategoryTypeHandler;
 import budget.application.server.handlers.TransactionHandler;
@@ -21,6 +22,7 @@ public class ServerRouter extends SimpleChannelInboundHandler<FullHttpRequest> {
 
   private final AppTestsHandler appTestsHandler;
   private final AccountHandler accountHandler;
+  private final BudgetHandler budgetHandler;
   private final CategoryTypeHandler categoryTypeHandler;
   private final CategoryHandler categoryHandler;
   private final TransactionItemHandler transactionItemHandler;
@@ -29,6 +31,7 @@ public class ServerRouter extends SimpleChannelInboundHandler<FullHttpRequest> {
   public ServerRouter(DataSource dataSource, Email email) {
     this.appTestsHandler = new AppTestsHandler();
     this.accountHandler = new AccountHandler(dataSource);
+    this.budgetHandler = new BudgetHandler(dataSource);
     this.categoryTypeHandler = new CategoryTypeHandler(dataSource);
     this.categoryHandler = new CategoryHandler(dataSource);
     this.transactionItemHandler = new TransactionItemHandler(dataSource);
@@ -49,6 +52,12 @@ public class ServerRouter extends SimpleChannelInboundHandler<FullHttpRequest> {
     if (path.startsWith(ApiPaths.ACCOUNTS_V1)) {
       log.info("[{}] Routing to AccountHandler: [{}]", requestId, path);
       accountHandler.channelRead(ctx, req.retain());
+      return;
+    }
+
+    if (path.startsWith(ApiPaths.BUDGETS_V1)) {
+      log.info("[{}] Routing to BudgetHandler: [{}]", requestId, path);
+      budgetHandler.channelRead(ctx, req.retain());
       return;
     }
 

@@ -16,4 +16,6 @@ public record RequestParams(TransactionParams transactionParams, CategoryParams 
       List<String> expTypes) {}
 
   public record CategoryParams(List<UUID> catTypesId) {}
+
+  public record BudgetParams(int budgetMonth, int budgetYear, List<UUID> catIds) {}
 }
