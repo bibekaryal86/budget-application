@@ -42,7 +42,7 @@ public class BudgetHandlerTest extends IntegrationBaseTest {
     resp = httpGet(ApiPaths.BUDGETS_V1, Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());
     response = JsonUtils.fromJson(resp.body(), BudgetResponse.class);
-    Assertions.assertEquals(2, response.data().size());
+    Assertions.assertEquals(1, response.data().size());
 
     // READ ONE
     resp = httpGet(ApiPaths.BUDGETS_V1_WITH_ID + id, Boolean.TRUE);
@@ -148,7 +148,7 @@ public class BudgetHandlerTest extends IntegrationBaseTest {
     Assertions.assertEquals(400, resp.statusCode());
     Assertions.assertTrue(resp.body().contains("Budget amount cannot be zero or negative..."));
 
-    req = new BudgetRequest(UUID.randomUUID(), 7, 2026, new BigDecimal("0.0"), "");
+    req = new BudgetRequest(UUID.randomUUID(), 7, 2026, new BigDecimal("10.0"), "");
     resp = httpPost(ApiPaths.BUDGETS_V1, JsonUtils.toJson(req), Boolean.TRUE);
     Assertions.assertEquals(400, resp.statusCode());
     Assertions.assertTrue(resp.body().contains("Category does not exist..."));
@@ -174,7 +174,7 @@ public class BudgetHandlerTest extends IntegrationBaseTest {
   @Test
   void testBudgetsNotFound() throws Exception {
     UUID randomId = UUID.randomUUID();
-    BudgetRequest req = new BudgetRequest(UUID.randomUUID(), 7, 2026, new BigDecimal("10.0"), "");
+    BudgetRequest req = new BudgetRequest(TEST_ID, 7, 2026, new BigDecimal("10.0"), "");
     HttpResponse<String> resp =
         httpPut(ApiPaths.BUDGETS_V1_WITH_ID + randomId, JsonUtils.toJson(req), Boolean.TRUE);
     Assertions.assertEquals(404, resp.statusCode());

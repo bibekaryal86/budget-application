@@ -86,8 +86,8 @@ public class BudgetDao extends BaseDao<Budget> {
                             b.id           AS budget_id,
                             b.budget_month     AS budget_month,
                             b.budget_year     AS budget_year,
-                            t.amount AS budget_amount,
-                            t.notes        AS budget_notes,
+                            b.amount AS budget_amount,
+                            b.notes        AS budget_notes,
                             c.id           AS category_id,
                             c.name         AS category_name,
                             ct.id          AS category_type_id,
@@ -122,7 +122,7 @@ public class BudgetDao extends BaseDao<Budget> {
       addWhere.accept("b.category_id IN (" + DaoUtils.placeholders(catIds.size()) + ")");
       params.addAll(catIds);
     }
-    sql.append(" ct.name, c.name ASC");
+    sql.append(" ORDER BY ct.name, c.name ASC");
 
     log.debug("[{}] Read Budgets SQL=[{}]", requestId, sql);
 

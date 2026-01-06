@@ -29,7 +29,7 @@ public class BudgetRowMappers {
     @Override
     public BudgetResponse.Budget map(ResultSet rs) throws SQLException {
       return new BudgetResponse.Budget(
-          rs.getObject("id", UUID.class),
+          rs.getObject("budget_id", UUID.class),
           new CategoryResponse.Category(
               rs.getObject("category_id", UUID.class),
               new CategoryTypeResponse.CategoryType(
@@ -37,8 +37,8 @@ public class BudgetRowMappers {
               rs.getString("category_name")),
           rs.getInt("budget_month"),
           rs.getInt("budget_year"),
-          rs.getBigDecimal("amount"),
-          rs.getString("notes"));
+          rs.getBigDecimal("budget_amount"),
+          rs.getString("budget_notes"));
     }
   }
 }

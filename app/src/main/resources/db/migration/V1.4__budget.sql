@@ -7,7 +7,7 @@ CREATE TABLE budget
     amount       DECIMAL(12, 2) NOT NULL CHECK (amount >= 0),
     notes         VARCHAR(255),
     created_at      TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at      TIMESTAMP NOT NULL DEFAULT NOW()
+    updated_at      TIMESTAMP NOT NULL DEFAULT NOW(),
 
     CONSTRAINT idx_unique_c_m_y UNIQUE (category_id, budget_month, budget_year)
 );
