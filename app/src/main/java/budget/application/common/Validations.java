@@ -63,9 +63,9 @@ public class Validations {
       throw new Exceptions.BadRequestException(
           String.format("[%s] Budget month should be between 1 and 12...", requestId));
     }
-    if (br.budgetYear() < 2026 || br.budgetYear() > 2100) {
+    if (br.budgetYear() < 2025 || br.budgetYear() > 2100) {
       throw new Exceptions.BadRequestException(
-          String.format("[%s] Budget year should be between 2025 and 2300...", requestId));
+          String.format("[%s] Budget year should be between 2025 and 2100...", requestId));
     }
 
     if (br.amount() == null || br.amount().intValue() < 1) {

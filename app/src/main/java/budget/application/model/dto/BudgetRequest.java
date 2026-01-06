@@ -5,7 +5,7 @@ import java.util.UUID;
 
 public record BudgetRequest(
     UUID categoryId, int budgetMonth, int budgetYear, BigDecimal amount, String notes) {
-    public short amp() {
-        return 0;
-    }
+  public short amp() {
+    return 0;
+  }
 }

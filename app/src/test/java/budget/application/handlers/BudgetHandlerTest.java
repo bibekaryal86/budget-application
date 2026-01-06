@@ -7,12 +7,11 @@ import budget.application.server.util.ApiPaths;
 import budget.application.server.util.JsonUtils;
 import budget.application.service.util.ResponseMetadataUtils;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseWithMetadata;
+import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 import java.math.BigDecimal;
 import java.net.http.HttpResponse;
 import java.time.LocalDate;
 import java.util.UUID;
-
-import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -21,7 +20,13 @@ public class BudgetHandlerTest extends IntegrationBaseTest {
   @Test
   void testBudgets() throws Exception {
     // CREATE
-    BudgetRequest req = new BudgetRequest(TEST_ID, LocalDate.now().getMonth().getValue(), LocalDate.now().getYear(), new BigDecimal("100.00"), "");
+    BudgetRequest req =
+        new BudgetRequest(
+            TEST_ID,
+            LocalDate.now().getMonth().getValue(),
+            LocalDate.now().getYear(),
+            new BigDecimal("100.00"),
+            "");
     HttpResponse<String> resp = httpPost(ApiPaths.BUDGETS_V1, JsonUtils.toJson(req), Boolean.TRUE);
     Assertions.assertEquals(201, resp.statusCode());
     BudgetResponse response = JsonUtils.fromJson(resp.body(), BudgetResponse.class);
@@ -46,7 +51,13 @@ public class BudgetHandlerTest extends IntegrationBaseTest {
     Assertions.assertEquals(1, response.data().size());
 
     // UPDATE
-    req = new BudgetRequest(TEST_ID, LocalDate.now().getMonth().getValue(), LocalDate.now().getYear(), new BigDecimal("200.00"), "some notes");
+    req =
+        new BudgetRequest(
+            TEST_ID,
+            LocalDate.now().getMonth().getValue(),
+            LocalDate.now().getYear(),
+            new BigDecimal("200.00"),
+            "some notes");
     resp = httpPut(ApiPaths.BUDGETS_V1_WITH_ID + id, JsonUtils.toJson(req), Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());
     response = JsonUtils.fromJson(resp.body(), BudgetResponse.class);
@@ -96,41 +107,51 @@ public class BudgetHandlerTest extends IntegrationBaseTest {
     Assertions.assertEquals(400, resp.statusCode());
     Assertions.assertTrue(resp.body().contains("Budget request cannot be null..."));
 
-    BudgetRequest req = new BudgetRequest(null, null, "", null, "");
+    BudgetRequest req =
+        new BudgetRequest(
+            null,
+            LocalDate.now().getMonth().getValue(),
+            LocalDate.now().getYear(),
+            new BigDecimal("100.00"),
+            "");
     resp = httpPost(ApiPaths.BUDGETS_V1, JsonUtils.toJson(req), Boolean.TRUE);
     Assertions.assertEquals(400, resp.statusCode());
-    Assertions.assertTrue(resp.body().contains("Budget name cannot be empty..."));
+    Assertions.assertTrue(resp.body().contains("Budget category cannot be null..."));
 
-    req = new BudgetRequest("Some name", "", "", null, "");
+    req = new BudgetRequest(TEST_ID, 0, LocalDate.now().getYear(), new BigDecimal("100.00"), "");
     resp = httpPost(ApiPaths.BUDGETS_V1, JsonUtils.toJson(req), Boolean.TRUE);
     Assertions.assertEquals(400, resp.statusCode());
-    Assertions.assertTrue(resp.body().contains("Budget type cannot be empty..."));
+    Assertions.assertTrue(resp.body().contains("Budget month should be between 1 and 12..."));
 
-    req = new BudgetRequest("Some name", "CREDIT", "", null, "");
+    req = new BudgetRequest(TEST_ID, 13, LocalDate.now().getYear(), new BigDecimal("100.00"), "");
     resp = httpPost(ApiPaths.BUDGETS_V1, JsonUtils.toJson(req), Boolean.TRUE);
     Assertions.assertEquals(400, resp.statusCode());
-    Assertions.assertTrue(resp.body().contains("Bank name cannot be empty..."));
+    Assertions.assertTrue(resp.body().contains("Budget month should be between 1 and 12..."));
 
-    req = new BudgetRequest("Some name", "CREDIT", "Some bank", null, "");
+    req = new BudgetRequest(TEST_ID, 7, 2020, new BigDecimal("100.00"), "");
     resp = httpPost(ApiPaths.BUDGETS_V1, JsonUtils.toJson(req), Boolean.TRUE);
     Assertions.assertEquals(400, resp.statusCode());
-    Assertions.assertTrue(resp.body().contains("Opening balance cannot be null or negative..."));
+    Assertions.assertTrue(resp.body().contains("Budget year should be between 2025 and 2100..."));
 
-    req = new BudgetRequest("Some name", "CREDIT", "Some bank", new BigDecimal("-1.0"), "");
+    req = new BudgetRequest(TEST_ID, 7, 2101, new BigDecimal("100.00"), "");
     resp = httpPost(ApiPaths.BUDGETS_V1, JsonUtils.toJson(req), Boolean.TRUE);
     Assertions.assertEquals(400, resp.statusCode());
-    Assertions.assertTrue(resp.body().contains("Opening balance cannot be null or negative..."));
+    Assertions.assertTrue(resp.body().contains("Budget year should be between 2025 and 2100..."));
 
-    req = new BudgetRequest("Some name", "CREDIT", "Some bank", new BigDecimal("0.00"), "");
+    req = new BudgetRequest(TEST_ID, 7, 2026, null, "");
     resp = httpPost(ApiPaths.BUDGETS_V1, JsonUtils.toJson(req), Boolean.TRUE);
     Assertions.assertEquals(400, resp.statusCode());
-    Assertions.assertTrue(resp.body().contains("Budget status cannot be empty..."));
+    Assertions.assertTrue(resp.body().contains("Budget amount cannot be zero or negative..."));
 
-    req =
-        new BudgetRequest("Some name", "CREDIT", "Some bank", new BigDecimal("0.00"), "SOMETHING");
+    req = new BudgetRequest(TEST_ID, 7, 2026, new BigDecimal("0.0"), "");
     resp = httpPost(ApiPaths.BUDGETS_V1, JsonUtils.toJson(req), Boolean.TRUE);
     Assertions.assertEquals(400, resp.statusCode());
-    Assertions.assertTrue(resp.body().contains("Budget status is invalid..."));
+    Assertions.assertTrue(resp.body().contains("Budget amount cannot be zero or negative..."));
+
+    req = new BudgetRequest(UUID.randomUUID(), 7, 2026, new BigDecimal("0.0"), "");
+    resp = httpPost(ApiPaths.BUDGETS_V1, JsonUtils.toJson(req), Boolean.TRUE);
+    Assertions.assertEquals(400, resp.statusCode());
+    Assertions.assertTrue(resp.body().contains("Category does not exist..."));
 
     resp = httpGet(ApiPaths.BUDGETS_V1_WITH_ID + "invalid-uuid", Boolean.TRUE);
     Assertions.assertEquals(400, resp.statusCode());
@@ -153,8 +174,7 @@ public class BudgetHandlerTest extends IntegrationBaseTest {
   @Test
   void testBudgetsNotFound() throws Exception {
     UUID randomId = UUID.randomUUID();
-    BudgetRequest req =
-        new BudgetRequest("Some name", "CREDIT", "Some bank", new BigDecimal("0.00"), "ACTIVE");
+    BudgetRequest req = new BudgetRequest(UUID.randomUUID(), 7, 2026, new BigDecimal("10.0"), "");
     HttpResponse<String> resp =
         httpPut(ApiPaths.BUDGETS_V1_WITH_ID + randomId, JsonUtils.toJson(req), Boolean.TRUE);
     Assertions.assertEquals(404, resp.statusCode());
