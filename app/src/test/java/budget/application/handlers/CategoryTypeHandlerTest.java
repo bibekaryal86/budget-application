@@ -94,6 +94,11 @@ public class CategoryTypeHandlerTest extends IntegrationBaseTest {
     Assertions.assertEquals(400, resp.statusCode());
     Assertions.assertTrue(resp.body().contains("Category type name cannot be empty..."));
 
+    req = new CategoryTypeRequest("TEST CATEGORY TYPE");
+    resp = httpPost(ApiPaths.CATEGORY_TYPES_V1, JsonUtils.toJson(req), Boolean.TRUE);
+    Assertions.assertEquals(400, resp.statusCode());
+    Assertions.assertTrue(resp.body().contains("(TEST CATEGORY TYPE) already exists."));
+
     resp = httpGet(ApiPaths.CATEGORY_TYPES_V1_WITH_ID + "invalid-uuid", Boolean.TRUE);
     Assertions.assertEquals(400, resp.statusCode());
     Assertions.assertTrue(resp.body().contains("Invalid Id Provided..."));

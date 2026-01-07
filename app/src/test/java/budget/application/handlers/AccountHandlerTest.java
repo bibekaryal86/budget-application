@@ -130,6 +130,12 @@ public class AccountHandlerTest extends IntegrationBaseTest {
     Assertions.assertEquals(400, resp.statusCode());
     Assertions.assertTrue(resp.body().contains("Account status is invalid..."));
 
+    req =
+        new AccountRequest("TEST ACCOUNT", "CREDIT", "Some bank", new BigDecimal("0.00"), "ACTIVE");
+    resp = httpPost(ApiPaths.ACCOUNTS_V1, JsonUtils.toJson(req), Boolean.TRUE);
+    Assertions.assertEquals(400, resp.statusCode());
+    Assertions.assertTrue(resp.body().contains("(TEST ACCOUNT) already exists."));
+
     resp = httpGet(ApiPaths.ACCOUNTS_V1_WITH_ID + "invalid-uuid", Boolean.TRUE);
     Assertions.assertEquals(400, resp.statusCode());
     Assertions.assertTrue(resp.body().contains("Invalid Id Provided..."));

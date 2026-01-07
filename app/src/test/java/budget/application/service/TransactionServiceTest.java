@@ -20,6 +20,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+//@org.junit.jupiter.api.Disabled
 @ExtendWith(MockitoExtension.class)
 public class TransactionServiceTest extends IntegrationBaseTest {
 

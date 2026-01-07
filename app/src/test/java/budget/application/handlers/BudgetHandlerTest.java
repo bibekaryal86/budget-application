@@ -162,6 +162,17 @@ public class BudgetHandlerTest extends IntegrationBaseTest {
     Assertions.assertEquals(400, resp.statusCode());
     Assertions.assertTrue(resp.body().contains("Category does not exist..."));
 
+    // unique constraint test
+    // step1: setup
+    req = new BudgetRequest(TEST_ID, 7, 2026, new BigDecimal("10.0"), "");
+    resp = httpPost(ApiPaths.BUDGETS_V1, JsonUtils.toJson(req), Boolean.TRUE);
+    Assertions.assertEquals(201, resp.statusCode());
+    // step2: check
+    req = new BudgetRequest(TEST_ID, 7, 2026, new BigDecimal("10.0"), "");
+    resp = httpPost(ApiPaths.BUDGETS_V1, JsonUtils.toJson(req), Boolean.TRUE);
+    Assertions.assertEquals(400, resp.statusCode());
+    Assertions.assertTrue(resp.body().contains("(" + TEST_ID + ", 7, 2026) already exists."));
+
     resp = httpGet(ApiPaths.BUDGETS_V1_WITH_ID + "invalid-uuid", Boolean.TRUE);
     Assertions.assertEquals(400, resp.statusCode());
     Assertions.assertTrue(resp.body().contains("Invalid Id Provided..."));
