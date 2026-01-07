@@ -96,7 +96,7 @@ public final class TestDataHelper {
     }
   }
 
-  public UUID insertAccount(UUID id, UUID name) throws SQLException {
+  public UUID insertAccount(UUID id, String name) throws SQLException {
     try (Connection c = ds.getConnection();
         PreparedStatement stmt =
             c.prepareStatement(
@@ -106,7 +106,7 @@ public final class TestDataHelper {
                                       """)) {
 
       stmt.setObject(1, id);
-      stmt.setObject(2, name);
+      stmt.setString(2, name);
       stmt.executeUpdate();
     }
     return id;
@@ -123,6 +123,45 @@ public final class TestDataHelper {
 
       String placeholders = keepIds.stream().map(id -> "?").collect(Collectors.joining(", "));
       String sql = "DELETE FROM account WHERE id NOT IN (" + placeholders + ")";
+
+      try (PreparedStatement stmt = c.prepareStatement(sql)) {
+        for (int i = 0; i < keepIds.size(); i++) {
+          stmt.setObject(i + 1, keepIds.get(i));
+        }
+        stmt.executeUpdate();
+      }
+    }
+  }
+
+  public UUID insertBudget(UUID id, UUID catId, int month, int year) throws SQLException {
+    try (Connection c = ds.getConnection();
+        PreparedStatement stmt =
+            c.prepareStatement(
+                """
+                                                       INSERT INTO budget (id, category_id, budget_month, budget_year, amount, notes)
+                                                       VALUES (?, ?, ?, ?, 1000.00, 'notes example')
+                                                   """)) {
+
+      stmt.setObject(1, id);
+      stmt.setObject(2, catId);
+      stmt.setInt(3, month);
+      stmt.setInt(4, year);
+      stmt.executeUpdate();
+    }
+    return id;
+  }
+
+  public void deleteBudget(List<UUID> keepIds) throws SQLException {
+    try (Connection c = ds.getConnection()) {
+      if (CommonUtilities.isEmpty(keepIds)) {
+        try (PreparedStatement stmt = c.prepareStatement("DELETE FROM budget")) {
+          stmt.executeUpdate();
+        }
+        return;
+      }
+
+      String placeholders = keepIds.stream().map(id -> "?").collect(Collectors.joining(", "));
+      String sql = "DELETE FROM budget WHERE id NOT IN (" + placeholders + ")";
 
       try (PreparedStatement stmt = c.prepareStatement(sql)) {
         for (int i = 0; i < keepIds.size(); i++) {

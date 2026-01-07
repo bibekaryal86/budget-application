@@ -3,6 +3,7 @@ package budget.application.handlers;
 import budget.application.IntegrationBaseTest;
 import budget.application.model.dto.BudgetRequest;
 import budget.application.model.dto.BudgetResponse;
+import budget.application.model.dto.TransactionResponse;
 import budget.application.server.util.ApiPaths;
 import budget.application.server.util.JsonUtils;
 import budget.application.service.util.ResponseMetadataUtils;
@@ -10,12 +11,20 @@ import io.github.bibekaryal86.shdsvc.dtos.ResponseWithMetadata;
 import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 import java.math.BigDecimal;
 import java.net.http.HttpResponse;
+import java.sql.SQLException;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 public class BudgetHandlerTest extends IntegrationBaseTest {
+
+  @AfterEach
+  void cleanup() throws SQLException {
+    testDataHelper.deleteBudget(List.of(TEST_ID));
+  }
 
   @Test
   void testBudgets() throws Exception {
@@ -187,5 +196,69 @@ public class BudgetHandlerTest extends IntegrationBaseTest {
     resp = httpDelete(ApiPaths.BUDGETS_V1_WITH_ID + randomId, Boolean.TRUE);
     Assertions.assertEquals(404, resp.statusCode());
     Assertions.assertTrue(resp.body().contains("[Budget] Not found for [" + randomId + "]"));
+  }
+
+  @Test
+  void testReadBudgets() throws Exception {
+    // SETUP
+    UUID cId1 = UUID.randomUUID();
+    UUID cId2 = UUID.randomUUID();
+    UUID cId3 = UUID.randomUUID();
+
+    UUID bId1 = UUID.randomUUID();
+    UUID bId2 = UUID.randomUUID();
+    UUID bId3 = UUID.randomUUID();
+    UUID bId4 = UUID.randomUUID();
+
+    testDataHelper.insertCategory(cId1, TEST_ID, "C ONE");
+    testDataHelper.insertCategory(cId2, TEST_ID, "C TWO");
+    testDataHelper.insertCategory(cId3, TEST_ID, "C THREE");
+
+    testDataHelper.insertBudget(bId1, cId1, 7, 2025);
+    testDataHelper.insertBudget(bId4, cId1, 8, 2026);
+    testDataHelper.insertBudget(bId2, cId2, 7, 2025);
+    testDataHelper.insertBudget(bId3, cId3, 7, 2025);
+
+    HttpResponse<String> resp = httpGet(ApiPaths.BUDGETS_V1, Boolean.TRUE);
+    Assertions.assertEquals(200, resp.statusCode());
+    TransactionResponse response = JsonUtils.fromJson(resp.body(), TransactionResponse.class);
+    Assertions.assertEquals(4, response.data().size());
+
+    resp =
+        httpGet(ApiPaths.BUDGETS_V1 + "?catIds=" + TEST_ID + "," + cId2 + "," + cId3, Boolean.TRUE);
+    Assertions.assertEquals(200, resp.statusCode());
+    response = JsonUtils.fromJson(resp.body(), TransactionResponse.class);
+    Assertions.assertEquals(2, response.data().size());
+
+    // returns all 4 because year is not provided
+    resp = httpGet(ApiPaths.BUDGETS_V1 + "?budgetMonth=7", Boolean.TRUE);
+    Assertions.assertEquals(200, resp.statusCode());
+    response = JsonUtils.fromJson(resp.body(), TransactionResponse.class);
+    Assertions.assertEquals(4, response.data().size());
+
+    // returns all 4 because month is not provided
+    resp = httpGet(ApiPaths.BUDGETS_V1 + "?budgetYear=2025", Boolean.TRUE);
+    Assertions.assertEquals(200, resp.statusCode());
+    response = JsonUtils.fromJson(resp.body(), TransactionResponse.class);
+    Assertions.assertEquals(4, response.data().size());
+
+    resp = httpGet(ApiPaths.BUDGETS_V1 + "?budgetMonth=7&budgetYear=2025", Boolean.TRUE);
+    Assertions.assertEquals(200, resp.statusCode());
+    response = JsonUtils.fromJson(resp.body(), TransactionResponse.class);
+    Assertions.assertEquals(3, response.data().size());
+
+    resp =
+        httpGet(
+            ApiPaths.BUDGETS_V1
+                + "?catIds="
+                + TEST_ID
+                + ","
+                + cId1
+                + "&budgetMonth=7"
+                + "&budgetYear=2025",
+            Boolean.TRUE);
+    Assertions.assertEquals(200, resp.statusCode());
+    response = JsonUtils.fromJson(resp.body(), TransactionResponse.class);
+    Assertions.assertEquals(1, response.data().size());
   }
 }
