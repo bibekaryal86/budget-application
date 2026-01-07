@@ -31,3 +31,25 @@ The application uses a hierarchical structure to organize financial data, allowi
 * Summary Engine: Automated monthly and yearly reports to visualize spending trends.
 * Budgeting Goals: Set limits on specific categories and track progress.
 * Audit Trail: Track changes to data over time.
+
+## Flyway
+* Run flyway command as `./gradlew flywayMigrate`
+    * For first run, append `-Dflyway.baselineOnMigrate=true` to set baseline migration
+      * `./gradlew -Dorg.gradle.configuration-cache=false flywayMigrate -Dflyway.baselineOnMigrate=true`
+    * PRE-REQUISITES for flyway
+        * Build needs to be run first
+            * `./gradlew clean build -x test`
+        * Flyway plugin does not work with gradle's configuration cache
+            * `./gradlew -Dorg.gradle.configuration-cache=false flywayMigrate`
+* Clear database (DELETES EVERYTHING)
+    * `./gradlew -Dorg.gradle.configuration-cache=false flywayClean -Dflyway.cleanDisabled=false`
+* Flyway migration is configured to not trigger automatically, it only validates
+    * This means that migration command needs to be given manually
+* Flyway migration is controlled via github actions to main DB branch
+* There are 2 database instances created to support local development and production data
+    * `pets-service`
+        * This instance is used for production instance
+        * When a pull request is merged to main branch, flyway migration is run in this branch
+    * `pets-service-sandbox`
+        * This branch is used for local/development instances
+        * When a pull request is created, flyway migration is run in this branch to validate schema changes
