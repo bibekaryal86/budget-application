@@ -1,8 +1,6 @@
 package budget.application.handlers;
 
 import budget.application.IntegrationBaseTest;
-import budget.application.TestDataHelper;
-import budget.application.TestDataSource;
 import budget.application.model.dto.CategoryRequest;
 import budget.application.model.dto.CategoryResponse;
 import budget.application.server.util.ApiPaths;
@@ -10,11 +8,19 @@ import budget.application.server.util.JsonUtils;
 import budget.application.service.util.ResponseMetadataUtils;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseWithMetadata;
 import java.net.http.HttpResponse;
+import java.sql.SQLException;
+import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 public class CategoryHandlerTest extends IntegrationBaseTest {
+
+  @AfterEach
+  void cleanup() throws SQLException {
+    testDataHelper.deleteCategory(List.of(TEST_ID));
+  }
 
   @Test
   void testCategories() throws Exception {
@@ -74,17 +80,16 @@ public class CategoryHandlerTest extends IntegrationBaseTest {
   @Test
   void testReadCategories() throws Exception {
     // SETUP
-    TestDataHelper helper = new TestDataHelper(TestDataSource.getDataSource());
     UUID ctId1 = UUID.randomUUID();
     UUID ctId2 = UUID.randomUUID();
     UUID cId1 = UUID.randomUUID();
     UUID cId2 = UUID.randomUUID();
     UUID cId3 = UUID.randomUUID();
-    helper.insertCategoryType(ctId1, "CT ONE");
-    helper.insertCategoryType(ctId2, "CT TWO");
-    helper.insertCategory(cId1, ctId1, "C ONE");
-    helper.insertCategory(cId2, ctId1, "C TWO");
-    helper.insertCategory(cId3, ctId2, "C THREE");
+    testDataHelper.insertCategoryType(ctId1, "CT ONE");
+    testDataHelper.insertCategoryType(ctId2, "CT TWO");
+    testDataHelper.insertCategory(cId1, ctId1, "C ONE");
+    testDataHelper.insertCategory(cId2, ctId1, "C TWO");
+    testDataHelper.insertCategory(cId3, ctId2, "C THREE");
 
     HttpResponse<String> resp = httpGet(ApiPaths.CATEGORIES_V1, Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());
@@ -100,13 +105,6 @@ public class CategoryHandlerTest extends IntegrationBaseTest {
     Assertions.assertEquals(200, resp.statusCode());
     response = JsonUtils.fromJson(resp.body(), CategoryResponse.class);
     Assertions.assertEquals(3, response.data().size());
-
-    // CLEANUP
-    helper.deleteCategory(cId1);
-    helper.deleteCategory(cId2);
-    helper.deleteCategory(cId3);
-    helper.deleteCategoryType(ctId1);
-    helper.deleteCategoryType(ctId2);
   }
 
   @Test

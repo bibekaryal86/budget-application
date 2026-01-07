@@ -37,16 +37,24 @@ public final class TestDataHelper {
     return id;
   }
 
-  public void deleteCategoryType(UUID id) throws SQLException {
-    try (Connection c = ds.getConnection();
-        PreparedStatement stmt =
-            c.prepareStatement(
-                """
-                           DELETE FROM category_type WHERE id = ?
-                       """)) {
+  public void deleteCategoryType(List<UUID> keepIds) throws SQLException {
+    try (Connection c = ds.getConnection()) {
+      if (CommonUtilities.isEmpty(keepIds)) {
+        try (PreparedStatement stmt = c.prepareStatement("DELETE FROM category_type")) {
+          stmt.executeUpdate();
+        }
+        return;
+      }
 
-      stmt.setObject(1, id);
-      stmt.executeUpdate();
+      String placeholders = keepIds.stream().map(id -> "?").collect(Collectors.joining(", "));
+      String sql = "DELETE FROM category_type WHERE id NOT IN (" + placeholders + ")";
+
+      try (PreparedStatement stmt = c.prepareStatement(sql)) {
+        for (int i = 0; i < keepIds.size(); i++) {
+          stmt.setObject(i + 1, keepIds.get(i));
+        }
+        stmt.executeUpdate();
+      }
     }
   }
 
@@ -67,16 +75,24 @@ public final class TestDataHelper {
     return id;
   }
 
-  public void deleteCategory(UUID id) throws SQLException {
-    try (Connection c = ds.getConnection();
-        PreparedStatement stmt =
-            c.prepareStatement(
-                """
-                             DELETE FROM category WHERE id = ?
-                         """)) {
+  public void deleteCategory(List<UUID> keepIds) throws SQLException {
+    try (Connection c = ds.getConnection()) {
+      if (CommonUtilities.isEmpty(keepIds)) {
+        try (PreparedStatement stmt = c.prepareStatement("DELETE FROM category")) {
+          stmt.executeUpdate();
+        }
+        return;
+      }
 
-      stmt.setObject(1, id);
-      stmt.executeUpdate();
+      String placeholders = keepIds.stream().map(id -> "?").collect(Collectors.joining(", "));
+      String sql = "DELETE FROM category WHERE id NOT IN (" + placeholders + ")";
+
+      try (PreparedStatement stmt = c.prepareStatement(sql)) {
+        for (int i = 0; i < keepIds.size(); i++) {
+          stmt.setObject(i + 1, keepIds.get(i));
+        }
+        stmt.executeUpdate();
+      }
     }
   }
 
@@ -96,16 +112,24 @@ public final class TestDataHelper {
     return id;
   }
 
-  public void deleteAccount(UUID id) throws SQLException {
-    try (Connection c = ds.getConnection();
-        PreparedStatement stmt =
-            c.prepareStatement(
-                """
-                                          DELETE FROM account WHERE id = ?
-                                      """)) {
+  public void deleteAccount(List<UUID> keepIds) throws SQLException {
+    try (Connection c = ds.getConnection()) {
+      if (CommonUtilities.isEmpty(keepIds)) {
+        try (PreparedStatement stmt = c.prepareStatement("DELETE FROM account")) {
+          stmt.executeUpdate();
+        }
+        return;
+      }
 
-      stmt.setObject(1, id);
-      stmt.executeUpdate();
+      String placeholders = keepIds.stream().map(id -> "?").collect(Collectors.joining(", "));
+      String sql = "DELETE FROM account WHERE id NOT IN (" + placeholders + ")";
+
+      try (PreparedStatement stmt = c.prepareStatement(sql)) {
+        for (int i = 0; i < keepIds.size(); i++) {
+          stmt.setObject(i + 1, keepIds.get(i));
+        }
+        stmt.executeUpdate();
+      }
     }
   }
 
@@ -129,16 +153,24 @@ public final class TestDataHelper {
     return id;
   }
 
-  public void deleteTransaction(UUID id) throws SQLException {
-    try (Connection c = ds.getConnection();
-        PreparedStatement stmt =
-            c.prepareStatement(
-                """
-                             DELETE FROM transaction WHERE id = ?
-                         """)) {
+  public void deleteTransaction(List<UUID> keepIds) throws SQLException {
+    try (Connection c = ds.getConnection()) {
+      if (CommonUtilities.isEmpty(keepIds)) {
+        try (PreparedStatement stmt = c.prepareStatement("DELETE FROM transaction")) {
+          stmt.executeUpdate();
+        }
+        return;
+      }
 
-      stmt.setObject(1, id);
-      stmt.executeUpdate();
+      String placeholders = keepIds.stream().map(id -> "?").collect(Collectors.joining(", "));
+      String sql = "DELETE FROM transaction WHERE id NOT IN (" + placeholders + ")";
+
+      try (PreparedStatement stmt = c.prepareStatement(sql)) {
+        for (int i = 0; i < keepIds.size(); i++) {
+          stmt.setObject(i + 1, keepIds.get(i));
+        }
+        stmt.executeUpdate();
+      }
     }
   }
 
@@ -162,16 +194,24 @@ public final class TestDataHelper {
     return id;
   }
 
-  public void deleteTransactionItem(UUID id) throws SQLException {
-    try (Connection c = ds.getConnection();
-        PreparedStatement stmt =
-            c.prepareStatement(
-                """
-                             DELETE FROM transaction_item WHERE id = ?
-                         """)) {
+  public void deleteTransactionItem(List<UUID> keepIds) throws SQLException {
+    try (Connection c = ds.getConnection()) {
+      if (CommonUtilities.isEmpty(keepIds)) {
+        try (PreparedStatement stmt = c.prepareStatement("DELETE FROM transaction_item")) {
+          stmt.executeUpdate();
+        }
+        return;
+      }
 
-      stmt.setObject(1, id);
-      stmt.executeUpdate();
+      String placeholders = keepIds.stream().map(id -> "?").collect(Collectors.joining(", "));
+      String sql = "DELETE FROM transaction_item WHERE id NOT IN (" + placeholders + ")";
+
+      try (PreparedStatement stmt = c.prepareStatement(sql)) {
+        for (int i = 0; i < keepIds.size(); i++) {
+          stmt.setObject(i + 1, keepIds.get(i));
+        }
+        stmt.executeUpdate();
+      }
     }
   }
 

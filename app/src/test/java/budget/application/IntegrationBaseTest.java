@@ -17,6 +17,7 @@ public abstract class IntegrationBaseTest {
   protected static ServerNetty server;
   protected static int port;
   protected static final UUID TEST_ID = UUID.fromString("5b15fdaf-758b-4c4f-97d1-2405b716867a");
+  protected static TestDataHelper testDataHelper;
 
   @BeforeAll
   static void beforeAll() throws Exception {
@@ -25,6 +26,7 @@ public abstract class IntegrationBaseTest {
     server = new ServerNetty(TestDataSource.getDataSource(), null);
     server.start();
     port = server.getBoundPort();
+    testDataHelper = new TestDataHelper(TestDataSource.getDataSource());
   }
 
   @AfterAll
