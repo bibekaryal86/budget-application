@@ -11,6 +11,10 @@ import budget.application.model.dto.TransactionItemRequest;
 import budget.application.model.dto.TransactionRequest;
 import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 import java.math.BigDecimal;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class Validations {
   private Validations() {}
@@ -112,7 +116,11 @@ public class Validations {
   }
 
   public static void validateTransactionItem(
-      String requestId, TransactionItemRequest tir, CategoryDao categoryDao, Boolean isCreateTxn) {
+      String requestId,
+      TransactionItemRequest tir,
+      CategoryDao categoryDao,
+      Boolean isCreateTxn,
+      List<CategoryResponse.Category> categories) {
     if (tir == null) {
       throw new Exceptions.BadRequestException(
           String.format("[%s] Transaction item request cannot be null...", requestId));
@@ -134,7 +142,13 @@ public class Validations {
           String.format("[%s] Transaction item amount cannot be null or negative...", requestId));
     }
 
-    CategoryResponse.Category category = categoryDao.readByIdNoEx(tir.categoryId()).orElse(null);
+    CategoryResponse.Category category =
+        CommonUtilities.isEmpty(categories)
+            ? categoryDao.readByIdNoEx(tir.categoryId()).orElse(null)
+            : categories.stream()
+                .filter(cat -> cat.id().equals(tir.categoryId()))
+                .findFirst()
+                .orElse(null);
     if (category == null) {
       throw new Exceptions.BadRequestException(
           String.format("[%s] Category does not exist...", requestId));
@@ -182,8 +196,26 @@ public class Validations {
       throw new Exceptions.BadRequestException(
           String.format("[%s] Total amount does not match sum of items...", requestId));
     }
+
+    List<UUID> catIds = tr.items().stream().map(TransactionItemRequest::categoryId).toList();
+    List<CategoryResponse.Category> categories = categoryDao.readCategoriesByIdsNoEx(catIds);
+    if (CommonUtilities.isEmpty(categories)) {
+      throw new Exceptions.BadRequestException(
+          String.format("[%s] Category does not exist...", requestId));
+    }
+    Set<String> typeNames =
+        categories.stream().map(c -> c.categoryType().name()).collect(Collectors.toSet());
+    for (String typeName : Constants.NO_EXPENSE_CATEGORY_TYPES) {
+      if (typeNames.contains(typeName) && typeNames.size() > 1) {
+        throw new Exceptions.BadRequestException(
+            String.format(
+                "[%s] Category type [%s] cannot be mixed with other category types...",
+                requestId, typeName));
+      }
+    }
+
     for (TransactionItemRequest tir : tr.items()) {
-      validateTransactionItem(requestId, tir, categoryDao, Boolean.TRUE);
+      validateTransactionItem(requestId, tir, categoryDao, Boolean.TRUE, categories);
     }
   }
 }

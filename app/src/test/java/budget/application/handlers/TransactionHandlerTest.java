@@ -365,6 +365,39 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
     resp = httpDelete(ApiPaths.TRANSACTIONS_V1_WITH_ID + "invalid-uuid", Boolean.TRUE);
     Assertions.assertEquals(400, resp.statusCode());
     Assertions.assertTrue(resp.body().contains("Invalid Id Provided..."));
+
+    UUID ctId1 = UUID.randomUUID();
+    UUID ctId2 = UUID.randomUUID();
+    UUID cId1 = UUID.randomUUID();
+    UUID cId2 = UUID.randomUUID();
+    UUID cId3 = UUID.randomUUID();
+
+    testDataHelper.insertCategoryType(ctId1, "INCOME");
+    testDataHelper.insertCategoryType(ctId2, "CT TWO");
+
+    testDataHelper.insertCategory(cId1, ctId1, "INCOME C");
+    testDataHelper.insertCategory(cId2, ctId2, "C TWO");
+    testDataHelper.insertCategory(cId3, ctId2, "C THREE");
+
+    req =
+        new TransactionRequest(
+            LocalDateTime.now(),
+            "Some Merchant",
+            TEST_ID,
+            new BigDecimal("150.00"),
+            "",
+            List.of(
+                new TransactionItemRequest(
+                    null, cId1, "Test Label1", new BigDecimal("50.00"), "NEEDS"),
+                new TransactionItemRequest(
+                    null, cId2, "Test Label2", new BigDecimal("50.00"), "NEEDS"),
+                new TransactionItemRequest(
+                    null, cId3, "Test Label3", new BigDecimal("50.00"), "WANTS")));
+    resp = httpPost(ApiPaths.TRANSACTIONS_V1, JsonUtils.toJson(req), Boolean.TRUE);
+    Assertions.assertEquals(400, resp.statusCode());
+    Assertions.assertTrue(
+        resp.body()
+            .contains("Category type [INCOME] cannot be mixed with other category types..."));
   }
 
   @Test

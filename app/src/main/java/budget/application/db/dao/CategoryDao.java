@@ -68,6 +68,14 @@ public class CategoryDao extends BaseDao<Category> {
     }
   }
 
+  public List<CategoryResponse.Category> readCategoriesByIdsNoEx(List<UUID> catIds) {
+    try {
+      return readCategories(catIds, List.of());
+    } catch (Exception e) {
+      return List.of();
+    }
+  }
+
   public List<CategoryResponse.Category> readCategories(List<UUID> catIds, List<UUID> catTypeIds)
       throws SQLException {
     log.debug("[{}] Read Categories: CatIds=[{}], CatTypeIds=[{}]", requestId, catIds, catTypeIds);

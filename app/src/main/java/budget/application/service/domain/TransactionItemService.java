@@ -34,7 +34,8 @@ public class TransactionItemService {
           TransactionItemDao dao = new TransactionItemDao(requestId, bs.connection());
           CategoryDao categoryDao = new CategoryDao(requestId, bs.connection());
 
-          Validations.validateTransactionItem(requestId, tir, categoryDao, Boolean.FALSE);
+          Validations.validateTransactionItem(
+              requestId, tir, categoryDao, Boolean.FALSE, List.of());
 
           TransactionItem tiIn =
               new TransactionItem(
@@ -79,7 +80,8 @@ public class TransactionItemService {
         bs -> {
           TransactionItemDao dao = new TransactionItemDao(requestId, bs.connection());
           CategoryDao categoryDao = new CategoryDao(requestId, bs.connection());
-          Validations.validateTransactionItem(requestId, tir, categoryDao, Boolean.FALSE);
+          Validations.validateTransactionItem(
+              requestId, tir, categoryDao, Boolean.FALSE, List.of());
 
           List<TransactionItem> tiList = dao.read(List.of(id));
           if (tiList.isEmpty()) {
