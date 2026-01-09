@@ -2,6 +2,7 @@
 
 create an api to serve home page
 cache category and category type, api to reset
+categories need to be reworked - which is why the work is paused for now
 
 A streamlined, lightweight personal finance tracker built with a focus on high performance and zero framework overhead.
 This application provides a robust backend for managing expenses and income through a structured category system.
@@ -53,3 +54,4 @@ The application uses a hierarchical structure to organize financial data, allowi
     * `pets-service-sandbox`
         * This branch is used for local/development instances
         * When a pull request is created, flyway migration is run in this branch to validate schema changes
+
