@@ -3,6 +3,10 @@
 create an api to serve home page
 cache category and category type, api to reset
 categories need to be reworked - which is why the work is paused for now
+add tags to transaction items, add api to update tags only, add api to return used tags
+add api to return all transactions without tags
+in UI, add section to categorize transactions that don't have tags as above
+reporting_tags = insurance, loans, electricity, vacation, etc
 
 A streamlined, lightweight personal finance tracker built with a focus on high performance and zero framework overhead.
 This application provides a robust backend for managing expenses and income through a structured category system.
