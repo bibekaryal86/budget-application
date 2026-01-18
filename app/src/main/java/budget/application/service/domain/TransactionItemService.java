@@ -44,7 +44,8 @@ public class TransactionItemService {
                   tir.categoryId(),
                   tir.label(),
                   tir.amount(),
-                  tir.expType());
+                  tir.expType(),
+                  tir.tags());
           UUID id = dao.create(tiIn).id();
           log.debug("[{}] Created transaction item: Id=[{}]", requestId, id);
 
@@ -72,6 +73,18 @@ public class TransactionItemService {
         });
   }
 
+  public TransactionItemResponse.TransactionItemTags readTransactionItemTags(String requestId)
+      throws SQLException {
+    log.debug("[{}] Read transaction item tags", requestId);
+    return tx.execute(
+        bs -> {
+          TransactionItemDao txnItemDao = new TransactionItemDao(requestId, bs.connection());
+          List<String> txnItemTags = txnItemDao.readAllTags();
+          return new TransactionItemResponse.TransactionItemTags(
+              txnItemTags, ResponseMetadata.emptyResponseMetadata());
+        });
+  }
+
   public TransactionItemResponse update(String requestId, UUID id, TransactionItemRequest tir)
       throws SQLException {
     log.debug(
@@ -95,7 +108,8 @@ public class TransactionItemService {
                   tir.categoryId(),
                   tir.label(),
                   tir.amount(),
-                  tir.expType());
+                  tir.expType(),
+                  tir.tags());
           dao.update(tiIn);
           TransactionItemResponse.TransactionItem tiOut =
               dao.readTransactionItems(List.of(id)).getFirst();

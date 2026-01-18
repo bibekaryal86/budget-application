@@ -26,4 +26,5 @@ public class ApiPaths {
 
   public static final String TRANSACTION_ITEMS_V1 = BASE_V1 + "/transaction-items";
   public static final String TRANSACTION_ITEMS_V1_WITH_ID = TRANSACTION_ITEMS_V1 + "/";
+  public static final String TRANSACTION_ITEMS_V1_WITH_TAGS = TRANSACTION_ITEMS_V1 + "/tags";
 }

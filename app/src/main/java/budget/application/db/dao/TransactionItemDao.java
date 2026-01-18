@@ -11,6 +11,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -31,23 +32,39 @@ public class TransactionItemDao extends BaseDao<TransactionItem> {
 
   @Override
   protected List<String> insertColumns() {
-    return List.of("transaction_id", "category_id", "label", "amount", "exp_type");
+    return List.of("transaction_id", "category_id", "label", "amount", "exp_type", "tags");
   }
 
   @Override
   protected List<Object> insertValues(TransactionItem ti) {
     return List.of(
-        ti.transactionId(), ti.categoryId(), ti.label().toUpperCase(), ti.amount(), ti.expType());
+        ti.transactionId(),
+        ti.categoryId(),
+        ti.label().toUpperCase(),
+        ti.amount(),
+        ti.expType(),
+        switch (ti.tags()) {
+          case null -> Collections.emptyList();
+          case List<String> tags -> tags.stream().map(String::toUpperCase).toList();
+        });
   }
 
   @Override
   protected List<String> updateColumns() {
-    return List.of("category_id", "label", "amount", "exp_type");
+    return List.of("category_id", "label", "amount", "exp_type", "tags");
   }
 
   @Override
   protected List<Object> updateValues(TransactionItem ti) {
-    return List.of(ti.categoryId(), ti.label().toUpperCase(), ti.amount(), ti.expType());
+    return List.of(
+        ti.categoryId(),
+        ti.label().toUpperCase(),
+        ti.amount(),
+        ti.expType(),
+        switch (ti.tags()) {
+          case null -> Collections.emptyList();
+          case List<String> tags -> tags.stream().map(String::toUpperCase).toList();
+        });
   }
 
   @Override
@@ -81,6 +98,7 @@ public class TransactionItemDao extends BaseDao<TransactionItem> {
                     ti.label AS txn_item_label,
                     ti.amount AS txn_item_amount,
                     ti.exp_type AS txn_exp_type,
+                    ti.tags AS txn_item_tags,
                     t.id AS txn_id,
                     t.txn_date AS txn_date,
                     t.merchant AS txn_merchant,
@@ -157,6 +175,26 @@ public class TransactionItemDao extends BaseDao<TransactionItem> {
         return results;
       }
     }
+  }
+
+  public List<String> readAllTags() throws SQLException {
+    String sql =
+        """
+            SELECT DISTINCT tag
+            FROM transaction_item
+            CROSS JOIN LATERAL unnest(tags) AS tag
+            WHERE tags IS NOT NULL AND cardinality(tags) > 0
+            ORDER BY tag ASC
+        """;
+
+    List<String> tags = new ArrayList<>();
+    try (PreparedStatement stmt = connection.prepareStatement(sql);
+        ResultSet rs = stmt.executeQuery()) {
+      while (rs.next()) {
+        tags.add(rs.getString("tag"));
+      }
+    }
+    return tags;
   }
 
   public int deleteByTransactionIds(List<UUID> txnIds) throws SQLException {

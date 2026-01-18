@@ -109,6 +109,7 @@ public class TransactionDao extends BaseDao<Transaction> {
                     ti.label       AS item_label,
                     ti.amount      AS item_amount,
                     ti.exp_type    AS item_exp_type,
+                    ti.tags        AS item_tags,
                     c.id           AS category_id,
                     c.name         AS category_name,
                     ct.id          AS category_type_id,
@@ -222,7 +223,8 @@ public class TransactionDao extends BaseDao<Transaction> {
                     c,
                     rs.getString("item_label"),
                     rs.getBigDecimal("item_amount"),
-                    rs.getString("item_exp_type"));
+                    rs.getString("item_exp_type"),
+                    List.of((String[]) rs.getArray("item_tags").getArray()));
             txnMap.get(txnId).addItem(item);
           }
         }

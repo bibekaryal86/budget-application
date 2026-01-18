@@ -4,8 +4,10 @@ import budget.application.model.dto.CategoryResponse;
 import budget.application.model.dto.CategoryTypeResponse;
 import budget.application.model.dto.TransactionItemResponse;
 import budget.application.model.entity.TransactionItem;
+import java.sql.Array;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.UUID;
 
 public class TransactionItemRowMappers {
@@ -19,7 +21,8 @@ public class TransactionItemRowMappers {
           rs.getObject("category_id", UUID.class),
           rs.getString("label"),
           rs.getBigDecimal("amount"),
-          rs.getString("exp_type"));
+          rs.getString("exp_type"),
+          extractReportTags(rs.getArray("tags")));
     }
   }
 
@@ -37,7 +40,21 @@ public class TransactionItemRowMappers {
               rs.getString("category_name")),
           rs.getString("txn_item_label"),
           rs.getBigDecimal("txn_item_amount"),
-          rs.getString("txn_exp_type"));
+          rs.getString("txn_exp_type"),
+          extractReportTags(rs.getArray("txn_item_tags")));
     }
+  }
+
+  private static List<String> extractReportTags(Array sqlArray) throws SQLException {
+    if (sqlArray == null) {
+      return List.of();
+    }
+
+    String[] tagsArray = (String[]) sqlArray.getArray();
+    if (tagsArray == null || tagsArray.length == 0) {
+      return List.of();
+    }
+
+    return List.of(tagsArray);
   }
 }

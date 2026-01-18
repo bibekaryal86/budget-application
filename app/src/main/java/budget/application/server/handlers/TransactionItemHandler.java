@@ -46,6 +46,12 @@ public class TransactionItemHandler extends SimpleChannelInboundHandler<FullHttp
       return;
     }
 
+    // READ: GET /petssvc/api/v1/transaction-items/tags
+    if (path.equals(ApiPaths.TRANSACTION_ITEMS_V1_WITH_TAGS) && method.equals(HttpMethod.GET)) {
+      handleReadTags(requestId, ctx);
+      return;
+    }
+
     // READ ALL: GET /petssvc/api/v1/transaction-items
     if (path.equals(ApiPaths.TRANSACTION_ITEMS_V1) && method.equals(HttpMethod.GET)) {
       handleReadAll(requestId, ctx);
@@ -96,6 +102,13 @@ public class TransactionItemHandler extends SimpleChannelInboundHandler<FullHttp
   private void handleReadOne(String requestId, ChannelHandlerContext ctx, UUID id)
       throws Exception {
     TransactionItemResponse response = service.read(requestId, List.of(id));
+    ServerUtils.sendResponse(ctx, HttpResponseStatus.OK, response);
+  }
+
+  // READ TAGS
+  private void handleReadTags(String requestId, ChannelHandlerContext ctx) throws Exception {
+    TransactionItemResponse.TransactionItemTags response =
+        service.readTransactionItemTags(requestId);
     ServerUtils.sendResponse(ctx, HttpResponseStatus.OK, response);
   }
 

@@ -1,6 +1,7 @@
 package budget.application.model.entity;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 
 public record TransactionItem(
@@ -9,4 +10,5 @@ public record TransactionItem(
     UUID categoryId,
     String label,
     BigDecimal amount,
-    String expType) {}
+    String expType,
+    List<String> tags) {}
