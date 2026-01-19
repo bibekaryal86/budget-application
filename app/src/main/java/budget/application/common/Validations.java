@@ -153,17 +153,6 @@ public class Validations {
       throw new Exceptions.BadRequestException(
           String.format("[%s] Category does not exist...", requestId));
     }
-
-    if (!Constants.NO_EXPENSE_CATEGORY_TYPES.contains(category.categoryType().name())) {
-      if (CommonUtilities.isEmpty(tir.expType())) {
-        throw new Exceptions.BadRequestException(
-            String.format("[%s] Transaction item type cannot be empty...", requestId));
-      }
-      if (!Constants.TRANSACTION_TYPES.contains(tir.expType())) {
-        throw new Exceptions.BadRequestException(
-            String.format("[%s] Transaction item type is invalid...", requestId));
-      }
-    }
   }
 
   public static void validateTransaction(

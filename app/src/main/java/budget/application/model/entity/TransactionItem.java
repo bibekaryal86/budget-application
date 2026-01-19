@@ -10,5 +10,4 @@ public record TransactionItem(
     UUID categoryId,
     String label,
     BigDecimal amount,
-    String expType,
     List<String> tags) {}

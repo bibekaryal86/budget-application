@@ -44,7 +44,6 @@ public class TransactionItemService {
                   tir.categoryId(),
                   tir.label(),
                   tir.amount(),
-                  tir.expType(),
                   tir.tags());
           UUID id = dao.create(tiIn).id();
           log.debug("[{}] Created transaction item: Id=[{}]", requestId, id);
@@ -103,13 +102,7 @@ public class TransactionItemService {
 
           TransactionItem tiIn =
               new TransactionItem(
-                  id,
-                  tir.transactionId(),
-                  tir.categoryId(),
-                  tir.label(),
-                  tir.amount(),
-                  tir.expType(),
-                  tir.tags());
+                  id, tir.transactionId(), tir.categoryId(), tir.label(), tir.amount(), tir.tags());
           dao.update(tiIn);
           TransactionItemResponse.TransactionItem tiOut =
               dao.readTransactionItems(List.of(id)).getFirst();

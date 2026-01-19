@@ -77,9 +77,8 @@ public class ServerUtils {
     List<UUID> catIds = parseUUIDs(decoder, "catIds");
     List<UUID> catTypeIds = parseUUIDs(decoder, "catTypeIds");
     List<UUID> accIds = parseUUIDs(decoder, "accIds");
-    List<String> expTypes = parseStrings(decoder, "expTypes");
     return new RequestParams.TransactionParams(
-        beginDate, endDate, merchants, catIds, catTypeIds, accIds, expTypes);
+        beginDate, endDate, merchants, catIds, catTypeIds, accIds);
   }
 
   public static RequestParams.BudgetParams getBudgetParams(QueryStringDecoder decoder) {

@@ -43,9 +43,9 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
             "",
             List.of(
                 new TransactionItemRequest(
-                    null, TEST_ID, "Test Label1", new BigDecimal("50.00"), "NEEDS", List.of()),
+                    null, TEST_ID, "Test Label1", new BigDecimal("50.00"), List.of()),
                 new TransactionItemRequest(
-                    null, TEST_ID, "Test Label2", new BigDecimal("50.00"), "NEEDS", List.of())));
+                    null, TEST_ID, "Test Label2", new BigDecimal("50.00"), List.of())));
     HttpResponse<String> resp =
         httpPost(ApiPaths.TRANSACTIONS_V1, JsonUtils.toJson(req), Boolean.TRUE);
     Assertions.assertEquals(201, resp.statusCode());
@@ -94,9 +94,9 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
             "Txn Note",
             List.of(
                 new TransactionItemRequest(
-                    null, TEST_ID, "Label1 Test", new BigDecimal("50.00"), "NEEDS", List.of()),
+                    null, TEST_ID, "Label1 Test", new BigDecimal("50.00"), List.of()),
                 new TransactionItemRequest(
-                    null, TEST_ID, "Test Label2", new BigDecimal("50.00"), "NEEDS", List.of())));
+                    null, TEST_ID, "Test Label2", new BigDecimal("50.00"), List.of())));
     resp = httpPut(ApiPaths.TRANSACTIONS_V1_WITH_ID + id, JsonUtils.toJson(req), Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());
     response = JsonUtils.fromJson(resp.body(), TransactionResponse.class);
@@ -159,9 +159,9 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
     testDataHelper.insertTransaction(tId2, LocalDateTime.now().minusMonths(1L), 200.00);
     testDataHelper.insertTransaction(tId3, LocalDateTime.now().minusMonths(2L), 300.00);
 
-    testDataHelper.insertTransactionItem(tiId1, tId1, cId1, 50, "NEEDS", Collections.emptyList());
-    testDataHelper.insertTransactionItem(tiId2, tId1, cId2, 50, "NEEDS", Collections.emptyList());
-    testDataHelper.insertTransactionItem(tiId3, tId2, cId2, 200, "", Collections.emptyList());
+    testDataHelper.insertTransactionItem(tiId1, tId1, cId1, 50, Collections.emptyList());
+    testDataHelper.insertTransactionItem(tiId2, tId1, cId2, 50, Collections.emptyList());
+    testDataHelper.insertTransactionItem(tiId3, tId2, cId2, 200, Collections.emptyList());
 
     HttpResponse<String> resp = httpGet(ApiPaths.TRANSACTIONS_V1, Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());
@@ -183,11 +183,6 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
     response = JsonUtils.fromJson(resp.body(), TransactionResponse.class);
     Assertions.assertEquals(3, response.data().size());
 
-    resp = httpGet(ApiPaths.TRANSACTIONS_V1 + "?expTypes=NEEDS,WANTS", Boolean.TRUE);
-    Assertions.assertEquals(200, resp.statusCode());
-    response = JsonUtils.fromJson(resp.body(), TransactionResponse.class);
-    Assertions.assertEquals(2, response.data().size());
-
     LocalDate beginDate = LocalDate.of(2025, 1, 1);
     LocalDate endDate = LocalDateTime.now().toLocalDate();
     resp =
@@ -201,7 +196,6 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
                 + cId2
                 + "&catTypeIds="
                 + TEST_ID
-                + "&expTypes=NEEDS,"
                 + "&merchants=TEST%20MERCHANT,SOME_MERCHANT"
                 + "&beginDate="
                 + beginDate
@@ -294,14 +288,9 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
             "",
             List.of(
                 new TransactionItemRequest(
-                    TEST_ID, TEST_ID, "Test Label1", new BigDecimal("40.00"), "NEEDS", List.of()),
+                    TEST_ID, TEST_ID, "Test Label1", new BigDecimal("40.00"), List.of()),
                 new TransactionItemRequest(
-                    TEST_ID,
-                    TEST_ID,
-                    "Test Label2",
-                    new BigDecimal("100.00"),
-                    "NEEDS",
-                    List.of())));
+                    TEST_ID, TEST_ID, "Test Label2", new BigDecimal("100.00"), List.of())));
     resp = httpPost(ApiPaths.TRANSACTIONS_V1, JsonUtils.toJson(req), Boolean.TRUE);
     Assertions.assertEquals(400, resp.statusCode());
     Assertions.assertTrue(resp.body().contains("Total amount does not match sum of items..."));
@@ -315,54 +304,16 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
             "",
             List.of(
                 new TransactionItemRequest(
-                    TEST_ID, TEST_ID, "Test Label1", new BigDecimal("50.00"), "NEEDS", List.of()),
+                    TEST_ID, TEST_ID, "Test Label1", new BigDecimal("50.00"), List.of()),
                 new TransactionItemRequest(
                     TEST_ID,
                     UUID.randomUUID(),
                     "Test Label2",
                     new BigDecimal("50.00"),
-                    "WANTS",
                     List.of())));
     resp = httpPost(ApiPaths.TRANSACTIONS_V1, JsonUtils.toJson(req), Boolean.TRUE);
     Assertions.assertEquals(400, resp.statusCode());
     Assertions.assertTrue(resp.body().contains("Category does not exist..."));
-
-    req =
-        new TransactionRequest(
-            LocalDateTime.now(),
-            "Some Merchant",
-            TEST_ID,
-            new BigDecimal("100.00"),
-            "",
-            List.of(
-                new TransactionItemRequest(
-                    TEST_ID, TEST_ID, "Test Label1", new BigDecimal("50.00"), "NEEDS", List.of()),
-                new TransactionItemRequest(
-                    TEST_ID, TEST_ID, "Test Label2", new BigDecimal("50"), null, List.of())));
-    resp = httpPost(ApiPaths.TRANSACTIONS_V1, JsonUtils.toJson(req), Boolean.TRUE);
-    Assertions.assertEquals(400, resp.statusCode());
-    Assertions.assertTrue(resp.body().contains("Transaction item type cannot be empty..."));
-
-    req =
-        new TransactionRequest(
-            LocalDateTime.now(),
-            "Some Merchant",
-            TEST_ID,
-            new BigDecimal("100.00"),
-            "",
-            List.of(
-                new TransactionItemRequest(
-                    TEST_ID, TEST_ID, "Test Label1", new BigDecimal("50.00"), "NEEDS", List.of()),
-                new TransactionItemRequest(
-                    TEST_ID,
-                    TEST_ID,
-                    "Test Label2",
-                    new BigDecimal("50.00"),
-                    "SOMETHING",
-                    List.of())));
-    resp = httpPost(ApiPaths.TRANSACTIONS_V1, JsonUtils.toJson(req), Boolean.TRUE);
-    Assertions.assertEquals(400, resp.statusCode());
-    Assertions.assertTrue(resp.body().contains("Transaction item type is invalid..."));
 
     resp = httpGet(ApiPaths.TRANSACTIONS_V1_WITH_ID + "invalid-uuid", Boolean.TRUE);
     Assertions.assertEquals(400, resp.statusCode());
@@ -404,11 +355,11 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
             "",
             List.of(
                 new TransactionItemRequest(
-                    null, cId1, "Test Label1", new BigDecimal("50.00"), "NEEDS", List.of()),
+                    null, cId1, "Test Label1", new BigDecimal("50.00"), List.of()),
                 new TransactionItemRequest(
-                    null, cId2, "Test Label2", new BigDecimal("50.00"), "NEEDS", List.of()),
+                    null, cId2, "Test Label2", new BigDecimal("50.00"), List.of()),
                 new TransactionItemRequest(
-                    null, cId3, "Test Label3", new BigDecimal("50.00"), "WANTS", List.of())));
+                    null, cId3, "Test Label3", new BigDecimal("50.00"), List.of())));
     resp = httpPost(ApiPaths.TRANSACTIONS_V1, JsonUtils.toJson(req), Boolean.TRUE);
     Assertions.assertEquals(400, resp.statusCode());
     Assertions.assertTrue(
@@ -428,14 +379,9 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
             "",
             List.of(
                 new TransactionItemRequest(
-                    randomId, TEST_ID, "Test Label1", new BigDecimal("50.00"), "NEEDS", List.of()),
+                    randomId, TEST_ID, "Test Label1", new BigDecimal("50.00"), List.of()),
                 new TransactionItemRequest(
-                    randomId,
-                    TEST_ID,
-                    "Test Label2",
-                    new BigDecimal("50.00"),
-                    "WANTS",
-                    List.of())));
+                    randomId, TEST_ID, "Test Label2", new BigDecimal("50.00"), List.of())));
     HttpResponse<String> resp =
         httpPut(ApiPaths.TRANSACTIONS_V1_WITH_ID + randomId, JsonUtils.toJson(req), Boolean.TRUE);
     Assertions.assertEquals(404, resp.statusCode());

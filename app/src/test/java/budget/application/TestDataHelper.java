@@ -1,6 +1,5 @@
 package budget.application;
 
-import budget.application.common.Constants;
 import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -10,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 import javax.sql.DataSource;
 
@@ -215,22 +213,20 @@ public final class TestDataHelper {
   }
 
   public UUID insertTransactionItem(
-      UUID id, UUID txnId, UUID catId, double amount, String txnType, List<String> tags)
-      throws SQLException {
+      UUID id, UUID txnId, UUID catId, double amount, List<String> tags) throws SQLException {
     try (Connection c = ds.getConnection();
         PreparedStatement stmt =
             c.prepareStatement(
                 """
-                INSERT INTO transaction_item (id, transaction_id, category_id, label, amount, exp_type, tags)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO transaction_item (id, transaction_id, category_id, label, amount, tags)
+                VALUES (?, ?, ?, ?, ?, ?)
             """)) {
       stmt.setObject(1, id);
       stmt.setObject(2, txnId);
       stmt.setObject(3, catId);
       stmt.setString(4, "Label: " + id);
       stmt.setDouble(5, amount);
-      stmt.setString(6, txnType);
-      stmt.setArray(7, c.createArrayOf("text", tags.toArray(new String[0])));
+      stmt.setArray(6, c.createArrayOf("text", tags.toArray(new String[0])));
       stmt.executeUpdate();
     }
     return id;
@@ -302,14 +298,11 @@ public final class TestDataHelper {
         insertTransaction(txnId, LocalDateTime.of(2024, 1, 1, 0, 0, 0), totalAmount);
 
         for (int j = 0; j < itemCount; j++) {
-          List<String> txnTypes = Constants.TRANSACTION_TYPES;
-          int index = ThreadLocalRandom.current().nextInt(txnTypes.size());
           insertTransactionItem(
               UUID.randomUUID(),
               txnId,
               IntegrationBaseTest.TEST_ID,
               itemAmount,
-              txnTypes.get(index),
               Collections.emptyList());
         }
 

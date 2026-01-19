@@ -85,7 +85,7 @@ public class TransactionDao extends BaseDao<Transaction> {
     if (requestParams == null) {
       requestParams =
           new RequestParams.TransactionParams(
-              null, null, List.of(), List.of(), List.of(), List.of(), List.of());
+              null, null, List.of(), List.of(), List.of(), List.of());
     }
 
     List<UUID> catIds = requestParams.catIds();
@@ -94,7 +94,6 @@ public class TransactionDao extends BaseDao<Transaction> {
     LocalDate endDate = requestParams.endDate();
     List<String> merchants = requestParams.merchants();
     List<UUID> accIds = requestParams.accIds();
-    List<String> expTypes = requestParams.expTypes();
 
     StringBuilder sql =
         new StringBuilder(
@@ -108,7 +107,6 @@ public class TransactionDao extends BaseDao<Transaction> {
                     ti.id          AS item_id,
                     ti.label       AS item_label,
                     ti.amount      AS item_amount,
-                    ti.exp_type    AS item_exp_type,
                     ti.tags        AS item_tags,
                     c.id           AS category_id,
                     c.name         AS category_name,
@@ -156,10 +154,6 @@ public class TransactionDao extends BaseDao<Transaction> {
     if (!CommonUtilities.isEmpty(accIds)) {
       addWhere.accept("t.account_id IN (" + DaoUtils.placeholders(accIds.size()) + ")");
       params.addAll(accIds);
-    }
-    if (!CommonUtilities.isEmpty(expTypes)) {
-      addWhere.accept("ti.exp_type IN (" + DaoUtils.placeholders(expTypes.size()) + ")");
-      params.addAll(expTypes);
     }
     if (!CommonUtilities.isEmpty(catIds)) {
       addWhere.accept("ti.category_id IN (" + DaoUtils.placeholders(catIds.size()) + ")");
@@ -223,7 +217,6 @@ public class TransactionDao extends BaseDao<Transaction> {
                     c,
                     rs.getString("item_label"),
                     rs.getBigDecimal("item_amount"),
-                    rs.getString("item_exp_type"),
                     List.of((String[]) rs.getArray("item_tags").getArray()));
             txnMap.get(txnId).addItem(item);
           }

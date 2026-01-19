@@ -5,9 +5,4 @@ import java.util.List;
 import java.util.UUID;
 
 public record TransactionItemRequest(
-    UUID transactionId,
-    UUID categoryId,
-    String label,
-    BigDecimal amount,
-    String expType,
-    List<String> tags) {}
+    UUID transactionId, UUID categoryId, String label, BigDecimal amount, List<String> tags) {}

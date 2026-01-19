@@ -21,7 +21,6 @@ public class TransactionItemRowMappers {
           rs.getObject("category_id", UUID.class),
           rs.getString("label"),
           rs.getBigDecimal("amount"),
-          rs.getString("exp_type"),
           extractReportTags(rs.getArray("tags")));
     }
   }
@@ -40,7 +39,6 @@ public class TransactionItemRowMappers {
               rs.getString("category_name")),
           rs.getString("txn_item_label"),
           rs.getBigDecimal("txn_item_amount"),
-          rs.getString("txn_exp_type"),
           extractReportTags(rs.getArray("txn_item_tags")));
     }
   }

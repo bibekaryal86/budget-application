@@ -57,7 +57,6 @@ CREATE TABLE transaction_item (
     category_id     UUID NOT NULL REFERENCES category(id) ON DELETE RESTRICT,
     label           VARCHAR(255) NOT NULL,
     amount          NUMERIC(12, 2) NOT NULL CHECK (amount >= 0),
-    exp_type        VARCHAR(10) NOT NULL CHECK (exp_type IN ('NEEDS', 'WANTS', '')),
     tags            TEXT[] NOT NULL DEFAULT '{}'
 );
 

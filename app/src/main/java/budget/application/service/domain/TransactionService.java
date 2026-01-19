@@ -73,7 +73,6 @@ public class TransactionService {
                               item.categoryId(),
                               item.label(),
                               item.amount(),
-                              item.expType(),
                               item.tags()))
                   .toList();
           List<UUID> txnItemsIds =
@@ -177,7 +176,6 @@ public class TransactionService {
                                 item.categoryId(),
                                 item.label(),
                                 item.amount(),
-                                item.expType(),
                                 item.tags()))
                     .toList();
             txnItemsOut = itemDao.createItems(txnItemsIn);

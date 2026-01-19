@@ -12,7 +12,6 @@ public record TransactionItemResponse(List<TransactionItem> data, ResponseMetada
       CategoryResponse.Category category,
       String label,
       BigDecimal amount,
-      String expType,
       List<String> tags) {}
 
   public record TransactionItemTags(List<String> data, ResponseMetadata metadata) {}

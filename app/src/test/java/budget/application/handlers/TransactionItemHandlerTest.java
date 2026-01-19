@@ -29,12 +29,7 @@ public class TransactionItemHandlerTest extends IntegrationBaseTest {
     // CREATE
     TransactionItemRequest req =
         new TransactionItemRequest(
-            TEST_ID,
-            TEST_ID,
-            "Test Item",
-            new BigDecimal("100.00"),
-            "NEEDS",
-            Collections.emptyList());
+            TEST_ID, TEST_ID, "Test Item", new BigDecimal("100.00"), Collections.emptyList());
     HttpResponse<String> resp =
         httpPost(ApiPaths.TRANSACTION_ITEMS_V1, JsonUtils.toJson(req), Boolean.TRUE);
     Assertions.assertEquals(201, resp.statusCode());
@@ -61,7 +56,7 @@ public class TransactionItemHandlerTest extends IntegrationBaseTest {
     // UPDATE
     req =
         new TransactionItemRequest(
-            TEST_ID, TEST_ID, "Item Test", new BigDecimal("100.00"), "WANTS", List.of("Tag One"));
+            TEST_ID, TEST_ID, "Item Test", new BigDecimal("100.00"), List.of("Tag One"));
     resp = httpPut(ApiPaths.TRANSACTION_ITEMS_V1_WITH_ID + id, JsonUtils.toJson(req), Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());
     response = JsonUtils.fromJson(resp.body(), TransactionItemResponse.class);
@@ -94,9 +89,9 @@ public class TransactionItemHandlerTest extends IntegrationBaseTest {
   @Test
   void testReadTransactionItemTags() throws Exception {
     testDataHelper.insertTransactionItem(
-        UUID.randomUUID(), TEST_ID, TEST_ID, 100.00, "NEEDS", List.of("TAG1", "TAG2"));
+        UUID.randomUUID(), TEST_ID, TEST_ID, 100.00, List.of("TAG1", "TAG2"));
     testDataHelper.insertTransactionItem(
-        UUID.randomUUID(), TEST_ID, TEST_ID, 100.00, "NEEDS", List.of("TAG1", "TAG3"));
+        UUID.randomUUID(), TEST_ID, TEST_ID, 100.00, List.of("TAG1", "TAG3"));
     HttpResponse<String> resp = httpGet(ApiPaths.TRANSACTION_ITEMS_V1_WITH_TAGS, Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());
     TransactionItemResponse.TransactionItemTags response =
@@ -128,42 +123,28 @@ public class TransactionItemHandlerTest extends IntegrationBaseTest {
     Assertions.assertEquals(400, resp.statusCode());
     Assertions.assertTrue(resp.body().contains("Transaction item request cannot be null..."));
 
-    TransactionItemRequest req = new TransactionItemRequest(null, null, "", null, "", List.of());
+    TransactionItemRequest req = new TransactionItemRequest(null, null, "", null, List.of());
     resp = httpPost(ApiPaths.TRANSACTION_ITEMS_V1, JsonUtils.toJson(req), Boolean.TRUE);
     Assertions.assertEquals(400, resp.statusCode());
     Assertions.assertTrue(resp.body().contains("Transaction item transaction cannot be null..."));
 
-    req = new TransactionItemRequest(TEST_ID, null, "", null, "", List.of());
+    req = new TransactionItemRequest(TEST_ID, null, "", null, List.of());
     resp = httpPost(ApiPaths.TRANSACTION_ITEMS_V1, JsonUtils.toJson(req), Boolean.TRUE);
     Assertions.assertEquals(400, resp.statusCode());
     Assertions.assertTrue(resp.body().contains("Transaction item category cannot be null..."));
 
-    req = new TransactionItemRequest(TEST_ID, TEST_ID, "", null, "", List.of());
+    req = new TransactionItemRequest(TEST_ID, TEST_ID, "", null, List.of());
     resp = httpPost(ApiPaths.TRANSACTION_ITEMS_V1, JsonUtils.toJson(req), Boolean.TRUE);
     Assertions.assertEquals(400, resp.statusCode());
     Assertions.assertTrue(resp.body().contains("Transaction item label cannot be empty..."));
 
     req =
         new TransactionItemRequest(
-            TEST_ID, TEST_ID, "some-label", new BigDecimal("00.00"), "", List.of());
+            TEST_ID, TEST_ID, "some-label", new BigDecimal("00.00"), List.of());
     resp = httpPost(ApiPaths.TRANSACTION_ITEMS_V1, JsonUtils.toJson(req), Boolean.TRUE);
     Assertions.assertEquals(400, resp.statusCode());
     Assertions.assertTrue(
         resp.body().contains("Transaction item amount cannot be null or negative..."));
-
-    req =
-        new TransactionItemRequest(
-            TEST_ID, TEST_ID, "some-label", new BigDecimal("100.00"), "", List.of());
-    resp = httpPost(ApiPaths.TRANSACTION_ITEMS_V1, JsonUtils.toJson(req), Boolean.TRUE);
-    Assertions.assertEquals(400, resp.statusCode());
-    Assertions.assertTrue(resp.body().contains("Transaction item type cannot be empty..."));
-
-    req =
-        new TransactionItemRequest(
-            TEST_ID, TEST_ID, "some-label", new BigDecimal("100.00"), "SOMETHING", List.of());
-    resp = httpPost(ApiPaths.TRANSACTION_ITEMS_V1, JsonUtils.toJson(req), Boolean.TRUE);
-    Assertions.assertEquals(400, resp.statusCode());
-    Assertions.assertTrue(resp.body().contains("Transaction item type is invalid..."));
 
     resp = httpGet(ApiPaths.TRANSACTION_ITEMS_V1_WITH_ID + "invalid-uuid", Boolean.TRUE);
     Assertions.assertEquals(400, resp.statusCode());
@@ -190,7 +171,7 @@ public class TransactionItemHandlerTest extends IntegrationBaseTest {
     UUID randomId = UUID.randomUUID();
     TransactionItemRequest req =
         new TransactionItemRequest(
-            TEST_ID, TEST_ID, "Item Test", new BigDecimal("100.00"), "NEEDS", List.of());
+            TEST_ID, TEST_ID, "Item Test", new BigDecimal("100.00"), List.of());
     HttpResponse<String> resp =
         httpPut(
             ApiPaths.TRANSACTION_ITEMS_V1_WITH_ID + randomId, JsonUtils.toJson(req), Boolean.TRUE);

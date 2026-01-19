@@ -32,7 +32,7 @@ public class TransactionItemDao extends BaseDao<TransactionItem> {
 
   @Override
   protected List<String> insertColumns() {
-    return List.of("transaction_id", "category_id", "label", "amount", "exp_type", "tags");
+    return List.of("transaction_id", "category_id", "label", "amount", "tags");
   }
 
   @Override
@@ -42,7 +42,6 @@ public class TransactionItemDao extends BaseDao<TransactionItem> {
         ti.categoryId(),
         ti.label().toUpperCase(),
         ti.amount(),
-        ti.expType(),
         switch (ti.tags()) {
           case null -> Collections.emptyList();
           case List<String> tags -> tags.stream().map(String::toUpperCase).toList();
@@ -51,7 +50,7 @@ public class TransactionItemDao extends BaseDao<TransactionItem> {
 
   @Override
   protected List<String> updateColumns() {
-    return List.of("category_id", "label", "amount", "exp_type", "tags");
+    return List.of("category_id", "label", "amount", "tags");
   }
 
   @Override
@@ -60,7 +59,6 @@ public class TransactionItemDao extends BaseDao<TransactionItem> {
         ti.categoryId(),
         ti.label().toUpperCase(),
         ti.amount(),
-        ti.expType(),
         switch (ti.tags()) {
           case null -> Collections.emptyList();
           case List<String> tags -> tags.stream().map(String::toUpperCase).toList();
@@ -97,7 +95,6 @@ public class TransactionItemDao extends BaseDao<TransactionItem> {
                     ti.id AS txn_item_id,
                     ti.label AS txn_item_label,
                     ti.amount AS txn_item_amount,
-                    ti.exp_type AS txn_exp_type,
                     ti.tags AS txn_item_tags,
                     t.id AS txn_id,
                     t.txn_date AS txn_date,
