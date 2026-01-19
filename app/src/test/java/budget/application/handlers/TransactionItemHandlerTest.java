@@ -9,13 +9,20 @@ import budget.application.service.util.ResponseMetadataUtils;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseWithMetadata;
 import java.math.BigDecimal;
 import java.net.http.HttpResponse;
+import java.sql.SQLException;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 public class TransactionItemHandlerTest extends IntegrationBaseTest {
+
+  @AfterEach
+  void cleanup() throws SQLException {
+    testDataHelper.deleteTransactionItem(List.of(TEST_ID));
+  }
 
   @Test
   void testTransactionItems() throws Exception {
@@ -82,6 +89,23 @@ public class TransactionItemHandlerTest extends IntegrationBaseTest {
             .responseStatusInfo()
             .errMsg()
             .contains("[TransactionItem] Not found for"));
+  }
+
+  @Test
+  void testReadTransactionItemTags() throws Exception {
+    testDataHelper.insertTransactionItem(
+        UUID.randomUUID(), TEST_ID, TEST_ID, 100.00, "NEEDS", List.of("TAG1", "TAG2"));
+    testDataHelper.insertTransactionItem(
+        UUID.randomUUID(), TEST_ID, TEST_ID, 100.00, "NEEDS", List.of("TAG1", "TAG3"));
+    HttpResponse<String> resp = httpGet(ApiPaths.TRANSACTION_ITEMS_V1_WITH_TAGS, Boolean.TRUE);
+    Assertions.assertEquals(200, resp.statusCode());
+    TransactionItemResponse.TransactionItemTags response =
+        JsonUtils.fromJson(resp.body(), TransactionItemResponse.TransactionItemTags.class);
+    Assertions.assertEquals(3, response.data().size());
+
+    Assertions.assertTrue(response.data().contains("TAG1"));
+    Assertions.assertTrue(response.data().contains("TAG2"));
+    Assertions.assertTrue(response.data().contains("TAG3"));
   }
 
   @Test

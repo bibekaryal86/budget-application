@@ -7,6 +7,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
@@ -213,14 +214,15 @@ public final class TestDataHelper {
     }
   }
 
-  public UUID insertTransactionItem(UUID id, UUID txnId, UUID catId, double amount, String txnType)
+  public UUID insertTransactionItem(
+      UUID id, UUID txnId, UUID catId, double amount, String txnType, List<String> tags)
       throws SQLException {
     try (Connection c = ds.getConnection();
         PreparedStatement stmt =
             c.prepareStatement(
                 """
-                INSERT INTO transaction_item (id, transaction_id, category_id, label, amount, exp_type)
-                VALUES (?, ?, ?, ?, ?, ?)
+                INSERT INTO transaction_item (id, transaction_id, category_id, label, amount, exp_type, tags)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
             """)) {
       stmt.setObject(1, id);
       stmt.setObject(2, txnId);
@@ -228,6 +230,7 @@ public final class TestDataHelper {
       stmt.setString(4, "Label: " + id);
       stmt.setDouble(5, amount);
       stmt.setString(6, txnType);
+      stmt.setArray(7, c.createArrayOf("text", tags.toArray(new String[0])));
       stmt.executeUpdate();
     }
     return id;
@@ -306,7 +309,8 @@ public final class TestDataHelper {
               txnId,
               IntegrationBaseTest.TEST_ID,
               itemAmount,
-              txnTypes.get(index));
+              txnTypes.get(index),
+              Collections.emptyList());
         }
 
         if (i % 250 == 0) {

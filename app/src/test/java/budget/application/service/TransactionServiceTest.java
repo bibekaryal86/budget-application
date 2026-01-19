@@ -6,6 +6,7 @@ import budget.application.service.domain.TransactionService;
 import io.github.bibekaryal86.shdsvc.Email;
 import io.github.bibekaryal86.shdsvc.dtos.EmailRequest;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import javax.sql.DataSource;
@@ -49,7 +50,8 @@ public class TransactionServiceTest extends IntegrationBaseTest {
   @Test
   void testReconcileAll_OneMismatch_EmailSent() throws Exception {
     UUID txnId = testDataHelper.insertTransaction(UUID.randomUUID(), LocalDateTime.now(), 200.00);
-    testDataHelper.insertTransactionItem(UUID.randomUUID(), txnId, TEST_ID, 50.00, "NEEDS");
+    testDataHelper.insertTransactionItem(
+        UUID.randomUUID(), txnId, TEST_ID, 50.00, "NEEDS", Collections.emptyList());
 
     service.reconcileAll("req-one");
     ArgumentCaptor<EmailRequest> captor = ArgumentCaptor.forClass(EmailRequest.class);
@@ -62,13 +64,19 @@ public class TransactionServiceTest extends IntegrationBaseTest {
   @Test
   void testReconcileAll_MultipleMismatches_EmailContainsAll() throws Exception {
     UUID txnId1 = testDataHelper.insertTransaction(UUID.randomUUID(), LocalDateTime.now(), 100.00);
-    testDataHelper.insertTransactionItem(UUID.randomUUID(), txnId1, TEST_ID, 25, "NEEDS");
-    testDataHelper.insertTransactionItem(UUID.randomUUID(), txnId1, TEST_ID, 50.00, "WANTS");
-    testDataHelper.insertTransactionItem(UUID.randomUUID(), txnId1, TEST_ID, 50, "");
+    testDataHelper.insertTransactionItem(
+        UUID.randomUUID(), txnId1, TEST_ID, 25, "NEEDS", Collections.emptyList());
+    testDataHelper.insertTransactionItem(
+        UUID.randomUUID(), txnId1, TEST_ID, 50.00, "WANTS", Collections.emptyList());
+    testDataHelper.insertTransactionItem(
+        UUID.randomUUID(), txnId1, TEST_ID, 50, "", Collections.emptyList());
     UUID txnId2 = testDataHelper.insertTransaction(UUID.randomUUID(), LocalDateTime.now(), 200.00);
-    testDataHelper.insertTransactionItem(UUID.randomUUID(), txnId2, TEST_ID, 100, "");
-    testDataHelper.insertTransactionItem(UUID.randomUUID(), txnId2, TEST_ID, 50.00, "");
-    testDataHelper.insertTransactionItem(UUID.randomUUID(), txnId2, TEST_ID, 50, "");
+    testDataHelper.insertTransactionItem(
+        UUID.randomUUID(), txnId2, TEST_ID, 100, "", Collections.emptyList());
+    testDataHelper.insertTransactionItem(
+        UUID.randomUUID(), txnId2, TEST_ID, 50.00, "", Collections.emptyList());
+    testDataHelper.insertTransactionItem(
+        UUID.randomUUID(), txnId2, TEST_ID, 50, "", Collections.emptyList());
     UUID txnId3 = testDataHelper.insertTransaction(UUID.randomUUID(), LocalDateTime.now(), 100.00);
 
     service.reconcileAll("req-multi");

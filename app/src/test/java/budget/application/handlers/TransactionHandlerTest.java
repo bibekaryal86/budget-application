@@ -14,6 +14,7 @@ import java.net.http.HttpResponse;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
@@ -158,9 +159,9 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
     testDataHelper.insertTransaction(tId2, LocalDateTime.now().minusMonths(1L), 200.00);
     testDataHelper.insertTransaction(tId3, LocalDateTime.now().minusMonths(2L), 300.00);
 
-    testDataHelper.insertTransactionItem(tiId1, tId1, cId1, 50, "NEEDS");
-    testDataHelper.insertTransactionItem(tiId2, tId1, cId2, 50, "NEEDS");
-    testDataHelper.insertTransactionItem(tiId3, tId2, cId2, 200, "");
+    testDataHelper.insertTransactionItem(tiId1, tId1, cId1, 50, "NEEDS", Collections.emptyList());
+    testDataHelper.insertTransactionItem(tiId2, tId1, cId2, 50, "NEEDS", Collections.emptyList());
+    testDataHelper.insertTransactionItem(tiId3, tId2, cId2, 200, "", Collections.emptyList());
 
     HttpResponse<String> resp = httpGet(ApiPaths.TRANSACTIONS_V1, Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());
