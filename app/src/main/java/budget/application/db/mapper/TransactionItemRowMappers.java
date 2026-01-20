@@ -19,9 +19,9 @@ public class TransactionItemRowMappers {
           rs.getObject("id", UUID.class),
           rs.getObject("transaction_id", UUID.class),
           rs.getObject("category_id", UUID.class),
-          rs.getString("label"),
           rs.getBigDecimal("amount"),
-          extractReportTags(rs.getArray("tags")));
+          extractReportTags(rs.getArray("tags")),
+          rs.getString("notes"));
     }
   }
 
@@ -37,9 +37,9 @@ public class TransactionItemRowMappers {
               new CategoryTypeResponse.CategoryType(
                   rs.getObject("category_type_id", UUID.class), rs.getString("category_type_name")),
               rs.getString("category_name")),
-          rs.getString("txn_item_label"),
           rs.getBigDecimal("txn_item_amount"),
-          extractReportTags(rs.getArray("txn_item_tags")));
+          extractReportTags(rs.getArray("txn_item_tags")),
+          rs.getString("txn_item_notes"));
     }
   }
 

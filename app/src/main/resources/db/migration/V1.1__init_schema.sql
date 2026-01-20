@@ -43,7 +43,6 @@ CREATE TABLE transaction (
     merchant        VARCHAR(255) NOT NULL,
     account_id      UUID NOT NULL REFERENCES account(id) ON DELETE RESTRICT,
     total_amount    NUMERIC(12, 2) NOT NULL CHECK (total_amount >= 0),
-    notes           TEXT,
     created_at      TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at      TIMESTAMP NOT NULL DEFAULT NOW()
 );
@@ -55,9 +54,9 @@ CREATE TABLE transaction_item (
     id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     transaction_id  UUID NOT NULL REFERENCES transaction(id) ON DELETE CASCADE,
     category_id     UUID NOT NULL REFERENCES category(id) ON DELETE RESTRICT,
-    label           VARCHAR(255) NOT NULL,
     amount          NUMERIC(12, 2) NOT NULL CHECK (amount >= 0),
-    tags            TEXT[] NOT NULL DEFAULT '{}'
+    tags            TEXT[] NOT NULL DEFAULT '{}',
+    notes           VARCHAR(1024)
 );
 
 -- ============================================

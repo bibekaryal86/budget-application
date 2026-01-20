@@ -32,7 +32,7 @@ public class TransactionItemDao extends BaseDao<TransactionItem> {
 
   @Override
   protected List<String> insertColumns() {
-    return List.of("transaction_id", "category_id", "label", "amount", "tags");
+    return List.of("transaction_id", "category_id", "amount", "tags", "notes");
   }
 
   @Override
@@ -40,29 +40,29 @@ public class TransactionItemDao extends BaseDao<TransactionItem> {
     return List.of(
         ti.transactionId(),
         ti.categoryId(),
-        ti.label().toUpperCase(),
         ti.amount(),
         switch (ti.tags()) {
           case null -> Collections.emptyList();
           case List<String> tags -> tags.stream().map(String::toUpperCase).toList();
-        });
+        },
+        ti.notes().toUpperCase());
   }
 
   @Override
   protected List<String> updateColumns() {
-    return List.of("category_id", "label", "amount", "tags");
+    return List.of("category_id", "amount", "tags", "notes");
   }
 
   @Override
   protected List<Object> updateValues(TransactionItem ti) {
     return List.of(
         ti.categoryId(),
-        ti.label().toUpperCase(),
         ti.amount(),
         switch (ti.tags()) {
           case null -> Collections.emptyList();
           case List<String> tags -> tags.stream().map(String::toUpperCase).toList();
-        });
+        },
+        ti.notes().toUpperCase());
   }
 
   @Override
@@ -93,14 +93,13 @@ public class TransactionItemDao extends BaseDao<TransactionItem> {
             """
                 SELECT
                     ti.id AS txn_item_id,
-                    ti.label AS txn_item_label,
                     ti.amount AS txn_item_amount,
                     ti.tags AS txn_item_tags,
+                    ti.notes AS txn_item_notes,
                     t.id AS txn_id,
                     t.txn_date AS txn_date,
                     t.merchant AS txn_merchant,
                     t.total_amount AS txn_total_amount,
-                    t.notes AS txn_notes,
                     c.id AS category_id,
                     c.name AS category_name,
                     ct.id AS category_type_id,

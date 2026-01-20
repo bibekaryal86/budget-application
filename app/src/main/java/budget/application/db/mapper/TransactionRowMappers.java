@@ -18,7 +18,6 @@ public class TransactionRowMappers {
           rs.getString("merchant"),
           rs.getObject("account_id", UUID.class),
           rs.getBigDecimal("total_amount"),
-          rs.getString("notes"),
           rs.getObject("created_at", LocalDateTime.class),
           rs.getObject("updated_at", LocalDateTime.class));
     }
@@ -34,7 +33,6 @@ public class TransactionRowMappers {
           rs.getObject("txn_date", LocalDateTime.class),
           rs.getString("txn_merchant"),
           rs.getBigDecimal("txn_total_amount"),
-          rs.getString("txn_notes"),
           null,
           List.of());
     }

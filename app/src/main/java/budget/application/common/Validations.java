@@ -133,10 +133,6 @@ public class Validations {
       throw new Exceptions.BadRequestException(
           String.format("[%s] Transaction item category cannot be null...", requestId));
     }
-    if (CommonUtilities.isEmpty(tir.label())) {
-      throw new Exceptions.BadRequestException(
-          String.format("[%s] Transaction item label cannot be empty...", requestId));
-    }
     if (tir.amount() == null || tir.amount().compareTo(BigDecimal.ZERO) <= 0) {
       throw new Exceptions.BadRequestException(
           String.format("[%s] Transaction item amount cannot be null or negative...", requestId));

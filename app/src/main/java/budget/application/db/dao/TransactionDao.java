@@ -39,22 +39,18 @@ public class TransactionDao extends BaseDao<Transaction> {
 
   @Override
   protected List<String> insertColumns() {
-    return List.of("txn_date", "merchant", "account_id", "total_amount", "notes");
+    return List.of("txn_date", "merchant", "account_id", "total_amount");
   }
 
   @Override
   protected List<Object> insertValues(Transaction t) {
     return List.of(
-        t.txnDate().toLocalDate(),
-        t.merchant().toUpperCase(),
-        t.accountId(),
-        t.totalAmount(),
-        t.notes().toUpperCase());
+        t.txnDate().toLocalDate(), t.merchant().toUpperCase(), t.accountId(), t.totalAmount());
   }
 
   @Override
   protected List<String> updateColumns() {
-    return List.of("txn_date", "merchant", "account_id", "total_amount", "notes", "updated_at");
+    return List.of("txn_date", "merchant", "account_id", "total_amount", "updated_at");
   }
 
   @Override
@@ -64,7 +60,6 @@ public class TransactionDao extends BaseDao<Transaction> {
         t.merchant().toUpperCase(),
         t.accountId(),
         t.totalAmount(),
-        t.notes().toUpperCase(),
         LocalDateTime.now());
   }
 
@@ -103,11 +98,10 @@ public class TransactionDao extends BaseDao<Transaction> {
                     t.txn_date     AS txn_date,
                     t.merchant     AS txn_merchant,
                     t.total_amount AS txn_total_amount,
-                    t.notes        AS txn_notes,
                     ti.id          AS item_id,
-                    ti.label       AS item_label,
                     ti.amount      AS item_amount,
                     ti.tags        AS item_tags,
+                    ti.notes       AS item_notes,
                     c.id           AS category_id,
                     c.name         AS category_name,
                     ct.id          AS category_type_id,
@@ -194,8 +188,7 @@ public class TransactionDao extends BaseDao<Transaction> {
                     rs.getObject("txn_date", LocalDateTime.class),
                     rs.getString("txn_merchant"),
                     account,
-                    rs.getBigDecimal("txn_total_amount"),
-                    rs.getString("txn_notes"));
+                    rs.getBigDecimal("txn_total_amount"));
             txnMap.put(txnId, txnBuilder);
           }
 
@@ -212,12 +205,11 @@ public class TransactionDao extends BaseDao<Transaction> {
             TransactionItemResponse.TransactionItem item =
                 new TransactionItemResponse.TransactionItem(
                     itemId,
-                    new TransactionResponse.Transaction(
-                        txnId, null, null, null, null, null, List.of()),
+                    new TransactionResponse.Transaction(txnId, null, null, null, null, List.of()),
                     c,
-                    rs.getString("item_label"),
                     rs.getBigDecimal("item_amount"),
-                    List.of((String[]) rs.getArray("item_tags").getArray()));
+                    List.of((String[]) rs.getArray("item_tags").getArray()),
+                    rs.getString("item_notes"));
             txnMap.get(txnId).addItem(item);
           }
         }
@@ -285,7 +277,6 @@ public class TransactionDao extends BaseDao<Transaction> {
     private final String merchant;
     private final AccountResponse.Account account;
     private final BigDecimal totalAmount;
-    private final String notes;
     private final List<TransactionItemResponse.TransactionItem> items = new ArrayList<>();
 
     TransactionResultBuilder(
@@ -293,14 +284,12 @@ public class TransactionDao extends BaseDao<Transaction> {
         LocalDateTime txnDate,
         String merchant,
         AccountResponse.Account account,
-        BigDecimal totalAmount,
-        String notes) {
+        BigDecimal totalAmount) {
       this.id = id;
       this.txnDate = txnDate;
       this.merchant = merchant;
       this.account = account;
       this.totalAmount = totalAmount;
-      this.notes = notes;
     }
 
     void addItem(TransactionItemResponse.TransactionItem item) {
@@ -309,7 +298,7 @@ public class TransactionDao extends BaseDao<Transaction> {
 
     TransactionResponse.Transaction build() {
       return new TransactionResponse.Transaction(
-          id, txnDate, merchant, totalAmount, notes, account, List.copyOf(items));
+          id, txnDate, merchant, totalAmount, account, List.copyOf(items));
     }
   }
 }

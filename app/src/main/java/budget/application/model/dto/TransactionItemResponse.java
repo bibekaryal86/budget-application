@@ -10,9 +10,9 @@ public record TransactionItemResponse(List<TransactionItem> data, ResponseMetada
       UUID id,
       TransactionResponse.Transaction transaction,
       CategoryResponse.Category category,
-      String label,
       BigDecimal amount,
-      List<String> tags) {}
+      List<String> tags,
+      String notes) {}
 
   public record TransactionItemTags(List<String> data, ResponseMetadata metadata) {}
 }

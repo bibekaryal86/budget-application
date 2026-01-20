@@ -218,15 +218,15 @@ public final class TestDataHelper {
         PreparedStatement stmt =
             c.prepareStatement(
                 """
-                INSERT INTO transaction_item (id, transaction_id, category_id, label, amount, tags)
+                INSERT INTO transaction_item (id, transaction_id, category_id, amount, tags, notes)
                 VALUES (?, ?, ?, ?, ?, ?)
             """)) {
       stmt.setObject(1, id);
       stmt.setObject(2, txnId);
       stmt.setObject(3, catId);
-      stmt.setString(4, "Label: " + id);
-      stmt.setDouble(5, amount);
-      stmt.setArray(6, c.createArrayOf("text", tags.toArray(new String[0])));
+      stmt.setDouble(4, amount);
+      stmt.setArray(5, c.createArrayOf("text", tags.toArray(new String[0])));
+      stmt.setString(6, "Note: " + id);
       stmt.executeUpdate();
     }
     return id;

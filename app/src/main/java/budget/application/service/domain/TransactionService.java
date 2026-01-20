@@ -51,14 +51,7 @@ public class TransactionService {
           Validations.validateTransaction(requestId, tr, categoryDao);
           Transaction txnIn =
               new Transaction(
-                  null,
-                  tr.txnDate(),
-                  tr.merchant(),
-                  tr.accountId(),
-                  tr.totalAmount(),
-                  tr.notes(),
-                  null,
-                  null);
+                  null, tr.txnDate(), tr.merchant(), tr.accountId(), tr.totalAmount(), null, null);
 
           UUID txnId = txnDao.create(txnIn).id();
           log.debug("[{}] Created transaction: Id=[{}]", requestId, txnId);
@@ -71,9 +64,9 @@ public class TransactionService {
                               null,
                               txnId,
                               item.categoryId(),
-                              item.label(),
                               item.amount(),
-                              item.tags()))
+                              item.tags(),
+                              item.notes()))
                   .toList();
           List<UUID> txnItemsIds =
               itemDao.createItems(txnItemsIn).stream().map(TransactionItem::id).toList();
@@ -142,14 +135,7 @@ public class TransactionService {
 
           Transaction txnIn =
               new Transaction(
-                  id,
-                  tr.txnDate(),
-                  tr.merchant(),
-                  tr.accountId(),
-                  tr.totalAmount(),
-                  tr.notes(),
-                  null,
-                  null);
+                  id, tr.txnDate(), tr.merchant(), tr.accountId(), tr.totalAmount(), null, null);
 
           // Update transaction
           Transaction txnOut = txnDao.update(txnIn);
@@ -174,9 +160,9 @@ public class TransactionService {
                                 null,
                                 id,
                                 item.categoryId(),
-                                item.label(),
                                 item.amount(),
-                                item.tags()))
+                                item.tags(),
+                                item.notes()))
                     .toList();
             txnItemsOut = itemDao.createItems(txnItemsIn);
             log.debug(

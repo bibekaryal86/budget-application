@@ -10,6 +10,5 @@ public record Transaction(
     String merchant,
     UUID accountId,
     BigDecimal totalAmount,
-    String notes,
     LocalDateTime createdAt,
     LocalDateTime updatedAt) {}
