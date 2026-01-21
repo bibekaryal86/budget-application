@@ -32,7 +32,7 @@ INSERT INTO category (id, category_type_id, name) VALUES ('1a50c9fa-10cb-4c69-9e
 
 INSERT INTO category (id, category_type_id, name) VALUES ('5f5c3f16-8b47-42e1-b38f-84b2c93f5c02', '3f2a1b4d-9e6c-4c3f-b7a8-2e5d9c1f6a04', 'BILLS AND UTILITIES - OTHER');
 INSERT INTO category (id, category_type_id, name) VALUES ('2d0e5a63-8c39-4a72-b22c-ff4a7d37d6c6', '3f2a1b4d-9e6c-4c3f-b7a8-2e5d9c1f6a04', 'ELECTRICITY');
-INSERT INTO category (id, category_type_id, name) VALUES ('b9c1c70a-3f58-4f38-8d6c-4a2e8f52b9f3', '3f2a1b4d-9e6c-4c3f-b7a8-2e5d9c1f6a04', 'GAS');
+INSERT INTO category (id, category_type_id, name) VALUES ('b9c1c70a-3f58-4f38-8d6c-4a2e8f52b9f3', '3f2a1b4d-9e6c-4c3f-b7a8-2e5d9c1f6a04', 'NATURAL GAS');
 INSERT INTO category (id, category_type_id, name) VALUES ('e5d3a91b-9245-4f3c-8f2b-7db5a44d0f65', '3f2a1b4d-9e6c-4c3f-b7a8-2e5d9c1f6a04', 'INTERNET');
 INSERT INTO category (id, category_type_id, name) VALUES ('d63a7f0e-1b9f-4f9c-ae3c-8cdb5f0b3f49', '3f2a1b4d-9e6c-4c3f-b7a8-2e5d9c1f6a04', 'PHONE');
 INSERT INTO category (id, category_type_id, name) VALUES ('6b90a1d2-9f60-4fcb-9a2c-7bbd43b5df48', '3f2a1b4d-9e6c-4c3f-b7a8-2e5d9c1f6a04', 'TELEVISION');
@@ -108,10 +108,7 @@ INSERT INTO category (id, category_type_id, name) VALUES ('9a3c1d7f-6e2b-4a21-9e
 INSERT INTO category (id, category_type_id, name) VALUES ('7c3d9f1a-9c4b-4a8e-5f1d-bc7a2e396054', '6e2a7f3d-9c4b-4a8e-5f1d-bc7a2e396054', 'HOME IMPROVEMENTS');
 INSERT INTO category (id, category_type_id, name) VALUES ('1a7c3d9f-9c4b-4a8e-5f1d-bc7a2e396054', '6e2a7f3d-9c4b-4a8e-5f1d-bc7a2e396054', 'HOME LOAN PAYMENT');
 INSERT INTO category (id, category_type_id, name) VALUES ('9f1a7c3d-9c4b-4a8e-5f1d-bc7a2e396054', '6e2a7f3d-9c4b-4a8e-5f1d-bc7a2e396054', 'HOME LOAN PAYMENT - EXTRA');
-INSERT INTO category (id, category_type_id, name) VALUES ('3d9f1a7c-9c4b-4a8e-5f1d-bc7a2e396054', '6e2a7f3d-9c4b-4a8e-5f1d-bc7a2e396054', 'HOME2 LOAN PAYMENT');
-INSERT INTO category (id, category_type_id, name) VALUES ('7f3d9c1a-9c4b-4a8e-5f1d-bc7a2e396054', '6e2a7f3d-9c4b-4a8e-5f1d-bc7a2e396054', 'HOME2 LOAN PAYMENT - EXTRA');
 INSERT INTO category (id, category_type_id, name) VALUES ('c9f7a1d3-9c4b-4a8e-5f1d-bc7a2e396054', '6e2a7f3d-9c4b-4a8e-5f1d-bc7a2e396054', 'HOME HOA DUES');
-INSERT INTO category (id, category_type_id, name) VALUES ('a1d3c9f7-9c4b-4a8e-5f1d-bc7a2e396054', '6e2a7f3d-9c4b-4a8e-5f1d-bc7a2e396054', 'HOME2 HOA DUES');
 INSERT INTO category (id, category_type_id, name) VALUES ('f7c9a1d3-9c4b-4a8e-5f1d-bc7a2e396054', '6e2a7f3d-9c4b-4a8e-5f1d-bc7a2e396054', 'HOME OR RENTAL INSURANCE');
 INSERT INTO category (id, category_type_id, name) VALUES ('d3f7c9a1-9c4b-4a8e-5f1d-bc7a2e396054', '6e2a7f3d-9c4b-4a8e-5f1d-bc7a2e396054', 'HOME SERVICES');
 INSERT INTO category (id, category_type_id, name) VALUES ('1d3f7c9a-9c4b-4a8e-5f1d-bc7a2e396054', '6e2a7f3d-9c4b-4a8e-5f1d-bc7a2e396054', 'HOME SUPPLIES');
@@ -162,7 +159,7 @@ INSERT INTO category (id, category_type_id, name) VALUES ('cd8e1752-e53d-4a4f-1c
 INSERT INTO category (id, category_type_id, name) VALUES ('c1a2b3d4-5e6f-4a7b-8c9d-0e1f2a3b0040', 'a3e9f6c2-7d5b-4c1a-8e4f-9b7d1a2c6054', 'BOOKS');
 INSERT INTO category (id, category_type_id, name) VALUES ('d2b3c4e5-6f7a-4b8c-9d0e-1f2a3b4c0051', 'a3e9f6c2-7d5b-4c1a-8e4f-9b7d1a2c6054', 'CLOTHING');
 INSERT INTO category (id, category_type_id, name) VALUES ('e3c4d5f6-7a8b-4c9d-0e1f-2a3b4c5d0062', 'a3e9f6c2-7d5b-4c1a-8e4f-9b7d1a2c6054', 'ELECTRONICS');
-INSERT INTO category (id, category_type_id, name) VALUES ('f4d5e6a7-8b9c-4d0e-1f2a-3b4c5d6e0073', 'a3e9f6c2-7d5b-4c1a-8e4f-9b7d1a2c6054', 'ONLINE SERVICES');
+INSERT INTO category (id, category_type_id, name) VALUES ('f4d5e6a7-8b9c-4d0e-1f2a-3b4c5d6e0073', 'a3e9f6c2-7d5b-4c1a-8e4f-9b7d1a2c6054', 'ONLINE SHOPPING');
 INSERT INTO category (id, category_type_id, name) VALUES ('05e6f7b8-9c0d-4e1f-2a3b-4c5d6e7f0084', 'a3e9f6c2-7d5b-4c1a-8e4f-9b7d1a2c6054', 'HOBBIES');
 INSERT INTO category (id, category_type_id, name) VALUES ('16f708c9-0d1e-4f2a-3b4c-5d6e7f8a0095', 'a3e9f6c2-7d5b-4c1a-8e4f-9b7d1a2c6054', 'SHOPPING - OTHER');
 INSERT INTO category (id, category_type_id, name) VALUES ('27a819da-1e2f-4c3b-4d5e-6f7a8b9c00a6', 'a3e9f6c2-7d5b-4c1a-8e4f-9b7d1a2c6054', 'SPORTING GOODS');
