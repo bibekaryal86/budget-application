@@ -26,7 +26,7 @@ public class ReportDao {
     this.txnSummaryMapper = new ReportRowMappers.TransactionSummaryRowMapper();
   }
 
-  public List<ReportResponse.TransactionSummary> readTransactionSummary(
+  public ReportResponse.TransactionSummary readTransactionSummary(
       LocalDate beginDate, LocalDate endDate) throws SQLException {
     log.debug(
         "[{}] Read transaction summary: BeginDate=[{}], EndDate=[{}]",
@@ -71,6 +71,6 @@ public class ReportDao {
         }
       }
     }
-    return results;
+    return results.getFirst();
   }
 }
