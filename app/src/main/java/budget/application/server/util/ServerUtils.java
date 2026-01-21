@@ -88,6 +88,32 @@ public class ServerUtils {
     return new RequestParams.BudgetParams(budgetMonth, budgetYear, catIds);
   }
 
+  public static RequestParams.TransactionSummaryParams getTransactionSummaryParams(
+      QueryStringDecoder decoder) {
+
+    LocalDate beginDate = parseDate(decoder, "beginDate");
+    LocalDate endDate = parseDate(decoder, "endDate");
+
+    if (beginDate == null && endDate == null) {
+      LocalDate now = LocalDate.now();
+      beginDate = now.withDayOfMonth(1);
+      endDate = now.withDayOfMonth(now.lengthOfMonth());
+      return new RequestParams.TransactionSummaryParams(beginDate, endDate);
+    }
+
+    if (beginDate != null && endDate == null) {
+      endDate = beginDate.withDayOfMonth(beginDate.lengthOfMonth());
+      return new RequestParams.TransactionSummaryParams(beginDate, endDate);
+    }
+
+    if (beginDate == null && endDate != null) {
+      beginDate = endDate.withDayOfMonth(1);
+      return new RequestParams.TransactionSummaryParams(beginDate, endDate);
+    }
+
+    return new RequestParams.TransactionSummaryParams(beginDate, endDate);
+  }
+
   private static List<UUID> parseUUIDs(QueryStringDecoder decoder, String paramName) {
     List<String> values = decoder.parameters().get(paramName);
     if (CommonUtilities.isEmpty(values)) {
