@@ -13,6 +13,7 @@ import budget.application.model.dto.TransactionResponse;
 import budget.application.model.entity.Transaction;
 import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 import java.math.BigDecimal;
+import java.sql.Array;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -80,7 +81,7 @@ public class TransactionDao extends BaseDao<Transaction> {
     if (requestParams == null) {
       requestParams =
           new RequestParams.TransactionParams(
-              null, null, List.of(), List.of(), List.of(), List.of());
+              null, null, List.of(), List.of(), List.of(), List.of(), List.of());
     }
 
     List<UUID> catIds = requestParams.catIds();
@@ -89,6 +90,7 @@ public class TransactionDao extends BaseDao<Transaction> {
     LocalDate endDate = requestParams.endDate();
     List<String> merchants = requestParams.merchants();
     List<UUID> accIds = requestParams.accIds();
+    List<String> tags = requestParams.tags();
 
     StringBuilder sql =
         new StringBuilder(
@@ -156,6 +158,11 @@ public class TransactionDao extends BaseDao<Transaction> {
     if (!CommonUtilities.isEmpty(catTypeIds)) {
       addWhere.accept("c.category_type_id IN (" + DaoUtils.placeholders(catTypeIds.size()) + ")");
       params.addAll(catTypeIds);
+    }
+    if (!CommonUtilities.isEmpty(tags)) {
+      Array sqlArray = connection.createArrayOf("text", tags.toArray());
+      addWhere.accept("ti.tags && ?");
+      params.add(sqlArray);
     }
 
     sql.append(" ORDER BY t.txn_date DESC");

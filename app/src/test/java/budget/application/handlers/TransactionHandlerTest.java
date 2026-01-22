@@ -13,7 +13,6 @@ import java.net.http.HttpResponse;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
@@ -137,9 +136,9 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
     testDataHelper.insertTransaction(tId2, LocalDateTime.now().minusMonths(1L), 200.00);
     testDataHelper.insertTransaction(tId3, LocalDateTime.now().minusMonths(2L), 300.00);
 
-    testDataHelper.insertTransactionItem(tiId1, tId1, cId1, 50, Collections.emptyList());
-    testDataHelper.insertTransactionItem(tiId2, tId1, cId2, 50, Collections.emptyList());
-    testDataHelper.insertTransactionItem(tiId3, tId2, cId2, 200, Collections.emptyList());
+    testDataHelper.insertTransactionItem(tiId1, tId1, cId1, 50, List.of("TAG ONE", "TAG TWO"));
+    testDataHelper.insertTransactionItem(tiId2, tId1, cId2, 50, List.of("TAG THREE", "TAG FOUR"));
+    testDataHelper.insertTransactionItem(tiId3, tId2, cId2, 200, List.of("TAG FIVE", "TAG ONE"));
 
     HttpResponse<String> resp = httpGet(ApiPaths.TRANSACTIONS_V1, Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());
@@ -161,6 +160,11 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
     response = JsonUtils.fromJson(resp.body(), TransactionResponse.class);
     Assertions.assertEquals(3, response.data().size());
 
+    resp = httpGet(ApiPaths.TRANSACTIONS_V1 + "?tags=TAG%20ONE,TAG%20THREE", Boolean.TRUE);
+    Assertions.assertEquals(200, resp.statusCode());
+    response = JsonUtils.fromJson(resp.body(), TransactionResponse.class);
+    Assertions.assertEquals(2, response.data().size());
+
     LocalDate beginDate = LocalDate.of(2025, 1, 1);
     LocalDate endDate = LocalDateTime.now().toLocalDate();
     resp =
@@ -175,6 +179,7 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
                 + "&catTypeIds="
                 + TEST_ID
                 + "&merchants=TEST%20MERCHANT,SOME_MERCHANT"
+                + "&tags=TEST%20TAG,SOME_TAG"
                 + "&beginDate="
                 + beginDate
                 + "&endDate="

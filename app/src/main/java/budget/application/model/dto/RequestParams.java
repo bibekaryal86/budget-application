@@ -12,7 +12,8 @@ public record RequestParams(TransactionParams transactionParams, CategoryParams 
       List<String> merchants,
       List<UUID> catIds,
       List<UUID> catTypeIds,
-      List<UUID> accIds) {}
+      List<UUID> accIds,
+      List<String> tags) {}
 
   public record CategoryParams(List<UUID> catTypesId) {}
 

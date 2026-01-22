@@ -96,11 +96,12 @@ public class TransactionItemHandlerTest extends IntegrationBaseTest {
     Assertions.assertEquals(200, resp.statusCode());
     TransactionItemResponse.TransactionItemTags response =
         JsonUtils.fromJson(resp.body(), TransactionItemResponse.TransactionItemTags.class);
-    Assertions.assertEquals(3, response.data().size());
+    Assertions.assertEquals(4, response.data().size());
 
     Assertions.assertTrue(response.data().contains("TAG1"));
     Assertions.assertTrue(response.data().contains("TAG2"));
     Assertions.assertTrue(response.data().contains("TAG3"));
+    Assertions.assertTrue(response.data().contains("TEST TAG"));
   }
 
   @Test
