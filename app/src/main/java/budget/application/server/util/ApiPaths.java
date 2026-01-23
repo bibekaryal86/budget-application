@@ -30,4 +30,5 @@ public class ApiPaths {
 
   public static final String REPORTS_V1 = BASE_V1 + "/reports";
   public static final String REPORTS_V1_TXN_SUMMARIES = REPORTS_V1 + "/txn-summaries";
+  public static final String REPORTS_V1_CAT_SUMMARIES = REPORTS_V1 + "/cat-summaries";
 }

@@ -115,6 +115,28 @@ public class ServerUtils {
     return new RequestParams.TransactionSummaryParams(beginDate, endDate);
   }
 
+  public static RequestParams.CategorySummaryParams getCategorySummaryParams(
+      QueryStringDecoder decoder) {
+
+    LocalDate beginDate = parseDate(decoder, "beginDate");
+    LocalDate endDate = parseDate(decoder, "endDate");
+
+    if (beginDate == null && endDate == null) {
+      LocalDate now = LocalDate.now();
+      beginDate = now.withDayOfMonth(1);
+      endDate = now.withDayOfMonth(now.lengthOfMonth());
+    } else if (beginDate != null && endDate == null) {
+      endDate = beginDate.withDayOfMonth(beginDate.lengthOfMonth());
+    } else if (beginDate == null && endDate != null) {
+      beginDate = endDate.withDayOfMonth(1);
+    }
+
+    List<UUID> catIds = parseUUIDs(decoder, "catIds");
+    List<UUID> catTypeIds = parseUUIDs(decoder, "catTypeIds");
+
+    return new RequestParams.CategorySummaryParams(beginDate, endDate, catIds, catTypeIds);
+  }
+
   private static List<UUID> parseUUIDs(QueryStringDecoder decoder, String paramName) {
     List<String> values = decoder.parameters().get(paramName);
     if (CommonUtilities.isEmpty(values)) {

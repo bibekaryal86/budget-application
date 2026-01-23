@@ -46,6 +46,13 @@ public class ReportHandler extends SimpleChannelInboundHandler<FullHttpRequest> 
       return;
     }
 
+    // READ: GET /petssvc/api/v1/reports/cat-summaries
+    if (path.equals(ApiPaths.REPORTS_V1_CAT_SUMMARIES) && method.equals(HttpMethod.GET)) {
+      RequestParams.CategorySummaryParams params = ServerUtils.getCategorySummaryParams(decoder);
+      handleCategorySummaries(requestId, ctx, params);
+      return;
+    }
+
     log.info("[{}] Action Not Found: Method=[{}] Path=[{}]", requestId, method, path);
     ctx.fireChannelRead(req.retain());
   }
@@ -54,7 +61,16 @@ public class ReportHandler extends SimpleChannelInboundHandler<FullHttpRequest> 
   private void handleTransactionSummaries(
       String requestId, ChannelHandlerContext ctx, RequestParams.TransactionSummaryParams params)
       throws Exception {
-    ReportResponse response = service.readTransactionsSummary(requestId, params);
+    ReportResponse.TransactionSummaries response =
+        service.readTransactionsSummary(requestId, params);
+    ServerUtils.sendResponse(ctx, HttpResponseStatus.OK, response);
+  }
+
+  // READ CAT SUMMARIES
+  private void handleCategorySummaries(
+      String requestId, ChannelHandlerContext ctx, RequestParams.CategorySummaryParams params)
+      throws Exception {
+    ReportResponse.CategorySummaries response = service.readCategoriesSummary(requestId, params);
     ServerUtils.sendResponse(ctx, HttpResponseStatus.OK, response);
   }
 }
