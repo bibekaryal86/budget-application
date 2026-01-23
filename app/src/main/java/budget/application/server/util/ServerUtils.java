@@ -133,8 +133,9 @@ public class ServerUtils {
 
     List<UUID> catIds = parseUUIDs(decoder, "catIds");
     List<UUID> catTypeIds = parseUUIDs(decoder, "catTypeIds");
+    boolean topExpenses = parseBoolean(decoder, "topExpenses");
 
-    return new RequestParams.CategorySummaryParams(beginDate, endDate, catIds, catTypeIds);
+    return new RequestParams.CategorySummaryParams(beginDate, endDate, catIds, catTypeIds, topExpenses);
   }
 
   private static List<UUID> parseUUIDs(QueryStringDecoder decoder, String paramName) {
@@ -182,5 +183,19 @@ public class ServerUtils {
         .findFirst()
         .map(Integer::parseInt)
         .orElse(0);
+  }
+
+  private static boolean parseBoolean(QueryStringDecoder decoder, String paramName) {
+      List<String> values = decoder.parameters().get(paramName);
+      if (CommonUtilities.isEmpty(values)) {
+        return false;
+      }
+      return values.stream()
+          .flatMap(v -> Arrays.stream(v.split(",")))
+          .filter(s -> !CommonUtilities.isEmpty(s))
+          .map(String::trim)
+          .findFirst()
+          .map(Boolean::parseBoolean)
+          .orElse(false);
   }
 }
