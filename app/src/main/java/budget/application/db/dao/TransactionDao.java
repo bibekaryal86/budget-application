@@ -171,7 +171,7 @@ public class TransactionDao extends BaseDao<Transaction> {
 
     try (PreparedStatement stmt = connection.prepareStatement(sql.toString())) {
       if (!params.isEmpty()) {
-        DaoUtils.bindParams(stmt, params);
+        DaoUtils.bindParams(stmt, params, Boolean.TRUE);
       }
 
       Map<UUID, TransactionResultBuilder> txnMap = new LinkedHashMap<>();

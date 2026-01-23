@@ -134,7 +134,7 @@ public class TransactionItemDao extends BaseDao<TransactionItem> {
 
     try (PreparedStatement stmt = connection.prepareStatement(sql.toString())) {
       if (!params.isEmpty()) {
-        DaoUtils.bindParams(stmt, params);
+        DaoUtils.bindParams(stmt, params, Boolean.TRUE);
       }
       List<TransactionItemResponse.TransactionItem> results = new ArrayList<>();
       try (ResultSet rs = stmt.executeQuery()) {
@@ -161,7 +161,7 @@ public class TransactionItemDao extends BaseDao<TransactionItem> {
     log.debug("[{}] Read By Transaction Ids SQL=[{}]", requestId, sql);
 
     try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-      DaoUtils.bindParams(stmt, txnIds);
+      DaoUtils.bindParams(stmt, txnIds, Boolean.TRUE);
 
       try (ResultSet rs = stmt.executeQuery()) {
         List<TransactionItem> results = new ArrayList<>();
@@ -206,7 +206,7 @@ public class TransactionItemDao extends BaseDao<TransactionItem> {
             + ")";
 
     try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-      DaoUtils.bindParams(stmt, txnIds);
+      DaoUtils.bindParams(stmt, txnIds, Boolean.FALSE);
       return stmt.executeUpdate();
     }
   }

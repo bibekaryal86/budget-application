@@ -10,7 +10,8 @@ import java.util.UUID;
 
 public class DaoUtils {
 
-  public static void bindParams(PreparedStatement stmt, List<?> params) throws SQLException {
+  public static void bindParams(PreparedStatement stmt, List<?> params, boolean isSelect)
+      throws SQLException {
     for (int i = 0; i < params.size(); i++) {
       Object param = params.get(i);
       int idx = i + 1;
@@ -26,7 +27,11 @@ public class DaoUtils {
         }
         case List<?> list -> {
           if (list.isEmpty()) {
-            stmt.setNull(idx, java.sql.Types.NULL);
+            if (isSelect) {
+              stmt.setNull(idx, Types.NULL);
+            } else {
+              stmt.setArray(idx, stmt.getConnection().createArrayOf("text", new String[0]));
+            }
             continue;
           }
 

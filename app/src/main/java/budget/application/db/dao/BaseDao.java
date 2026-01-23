@@ -61,7 +61,7 @@ public abstract class BaseDao<T> {
 
     log.debug("[{}] Create SQL=[{}]", requestId, sql);
     try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-      DaoUtils.bindParams(stmt, insertValues(entity));
+      DaoUtils.bindParams(stmt, insertValues(entity), Boolean.FALSE);
       try (ResultSet rs = stmt.executeQuery()) {
         if (rs.next()) {
           return mapper.map(rs);
@@ -105,7 +105,7 @@ public abstract class BaseDao<T> {
 
     log.debug("[{}] Read By Ids SQL=[{}] ", requestId, sql);
     try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-      DaoUtils.bindParams(stmt, ids);
+      DaoUtils.bindParams(stmt, ids, Boolean.TRUE);
 
       try (ResultSet rs = stmt.executeQuery()) {
         List<T> results = new ArrayList<>();
@@ -131,7 +131,7 @@ public abstract class BaseDao<T> {
     String sql = "UPDATE " + tableName() + " SET " + setClause + " WHERE id = ? RETURNING *";
     log.debug("[{}] Update SQL=[{}]", requestId, sql);
     try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-      DaoUtils.bindParams(stmt, values);
+      DaoUtils.bindParams(stmt, values, Boolean.FALSE);
       stmt.setObject(values.size() + 1, getId(entity));
 
       try (ResultSet rs = stmt.executeQuery()) {
@@ -152,7 +152,7 @@ public abstract class BaseDao<T> {
         "DELETE FROM " + tableName() + " WHERE id IN (" + DaoUtils.placeholders(ids.size()) + ")";
     log.debug("[{}] Delete SQL=[{}]", requestId, sql);
     try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-      DaoUtils.bindParams(stmt, ids);
+      DaoUtils.bindParams(stmt, ids, Boolean.FALSE);
       return stmt.executeUpdate();
     }
   }

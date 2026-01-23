@@ -128,7 +128,7 @@ public class BudgetDao extends BaseDao<Budget> {
 
     try (PreparedStatement stmt = connection.prepareStatement(sql.toString())) {
       if (!params.isEmpty()) {
-        DaoUtils.bindParams(stmt, params);
+        DaoUtils.bindParams(stmt, params, Boolean.TRUE);
       }
 
       List<BudgetResponse.Budget> results = new ArrayList<>();

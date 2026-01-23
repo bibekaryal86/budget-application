@@ -68,7 +68,7 @@ public class ReportDao {
     log.debug("[{}] Read Transaction Summary SQL=[{}]", requestId, sql);
 
     try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-      DaoUtils.bindParams(stmt, params);
+      DaoUtils.bindParams(stmt, params, Boolean.TRUE);
       try (ResultSet rs = stmt.executeQuery()) {
         while (rs.next()) {
           results.add(txnSummaryMapper.map(rs));
@@ -129,7 +129,7 @@ public class ReportDao {
     log.debug("[{}] Read Category Summary SQL=[{}]", requestId, sql);
 
     try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-      DaoUtils.bindParams(stmt, params);
+      DaoUtils.bindParams(stmt, params, Boolean.TRUE);
       try (ResultSet rs = stmt.executeQuery()) {
         while (rs.next()) {
           results.add(catSummaryMapper.map(rs));

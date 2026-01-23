@@ -116,7 +116,7 @@ public class CategoryDao extends BaseDao<Category> {
 
     try (PreparedStatement stmt = connection.prepareStatement(sql.toString())) {
       if (!params.isEmpty()) {
-        DaoUtils.bindParams(stmt, params);
+        DaoUtils.bindParams(stmt, params, Boolean.TRUE);
       }
 
       List<CategoryResponse.Category> results = new ArrayList<>();
