@@ -1,8 +1,8 @@
 package budget.application.db.dao;
 
-import budget.application.db.mapper.ReportRowMappers;
+import budget.application.db.mapper.InsightsRowMappers;
 import budget.application.db.util.DaoUtils;
-import budget.application.model.dto.ReportResponse;
+import budget.application.model.dto.InsightsResponse;
 import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -15,30 +15,30 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ReportDao {
-  protected static final Logger log = LoggerFactory.getLogger(ReportDao.class);
+public class InsightsDao {
+  protected static final Logger log = LoggerFactory.getLogger(InsightsDao.class);
 
   private final String requestId;
   private final Connection connection;
-  private final ReportRowMappers.TransactionSummaryRowMapper txnSummaryMapper;
-  private final ReportRowMappers.CategorySummaryRowMapper catSummaryMapper;
+  private final InsightsRowMappers.CashFlowSummaryRowMapper txnSummaryMapper;
+  private final InsightsRowMappers.CategorySummaryRowMapper catSummaryMapper;
 
-  public ReportDao(String requestId, Connection connection) {
+  public InsightsDao(String requestId, Connection connection) {
     this.requestId = requestId;
     this.connection = connection;
-    this.txnSummaryMapper = new ReportRowMappers.TransactionSummaryRowMapper();
-    this.catSummaryMapper = new ReportRowMappers.CategorySummaryRowMapper();
+    this.txnSummaryMapper = new InsightsRowMappers.CashFlowSummaryRowMapper();
+    this.catSummaryMapper = new InsightsRowMappers.CategorySummaryRowMapper();
   }
 
-  public ReportResponse.TransactionSummary readTransactionSummary(
+  public InsightsResponse.CashFlowSummary readCashFlowSummary(
       LocalDate beginDate, LocalDate endDate) throws SQLException {
     log.debug(
-        "[{}] Read transaction summary: BeginDate=[{}], EndDate=[{}]",
+        "[{}] Read cash flow summary: BeginDate=[{}], EndDate=[{}]",
         requestId,
         beginDate,
         endDate);
 
-    List<ReportResponse.TransactionSummary> results = new ArrayList<>();
+    List<InsightsResponse.CashFlowSummary> results = new ArrayList<>();
     String sql =
         """
               SELECT
@@ -78,7 +78,7 @@ public class ReportDao {
     return results.getFirst();
   }
 
-  public List<ReportResponse.CategorySummary> readCategorySummary(
+  public List<InsightsResponse.CategorySummary> readCategorySummary(
       LocalDate beginDate, LocalDate endDate, List<UUID> catIds, List<UUID> catTypeIds)
       throws SQLException {
     log.debug(
@@ -89,7 +89,7 @@ public class ReportDao {
         catIds,
         catTypeIds);
 
-    List<ReportResponse.CategorySummary> results = new ArrayList<>();
+    List<InsightsResponse.CategorySummary> results = new ArrayList<>();
     String sql =
         """
                   SELECT

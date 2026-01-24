@@ -5,13 +5,13 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
-public record ReportResponse() {
-  public record TransactionSummaries(
-      TransactionSummary currentMonth,
-      TransactionSummary previousMonth,
+public record InsightsResponse() {
+  public record CashFlowSummaries(
+      CashFlowSummary currentMonth,
+      CashFlowSummary previousMonth,
       ResponseMetadata metadata) {}
 
-  public record TransactionSummary(
+  public record CashFlowSummary(
       LocalDate beginDate,
       LocalDate endDate,
       BigDecimal incomes,

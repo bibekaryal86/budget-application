@@ -6,7 +6,7 @@ import budget.application.server.handlers.AppTestsHandler;
 import budget.application.server.handlers.BudgetHandler;
 import budget.application.server.handlers.CategoryHandler;
 import budget.application.server.handlers.CategoryTypeHandler;
-import budget.application.server.handlers.ReportHandler;
+import budget.application.server.handlers.InsightsHandler;
 import budget.application.server.handlers.TransactionHandler;
 import budget.application.server.handlers.TransactionItemHandler;
 import budget.application.server.util.ApiPaths;
@@ -26,7 +26,7 @@ public class ServerRouter extends SimpleChannelInboundHandler<FullHttpRequest> {
   private final BudgetHandler budgetHandler;
   private final CategoryTypeHandler categoryTypeHandler;
   private final CategoryHandler categoryHandler;
-  private final ReportHandler reportHandler;
+  private final InsightsHandler insightsHandler;
   private final TransactionItemHandler transactionItemHandler;
   private final TransactionHandler transactionHandler;
 
@@ -36,7 +36,7 @@ public class ServerRouter extends SimpleChannelInboundHandler<FullHttpRequest> {
     this.budgetHandler = new BudgetHandler(dataSource);
     this.categoryTypeHandler = new CategoryTypeHandler(dataSource);
     this.categoryHandler = new CategoryHandler(dataSource);
-    this.reportHandler = new ReportHandler(dataSource);
+    this.insightsHandler = new InsightsHandler(dataSource);
     this.transactionItemHandler = new TransactionItemHandler(dataSource);
     this.transactionHandler = new TransactionHandler(dataSource, email);
   }
@@ -76,9 +76,9 @@ public class ServerRouter extends SimpleChannelInboundHandler<FullHttpRequest> {
       return;
     }
 
-    if (path.startsWith(ApiPaths.REPORTS_V1)) {
-      log.info("[{}] Routing to ReportHandler: [{}]", requestId, path);
-      reportHandler.channelRead(ctx, req.retain());
+    if (path.startsWith(ApiPaths.INSIGHTS_V1)) {
+      log.info("[{}] Routing to InsightsHandler: [{}]", requestId, path);
+      insightsHandler.channelRead(ctx, req.retain());
       return;
     }
 

@@ -23,7 +23,6 @@ INSERT INTO category_type (id, name) VALUES ('8d1e9a3f-7b2c-4f6a-9e5d-c4b7a1e260
 INSERT INTO category (id, category_type_id, name) VALUES ('b2b4e0c9-6c3d-4c9f-9a3f-9f9b3c8e5a01', '9c6c7a9d-7b5a-4f7f-9c2e-1e4f3c6a8b21', 'AUTO AND TRANSPORT - OTHER');
 INSERT INTO category (id, category_type_id, name) VALUES ('0e6f7e2a-9c25-4b4e-8d64-1c2cbe57d1d3', '9c6c7a9d-7b5a-4f7f-9c2e-1e4f3c6a8b21', 'AUTO INSURANCE');
 INSERT INTO category (id, category_type_id, name) VALUES ('c01a5bb0-1e59-49c8-a09b-6db46ad1e9df', '9c6c7a9d-7b5a-4f7f-9c2e-1e4f3c6a8b21', 'AUTO LOAN PAYMENT');
-INSERT INTO category (id, category_type_id, name) VALUES ('c61d5a57-1e8c-4d64-8f63-52f9adf3a3f5', '9c6c7a9d-7b5a-4f7f-9c2e-1e4f3c6a8b21', 'AUTO LOAN PAYMENT - EXTRA');
 INSERT INTO category (id, category_type_id, name) VALUES ('3d2a6f9a-7e3f-4e92-8b7a-31d8c4e2b9b0', '9c6c7a9d-7b5a-4f7f-9c2e-1e4f3c6a8b21', 'DMV FEES');
 INSERT INTO category (id, category_type_id, name) VALUES ('8b6b4d55-6d6b-4d3a-8b63-fadcd6f39f0d', '9c6c7a9d-7b5a-4f7f-9c2e-1e4f3c6a8b21', 'GAS AND FUEL');
 INSERT INTO category (id, category_type_id, name) VALUES ('bcbd2a46-3a71-4d0b-b6b6-3a8f6c6b8a2a', '9c6c7a9d-7b5a-4f7f-9c2e-1e4f3c6a8b21', 'PARKING');
@@ -60,7 +59,6 @@ INSERT INTO category (id, category_type_id, name) VALUES ('2c9e3f7d-5a8b-4f6c-9a
 INSERT INTO category (id, category_type_id, name) VALUES ('4d8a7c9e-2b3f-4f1a-9c6d-7e5b3a8f1c2d', 'b6f4e8d1-2a3c-4f7e-9c5d-7a1e6b2f9048', 'BOOKS AND SUPPLIES');
 INSERT INTO category (id, category_type_id, name) VALUES ('a3f1c8d7-9e2b-4a5f-8c6d-7b9e1a3f5c2d', 'b6f4e8d1-2a3c-4f7e-9c5d-7a1e6b2f9048', 'EDUCATION - OTHER');
 INSERT INTO category (id, category_type_id, name) VALUES ('9f3c2a8d-7e5b-4f1a-9c6d-1a3e7b8f2d5c', 'b6f4e8d1-2a3c-4f7e-9c5d-7a1e6b2f9048', 'STUDENT LOAN PAYMENT');
-INSERT INTO category (id, category_type_id, name) VALUES ('1c7f9d5a-8b3e-4a2f-9c6d-5e1a3b8f7c2d', 'b6f4e8d1-2a3c-4f7e-9c5d-7a1e6b2f9048', 'STUDENT LOAN PAYMENT - EXTRA');
 INSERT INTO category (id, category_type_id, name) VALUES ('e5a1c7d9-3f8b-4a2e-9c6d-7b1a5f3c2d8e', 'b6f4e8d1-2a3c-4f7e-9c5d-7a1e6b2f9048', 'TUITION');
 
 INSERT INTO category (id, category_type_id, name) VALUES ('c8f4a9e3-7d2b-4a5f-8c6d-1b3e9f2a5d7c', '1e7c3a9b-6f4d-4e2a-8c5f-b9d2a1e7036c', 'AMUSEMENT');
@@ -107,7 +105,6 @@ INSERT INTO category (id, category_type_id, name) VALUES ('9a3c1d7f-6e2b-4a21-9e
 
 INSERT INTO category (id, category_type_id, name) VALUES ('7c3d9f1a-9c4b-4a8e-5f1d-bc7a2e396054', '6e2a7f3d-9c4b-4a8e-5f1d-bc7a2e396054', 'HOME IMPROVEMENTS');
 INSERT INTO category (id, category_type_id, name) VALUES ('1a7c3d9f-9c4b-4a8e-5f1d-bc7a2e396054', '6e2a7f3d-9c4b-4a8e-5f1d-bc7a2e396054', 'HOME LOAN PAYMENT');
-INSERT INTO category (id, category_type_id, name) VALUES ('9f1a7c3d-9c4b-4a8e-5f1d-bc7a2e396054', '6e2a7f3d-9c4b-4a8e-5f1d-bc7a2e396054', 'HOME LOAN PAYMENT - EXTRA');
 INSERT INTO category (id, category_type_id, name) VALUES ('c9f7a1d3-9c4b-4a8e-5f1d-bc7a2e396054', '6e2a7f3d-9c4b-4a8e-5f1d-bc7a2e396054', 'HOME HOA DUES');
 INSERT INTO category (id, category_type_id, name) VALUES ('f7c9a1d3-9c4b-4a8e-5f1d-bc7a2e396054', '6e2a7f3d-9c4b-4a8e-5f1d-bc7a2e396054', 'HOME OR RENTAL INSURANCE');
 INSERT INTO category (id, category_type_id, name) VALUES ('d3f7c9a1-9c4b-4a8e-5f1d-bc7a2e396054', '6e2a7f3d-9c4b-4a8e-5f1d-bc7a2e396054', 'HOME SERVICES');
@@ -128,7 +125,6 @@ INSERT INTO category (id, category_type_id, name) VALUES ('1c7e8b5a-2f9d-4a6e-b3
 
 INSERT INTO category (id, category_type_id, name) VALUES ('2d8a1c7f-5e4b-4f9a-9c6e-b3a0d2f310aa', 'c7b5e2a9-6f3d-4a8c-1e9f-d4b7a2c56048', 'LOANS - OTHER');
 INSERT INTO category (id, category_type_id, name) VALUES ('3e7c9a1d-0b2f-4e5c-8a6f-4d9b3c2e21bb', 'c7b5e2a9-6f3d-4a8c-1e9f-d4b7a2c56048', 'PERSONAL LOAN PAYMENT');
-INSERT INTO category (id, category_type_id, name) VALUES ('4f2b8c7e-9d1a-4a3c-b5e6-0c2d9f1e32cc', 'c7b5e2a9-6f3d-4a8c-1e9f-d4b7a2c56048', 'PERSONAL LOAN PAYMENT - EXTRA');
 
 INSERT INTO category (id, category_type_id, name) VALUES ('5a9e3f8b-6d2c-4c1e-8f7a-b0d5e4c243dd', '1b9e4f6d-2c7a-4a5e-8f3d-c9b7e1a60524', 'MISC EXPENSES');
 

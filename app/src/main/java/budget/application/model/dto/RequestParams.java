@@ -19,7 +19,7 @@ public record RequestParams(TransactionParams transactionParams, CategoryParams 
 
   public record BudgetParams(int budgetMonth, int budgetYear, List<UUID> catIds) {}
 
-  public record TransactionSummaryParams(LocalDate beginDate, LocalDate endDate) {}
+  public record CashFlowSummaryParams(LocalDate beginDate, LocalDate endDate) {}
 
   public record CategorySummaryParams(
       LocalDate beginDate, LocalDate endDate, List<UUID> catIds, List<UUID> catTypeIds, boolean topExpenses) {}

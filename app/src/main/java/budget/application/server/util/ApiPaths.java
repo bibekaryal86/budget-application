@@ -28,7 +28,7 @@ public class ApiPaths {
   public static final String TRANSACTION_ITEMS_V1_WITH_ID = TRANSACTION_ITEMS_V1 + "/";
   public static final String TRANSACTION_ITEMS_V1_WITH_TAGS = TRANSACTION_ITEMS_V1 + "/tags";
 
-  public static final String REPORTS_V1 = BASE_V1 + "/reports";
-  public static final String REPORTS_V1_TXN_SUMMARIES = REPORTS_V1 + "/txn-summaries";
-  public static final String REPORTS_V1_CAT_SUMMARIES = REPORTS_V1 + "/cat-summaries";
+  public static final String INSIGHTS_V1 = BASE_V1 + "/insights";
+  public static final String INSIGHTS_V1_CF_SUMMARIES = INSIGHTS_V1 + "/cf-summaries";
+  public static final String INSIGHTS_V1_CAT_SUMMARIES = INSIGHTS_V1 + "/cat-summaries";
 }

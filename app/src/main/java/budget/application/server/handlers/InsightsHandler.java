@@ -1,11 +1,11 @@
 package budget.application.server.handlers;
 
 import budget.application.common.Constants;
-import budget.application.model.dto.ReportResponse;
+import budget.application.model.dto.InsightsResponse;
 import budget.application.model.dto.RequestParams;
 import budget.application.server.util.ApiPaths;
 import budget.application.server.util.ServerUtils;
-import budget.application.service.domain.ReportService;
+import budget.application.service.domain.InsightsService;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.FullHttpRequest;
@@ -16,13 +16,13 @@ import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ReportHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
-  private static final Logger log = LoggerFactory.getLogger(ReportHandler.class);
+public class InsightsHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
+  private static final Logger log = LoggerFactory.getLogger(InsightsHandler.class);
 
-  private final ReportService service;
+  private final InsightsService service;
 
-  public ReportHandler(DataSource dataSource) {
-    this.service = new ReportService(dataSource);
+  public InsightsHandler(DataSource dataSource) {
+    this.service = new InsightsService(dataSource);
   }
 
   @Override
@@ -32,22 +32,22 @@ public class ReportHandler extends SimpleChannelInboundHandler<FullHttpRequest> 
     String path = decoder.path();
     HttpMethod method = req.method();
 
-    if (!path.startsWith(ApiPaths.REPORTS_V1)) {
+    if (!path.startsWith(ApiPaths.INSIGHTS_V1)) {
       ctx.fireChannelRead(req.retain());
       return;
     }
     log.info("[{}] Request: Method=[{}] Path=[{}]", requestId, method, path);
 
-    // READ: GET /petssvc/api/v1/reports/txn-summaries
-    if (path.equals(ApiPaths.REPORTS_V1_TXN_SUMMARIES) && method.equals(HttpMethod.GET)) {
-      RequestParams.TransactionSummaryParams params =
+    // READ: GET /petssvc/api/v1/insights/cf-summaries
+    if (path.equals(ApiPaths.INSIGHTS_V1_CF_SUMMARIES) && method.equals(HttpMethod.GET)) {
+      RequestParams.CashFlowSummaryParams params =
           ServerUtils.getTransactionSummaryParams(decoder);
-      handleTransactionSummaries(requestId, ctx, params);
+      handleCashFlowSummaries(requestId, ctx, params);
       return;
     }
 
-    // READ: GET /petssvc/api/v1/reports/cat-summaries
-    if (path.equals(ApiPaths.REPORTS_V1_CAT_SUMMARIES) && method.equals(HttpMethod.GET)) {
+    // READ: GET /petssvc/api/v1/insights/cat-summaries
+    if (path.equals(ApiPaths.INSIGHTS_V1_CAT_SUMMARIES) && method.equals(HttpMethod.GET)) {
       RequestParams.CategorySummaryParams params = ServerUtils.getCategorySummaryParams(decoder);
       handleCategorySummaries(requestId, ctx, params);
       return;
@@ -58,11 +58,11 @@ public class ReportHandler extends SimpleChannelInboundHandler<FullHttpRequest> 
   }
 
   // READ TXN SUMMARIES
-  private void handleTransactionSummaries(
-      String requestId, ChannelHandlerContext ctx, RequestParams.TransactionSummaryParams params)
+  private void handleCashFlowSummaries(
+      String requestId, ChannelHandlerContext ctx, RequestParams.CashFlowSummaryParams params)
       throws Exception {
-    ReportResponse.TransactionSummaries response =
-        service.readTransactionsSummary(requestId, params);
+    InsightsResponse.CashFlowSummaries response =
+        service.readCashFLowSummaries(requestId, params);
     ServerUtils.sendResponse(ctx, HttpResponseStatus.OK, response);
   }
 
@@ -70,7 +70,7 @@ public class ReportHandler extends SimpleChannelInboundHandler<FullHttpRequest> 
   private void handleCategorySummaries(
       String requestId, ChannelHandlerContext ctx, RequestParams.CategorySummaryParams params)
       throws Exception {
-    ReportResponse.CategorySummaries response = service.readCategoriesSummary(requestId, params);
+    InsightsResponse.CategorySummaries response = service.readCategoriesSummary(requestId, params);
     ServerUtils.sendResponse(ctx, HttpResponseStatus.OK, response);
   }
 }

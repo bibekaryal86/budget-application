@@ -1,8 +1,8 @@
 package budget.application.service.domain;
 
 import budget.application.common.Constants;
-import budget.application.db.dao.ReportDao;
-import budget.application.model.dto.ReportResponse;
+import budget.application.db.dao.InsightsDao;
+import budget.application.model.dto.InsightsResponse;
 import budget.application.model.dto.RequestParams;
 import budget.application.service.util.TransactionManager;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseMetadata;
@@ -17,22 +17,22 @@ import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ReportService {
-  private static final Logger log = LoggerFactory.getLogger(ReportService.class);
+public class InsightsService {
+  private static final Logger log = LoggerFactory.getLogger(InsightsService.class);
 
   private final TransactionManager tx;
 
-  public ReportService(DataSource dataSource) {
+  public InsightsService(DataSource dataSource) {
     this.tx = new TransactionManager(dataSource);
   }
 
-  public ReportResponse.TransactionSummaries readTransactionsSummary(
-      String requestId, RequestParams.TransactionSummaryParams requestParams) throws SQLException {
-    log.debug("[{}] Read transactions summary: RequestParams=[{}]", requestId, requestParams);
+  public InsightsResponse.CashFlowSummaries readCashFLowSummaries(
+      String requestId, RequestParams.CashFlowSummaryParams requestParams) throws SQLException {
+    log.debug("[{}] Read cash flow summary: RequestParams=[{}]", requestId, requestParams);
 
     return tx.execute(
         bs -> {
-          ReportDao dao = new ReportDao(requestId, bs.connection());
+          InsightsDao dao = new InsightsDao(requestId, bs.connection());
 
           LocalDate beginDate = requestParams.beginDate();
           LocalDate endDate = requestParams.endDate();
@@ -40,61 +40,61 @@ public class ReportService {
           LocalDate prevBegin = beginDate.minusMonths(1);
           LocalDate prevEnd = endDate.minusMonths(1);
 
-          ReportResponse.TransactionSummary currentMonth =
-              dao.readTransactionSummary(beginDate, endDate);
-          ReportResponse.TransactionSummary prevMonth =
-              dao.readTransactionSummary(prevBegin, prevEnd);
+          InsightsResponse.CashFlowSummary currentMonth =
+              dao.readCashFlowSummary(beginDate, endDate);
+          InsightsResponse.CashFlowSummary prevMonth =
+              dao.readCashFlowSummary(prevBegin, prevEnd);
 
-          return new ReportResponse.TransactionSummaries(
+          return new InsightsResponse.CashFlowSummaries(
               currentMonth, prevMonth, ResponseMetadata.emptyResponseMetadata());
         });
   }
 
-  public ReportResponse.CategorySummaries readCategoriesSummary(
+  public InsightsResponse.CategorySummaries readCategoriesSummary(
       String requestId, RequestParams.CategorySummaryParams requestParams) throws SQLException {
     log.debug("[{}] Read categories summary: RequestParams=[{}]", requestId, requestParams);
 
     return tx.execute(
         bs -> {
-          ReportDao dao = new ReportDao(requestId, bs.connection());
+          InsightsDao dao = new InsightsDao(requestId, bs.connection());
 
           LocalDate beginDate = requestParams.beginDate();
           LocalDate endDate = requestParams.endDate();
           List<UUID> catIds = requestParams.catIds();
           List<UUID> catTypeIds = requestParams.catTypeIds();
 
-          List<ReportResponse.CategorySummary> categorySummaries =
+          List<InsightsResponse.CategorySummary> categorySummaries =
               dao.readCategorySummary(beginDate, endDate, catIds, catTypeIds);
 
-          List<ReportResponse.CategoryTypeSummary> categoryTypeSummaries =
+          List<InsightsResponse.CategoryTypeSummary> categoryTypeSummaries =
               categorySummaries.stream()
                   .collect(
                       Collectors.groupingBy(
                           cs -> cs.category().categoryType(),
                           Collectors.reducing(
                               BigDecimal.ZERO,
-                              ReportResponse.CategorySummary::amount,
+                              InsightsResponse.CategorySummary::amount,
                               BigDecimal::add)))
                   .entrySet()
                   .stream()
-                  .map(e -> new ReportResponse.CategoryTypeSummary(e.getKey(), e.getValue()))
+                  .map(e -> new InsightsResponse.CategoryTypeSummary(e.getKey(), e.getValue()))
                   .toList();
 
           if (requestParams.topExpenses()) {
               categorySummaries = categorySummaries.stream()
                       .filter(cs -> !Constants.NO_EXPENSE_CATEGORY_TYPES.contains(cs.category().categoryType().name()))
-                      .sorted(Comparator.comparing(ReportResponse.CategorySummary::amount).reversed())
+                      .sorted(Comparator.comparing(InsightsResponse.CategorySummary::amount).reversed())
                       .limit(10)
                       .toList();
 
               categoryTypeSummaries = categoryTypeSummaries.stream()
                       .filter(cts -> !Constants.NO_EXPENSE_CATEGORY_TYPES.contains(cts.categoryType().name()))
-                      .sorted(Comparator.comparing(ReportResponse.CategoryTypeSummary::amount).reversed())
+                      .sorted(Comparator.comparing(InsightsResponse.CategoryTypeSummary::amount).reversed())
                       .limit(10)
                       .toList();
           }
 
-            return new ReportResponse.CategorySummaries(
+            return new InsightsResponse.CategorySummaries(
               beginDate,
               endDate,
               categorySummaries,

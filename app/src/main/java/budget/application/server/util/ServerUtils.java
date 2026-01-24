@@ -89,7 +89,7 @@ public class ServerUtils {
     return new RequestParams.BudgetParams(budgetMonth, budgetYear, catIds);
   }
 
-  public static RequestParams.TransactionSummaryParams getTransactionSummaryParams(
+  public static RequestParams.CashFlowSummaryParams getTransactionSummaryParams(
       QueryStringDecoder decoder) {
 
     LocalDate beginDate = parseDate(decoder, "beginDate");
@@ -99,20 +99,20 @@ public class ServerUtils {
       LocalDate now = LocalDate.now();
       beginDate = now.withDayOfMonth(1);
       endDate = now.withDayOfMonth(now.lengthOfMonth());
-      return new RequestParams.TransactionSummaryParams(beginDate, endDate);
+      return new RequestParams.CashFlowSummaryParams(beginDate, endDate);
     }
 
     if (beginDate != null && endDate == null) {
       endDate = beginDate.withDayOfMonth(beginDate.lengthOfMonth());
-      return new RequestParams.TransactionSummaryParams(beginDate, endDate);
+      return new RequestParams.CashFlowSummaryParams(beginDate, endDate);
     }
 
     if (beginDate == null && endDate != null) {
       beginDate = endDate.withDayOfMonth(1);
-      return new RequestParams.TransactionSummaryParams(beginDate, endDate);
+      return new RequestParams.CashFlowSummaryParams(beginDate, endDate);
     }
 
-    return new RequestParams.TransactionSummaryParams(beginDate, endDate);
+    return new RequestParams.CashFlowSummaryParams(beginDate, endDate);
   }
 
   public static RequestParams.CategorySummaryParams getCategorySummaryParams(

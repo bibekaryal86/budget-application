@@ -2,19 +2,19 @@ package budget.application.db.mapper;
 
 import budget.application.model.dto.CategoryResponse;
 import budget.application.model.dto.CategoryTypeResponse;
-import budget.application.model.dto.ReportResponse;
+import budget.application.model.dto.InsightsResponse;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.UUID;
 
-public class ReportRowMappers {
+public class InsightsRowMappers {
 
-  public static class TransactionSummaryRowMapper
-      implements RowMapper<ReportResponse.TransactionSummary> {
+  public static class CashFlowSummaryRowMapper
+      implements RowMapper<InsightsResponse.CashFlowSummary> {
     @Override
-    public ReportResponse.TransactionSummary map(ResultSet rs) throws SQLException {
-      return new ReportResponse.TransactionSummary(
+    public InsightsResponse.CashFlowSummary map(ResultSet rs) throws SQLException {
+      return new InsightsResponse.CashFlowSummary(
           rs.getObject("begin_date", LocalDate.class),
           rs.getObject("end_date", LocalDate.class),
           rs.getBigDecimal("INCOMES"),
@@ -24,10 +24,10 @@ public class ReportRowMappers {
   }
 
   public static class CategorySummaryRowMapper
-      implements RowMapper<ReportResponse.CategorySummary> {
+      implements RowMapper<InsightsResponse.CategorySummary> {
     @Override
-    public ReportResponse.CategorySummary map(ResultSet rs) throws SQLException {
-      return new ReportResponse.CategorySummary(
+    public InsightsResponse.CategorySummary map(ResultSet rs) throws SQLException {
+      return new InsightsResponse.CategorySummary(
           new CategoryResponse.Category(
               rs.getObject("category_id", UUID.class),
               new CategoryTypeResponse.CategoryType(
