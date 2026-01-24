@@ -33,10 +33,7 @@ public class InsightsDao {
   public InsightsResponse.CashFlowSummary readCashFlowSummary(
       LocalDate beginDate, LocalDate endDate) throws SQLException {
     log.debug(
-        "[{}] Read cash flow summary: BeginDate=[{}], EndDate=[{}]",
-        requestId,
-        beginDate,
-        endDate);
+        "[{}] Read cash flow summary: BeginDate=[{}], EndDate=[{}]", requestId, beginDate, endDate);
 
     List<InsightsResponse.CashFlowSummary> results = new ArrayList<>();
     String sql =
@@ -44,9 +41,9 @@ public class InsightsDao {
               SELECT
                   ? AS begin_date,
                   ? AS end_date,
-                  SUM(CASE WHEN ct.name = 'INCOME'  THEN ti.amount ELSE 0 END) AS INCOMES,
-                  SUM(CASE WHEN ct.name = 'SAVINGS' THEN ti.amount ELSE 0 END) AS SAVINGS,
-                  SUM(CASE WHEN ct.name NOT IN ('INCOME', 'SAVINGS') THEN ti.amount ELSE 0 END) AS EXPENSES
+                  SUM(CASE WHEN ct.name = 'INCOME'  THEN ti.amount ELSE 0 END) AS incomes,
+                  SUM(CASE WHEN ct.name = 'SAVINGS' THEN ti.amount ELSE 0 END) AS savings,
+                  SUM(CASE WHEN ct.name NOT IN ('INCOME', 'SAVINGS') THEN ti.amount ELSE 0 END) AS expenses
               FROM transaction_item ti
               JOIN transaction t
                   ON ti.transaction_id = t.id

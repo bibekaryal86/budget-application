@@ -22,5 +22,9 @@ public record RequestParams(TransactionParams transactionParams, CategoryParams 
   public record CashFlowSummaryParams(LocalDate beginDate, LocalDate endDate) {}
 
   public record CategorySummaryParams(
-      LocalDate beginDate, LocalDate endDate, List<UUID> catIds, List<UUID> catTypeIds, boolean topExpenses) {}
+      LocalDate beginDate,
+      LocalDate endDate,
+      List<UUID> catIds,
+      List<UUID> catTypeIds,
+      boolean topExpenses) {}
 }

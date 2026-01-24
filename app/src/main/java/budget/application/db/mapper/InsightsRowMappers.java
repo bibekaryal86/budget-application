@@ -17,9 +17,9 @@ public class InsightsRowMappers {
       return new InsightsResponse.CashFlowSummary(
           rs.getObject("begin_date", LocalDate.class),
           rs.getObject("end_date", LocalDate.class),
-          rs.getBigDecimal("INCOMES"),
-          rs.getBigDecimal("EXPENSES"),
-          rs.getBigDecimal("SAVINGS"));
+          rs.getBigDecimal("incomes"),
+          rs.getBigDecimal("expenses"),
+          rs.getBigDecimal("savings"));
     }
   }
 
@@ -28,6 +28,8 @@ public class InsightsRowMappers {
     @Override
     public InsightsResponse.CategorySummary map(ResultSet rs) throws SQLException {
       return new InsightsResponse.CategorySummary(
+          rs.getObject("begin_date", LocalDate.class),
+          rs.getObject("end_date", LocalDate.class),
           new CategoryResponse.Category(
               rs.getObject("category_id", UUID.class),
               new CategoryTypeResponse.CategoryType(

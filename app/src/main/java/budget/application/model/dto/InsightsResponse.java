@@ -7,9 +7,7 @@ import java.util.List;
 
 public record InsightsResponse() {
   public record CashFlowSummaries(
-      CashFlowSummary currentMonth,
-      CashFlowSummary previousMonth,
-      ResponseMetadata metadata) {}
+      CashFlowSummary currentMonth, CashFlowSummary previousMonth, ResponseMetadata metadata) {}
 
   public record CashFlowSummary(
       LocalDate beginDate,
@@ -19,14 +17,13 @@ public record InsightsResponse() {
       BigDecimal savings) {}
 
   public record CategorySummaries(
-      LocalDate beginDate,
-      LocalDate endDate,
-      List<CategorySummary> cData,
-      List<CategoryTypeSummary> ctData,
+      List<CategorySummary> currentMonth,
+      List<CategorySummary> previousMonth,
       ResponseMetadata metadata) {}
 
-  public record CategorySummary(CategoryResponse.Category category, BigDecimal amount) {}
-
-  public record CategoryTypeSummary(
-      CategoryTypeResponse.CategoryType categoryType, BigDecimal amount) {}
+  public record CategorySummary(
+      LocalDate beginDate,
+      LocalDate endDate,
+      CategoryResponse.Category category,
+      BigDecimal amount) {}
 }
