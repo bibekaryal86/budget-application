@@ -18,6 +18,7 @@ import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import io.netty.util.CharsetUtil;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -139,17 +140,22 @@ public class ServerUtils {
         beginDate, endDate, catIds, catTypeIds, topExpenses);
   }
 
-  private static List<UUID> parseUUIDs(QueryStringDecoder decoder, String paramName) {
-    List<String> values = decoder.parameters().get(paramName);
-    if (CommonUtilities.isEmpty(values)) {
-      return List.of();
+  private static List<String> getParameterValues(QueryStringDecoder decoder, String paramName) {
+    List<String> values = new ArrayList<>();
+
+    // Check for both formats: "param" and "param[]"
+    List<String> standardValues = decoder.parameters().get(paramName);
+    List<String> arrayValues = decoder.parameters().get(paramName + "[]");
+
+    if (!CommonUtilities.isEmpty(standardValues)) {
+      values.addAll(standardValues);
     }
-    return values.stream()
-        .flatMap(v -> Arrays.stream(v.split(",")))
-        .filter(s -> !CommonUtilities.isEmpty(s))
-        .map(String::trim)
-        .map(UUID::fromString)
-        .toList();
+
+    if (!CommonUtilities.isEmpty(arrayValues)) {
+      values.addAll(arrayValues);
+    }
+
+    return values;
   }
 
   private static LocalDate parseDate(QueryStringDecoder decoder, String paramName) {
@@ -160,11 +166,28 @@ public class ServerUtils {
     return LocalDate.parse(values.getFirst());
   }
 
-  private static List<String> parseStrings(QueryStringDecoder decoder, String paramName) {
-    List<String> values = decoder.parameters().get(paramName);
+  private static List<UUID> parseUUIDs(QueryStringDecoder decoder, String paramName) {
+    List<String> values = getParameterValues(decoder, paramName);
+
     if (CommonUtilities.isEmpty(values)) {
       return List.of();
     }
+
+    return values.stream()
+        .flatMap(v -> Arrays.stream(v.split(",")))
+        .filter(s -> !CommonUtilities.isEmpty(s))
+        .map(String::trim)
+        .map(UUID::fromString)
+        .toList();
+  }
+
+  private static List<String> parseStrings(QueryStringDecoder decoder, String paramName) {
+    List<String> values = getParameterValues(decoder, paramName);
+
+    if (CommonUtilities.isEmpty(values)) {
+      return List.of();
+    }
+
     return values.stream()
         .flatMap(v -> Arrays.stream(v.split(",")))
         .filter(s -> !CommonUtilities.isEmpty(s))
@@ -173,10 +196,12 @@ public class ServerUtils {
   }
 
   private static int parseInt(QueryStringDecoder decoder, String paramName) {
-    List<String> values = decoder.parameters().get(paramName);
+    List<String> values = getParameterValues(decoder, paramName);
+
     if (CommonUtilities.isEmpty(values)) {
       return 0;
     }
+
     return values.stream()
         .flatMap(v -> Arrays.stream(v.split(",")))
         .filter(s -> !CommonUtilities.isEmpty(s))
@@ -187,10 +212,12 @@ public class ServerUtils {
   }
 
   private static boolean parseBoolean(QueryStringDecoder decoder, String paramName) {
-    List<String> values = decoder.parameters().get(paramName);
+    List<String> values = getParameterValues(decoder, paramName);
+
     if (CommonUtilities.isEmpty(values)) {
       return false;
     }
+
     return values.stream()
         .flatMap(v -> Arrays.stream(v.split(",")))
         .filter(s -> !CommonUtilities.isEmpty(s))
