@@ -73,7 +73,7 @@ public class InsightsService {
                                 cs.category().categoryType().name()))
                     .sorted(
                         Comparator.comparing(InsightsResponse.CategorySummary::amount).reversed())
-                    .limit(10)
+                    .limit(7)
                     .toList();
           }
 
