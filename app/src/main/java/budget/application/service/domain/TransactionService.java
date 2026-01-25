@@ -74,14 +74,17 @@ public class TransactionService {
               "[{}] Created transaction items: TransactionItems=[{}]", requestId, txnItemsIds);
 
           List<TransactionResponse.Transaction> txns =
-              txnDao.readTransactions(List.of(txnId), null);
+              txnDao.readTransactions(List.of(txnId), null, null).items();
           return new TransactionResponse(
               txns, ResponseMetadataUtils.defaultInsertResponseMetadata());
         });
   }
 
   public TransactionResponse read(
-      String requestId, List<UUID> txnIds, RequestParams.TransactionParams requestParams)
+      String requestId,
+      List<UUID> txnIds,
+      RequestParams.TransactionParams requestParams,
+      PaginationRequest paginationRequest)
       throws SQLException {
     log.debug(
         "[{}] Read transactions: TxnIds=[{}], RequestParams=[{}]",
@@ -91,17 +94,23 @@ public class TransactionService {
     return tx.execute(
         bs -> {
           TransactionDao txnDao = new TransactionDao(requestId, bs.connection());
-          TransactionItemDao itemDao = new TransactionItemDao(requestId, bs.connection());
 
-          List<TransactionResponse.Transaction> txns =
-              txnDao.readTransactions(txnIds, requestParams);
+          PaginationResponse<TransactionResponse.Transaction> txnsPageResponse =
+              txnDao.readTransactions(txnIds, requestParams, paginationRequest);
 
-          if (txnIds.size() == 1 && txns.isEmpty()) {
+          if (txnIds.size() == 1
+              && (txnsPageResponse == null || CommonUtilities.isEmpty(txnsPageResponse.items()))) {
             throw new Exceptions.NotFoundException(
                 requestId, "Transaction", txnIds.getFirst().toString());
           }
 
-          return new TransactionResponse(txns, ResponseMetadata.emptyResponseMetadata());
+          ResponseMetadata responseMetadata =
+              new ResponseMetadata(
+                  ResponseMetadata.emptyResponseStatusInfo(),
+                  ResponseMetadata.emptyResponseCrudInfo(),
+                  txnsPageResponse.pageInfo());
+
+          return new TransactionResponse(txnsPageResponse.items(), responseMetadata);
         });
   }
 
@@ -170,7 +179,7 @@ public class TransactionService {
           }
 
           List<TransactionResponse.Transaction> txnsOut =
-              txnDao.readTransactions(List.of(id), null);
+              txnDao.readTransactions(List.of(id), null, null).items();
           return new TransactionResponse(
               txnsOut, ResponseMetadataUtils.defaultUpdateResponseMetadata());
         });
@@ -206,7 +215,7 @@ public class TransactionService {
 
   public void reconcileAll(String requestId) throws SQLException {
     log.debug("[{}] Reconciling all transactions...", requestId);
-    List<Transaction> mmTxns = new ArrayList<>();
+    List<TransactionResponse.Transaction> mmTxns = new ArrayList<>();
     tx.executeVoid(
         bs -> {
           TransactionDao txnDao = new TransactionDao(requestId, bs.connection());
@@ -217,14 +226,15 @@ public class TransactionService {
 
           while (true) {
             PaginationRequest pageReq = new PaginationRequest(pageNumber, pageSize);
-            PaginationResponse<Transaction> pagedTxns = txnDao.readAll(pageReq);
+            PaginationResponse<TransactionResponse.Transaction> pagedTxns =
+                txnDao.readTransactions(List.of(), null, pageReq);
 
-            List<Transaction> txns = pagedTxns.items();
+            List<TransactionResponse.Transaction> txns = pagedTxns.items();
             if (txns.isEmpty()) {
               break;
             }
 
-            for (Transaction txn : txns) {
+            for (TransactionResponse.Transaction txn : txns) {
               UUID txnId = txn.id();
               List<TransactionItem> items = itemDao.readByTransactionIds(List.of(txnId));
               BigDecimal sumItems =
@@ -245,13 +255,13 @@ public class TransactionService {
           }
         });
     if (!mmTxns.isEmpty()) {
-      List<UUID> mmTxnIds = mmTxns.stream().map(Transaction::id).toList();
+      List<UUID> mmTxnIds = mmTxns.stream().map(TransactionResponse.Transaction::id).toList();
       log.info("[{}] Mismatched transactions found: TxnIds={}", requestId, mmTxnIds);
       sendReconciliationEmail(mmTxns);
     }
   }
 
-  private void sendReconciliationEmail(List<Transaction> mmTxns) {
+  private void sendReconciliationEmail(List<TransactionResponse.Transaction> mmTxns) {
     String subject = "PETS Txn Mismatch Report";
     String emailTo = CommonUtilities.getSystemEnvProperty(Constants.ENV_RECON_EMAIL_TO);
     StringBuilder emailBody = new StringBuilder();
@@ -270,7 +280,7 @@ public class TransactionService {
         .append("<th>Transaction Date</th>")
         .append("</tr>");
 
-    for (Transaction txn : mmTxns) {
+    for (TransactionResponse.Transaction txn : mmTxns) {
       emailBody
           .append("<tr>")
           .append("<td>")

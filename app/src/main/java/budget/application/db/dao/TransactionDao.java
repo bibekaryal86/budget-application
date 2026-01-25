@@ -1,5 +1,6 @@
 package budget.application.db.dao;
 
+import budget.application.common.Constants;
 import budget.application.db.mapper.TransactionRowMappers;
 import budget.application.db.util.DaoUtils;
 import budget.application.model.dto.AccountResponse;
@@ -11,6 +12,7 @@ import budget.application.model.dto.RequestParams;
 import budget.application.model.dto.TransactionItemResponse;
 import budget.application.model.dto.TransactionResponse;
 import budget.application.model.entity.Transaction;
+import io.github.bibekaryal86.shdsvc.dtos.ResponseMetadata;
 import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 import java.math.BigDecimal;
 import java.sql.Array;
@@ -74,14 +76,22 @@ public class TransactionDao extends BaseDao<Transaction> {
     return "txn_date DESC";
   }
 
-  public List<TransactionResponse.Transaction> readTransactions(
-      List<UUID> txnIds, RequestParams.TransactionParams requestParams) throws SQLException {
+  public PaginationResponse<TransactionResponse.Transaction> readTransactions(
+      List<UUID> txnIds,
+      RequestParams.TransactionParams requestParams,
+      PaginationRequest paginationRequest)
+      throws SQLException {
     log.debug("[{}] Read Transactions: TxnIds=[{}], Params=[{}]", requestId, txnIds, requestParams);
 
     if (requestParams == null) {
       requestParams =
           new RequestParams.TransactionParams(
               null, null, List.of(), List.of(), List.of(), List.of(), List.of());
+    }
+
+    if (paginationRequest == null) {
+      paginationRequest =
+          new PaginationRequest(Constants.DEFAULT_PAGE_NUMBER, Constants.DEFAULT_PER_PAGE);
     }
 
     List<UUID> catIds = requestParams.catIds();
@@ -91,6 +101,8 @@ public class TransactionDao extends BaseDao<Transaction> {
     List<String> merchants = requestParams.merchants();
     List<UUID> accIds = requestParams.accIds();
     List<String> tags = requestParams.tags();
+    int pageNumber = paginationRequest.pageNumber();
+    int perPage = paginationRequest.perPage();
 
     StringBuilder sql =
         new StringBuilder(
@@ -166,13 +178,20 @@ public class TransactionDao extends BaseDao<Transaction> {
     }
 
     sql.append(" ORDER BY t.txn_date DESC");
+    sql.append(" LIMIT ? OFFSET ?");
+    int limit = perPage;
+    int offset = (pageNumber - 1) * perPage;
 
     log.debug("[{}] Read Transactions SQL=[{}]", requestId, sql);
+
+    List<TransactionResponse.Transaction> items;
 
     try (PreparedStatement stmt = connection.prepareStatement(sql.toString())) {
       if (!params.isEmpty()) {
         DaoUtils.bindParams(stmt, params, Boolean.TRUE);
       }
+      stmt.setInt(params.size() + 1, limit);
+      stmt.setInt(params.size() + 2, offset);
 
       Map<UUID, TransactionResultBuilder> txnMap = new LinkedHashMap<>();
 
@@ -221,8 +240,15 @@ public class TransactionDao extends BaseDao<Transaction> {
           }
         }
       }
-      return txnMap.values().stream().map(TransactionResultBuilder::build).toList();
+      items = txnMap.values().stream().map(TransactionResultBuilder::build).toList();
     }
+
+    int totalItems = countAll();
+    int totalPages = (int) Math.ceil((double) totalItems / perPage);
+    ResponseMetadata.ResponsePageInfo pageInfo =
+        new ResponseMetadata.ResponsePageInfo(totalItems, totalPages, pageNumber, perPage);
+
+    return new PaginationResponse<>(items, pageInfo);
   }
 
   public List<String> readAllMerchants() throws SQLException {
@@ -235,36 +261,6 @@ public class TransactionDao extends BaseDao<Transaction> {
       }
     }
     return merchants;
-  }
-
-  public PaginationResponse<Transaction> readAll(PaginationRequest pr) throws SQLException {
-    log.debug("[{}] Read All Transactions PaginationRequest=[{}]", requestId, pr);
-    String sql =
-        """
-        SELECT *
-        FROM transaction
-        ORDER BY txn_date DESC
-        LIMIT ? OFFSET ?
-    """;
-    int pageNumber = pr.pageNumber() == 0 ? 1 : pr.pageNumber();
-    int perPage = pr.perPage() == 0 ? 1000 : pr.perPage();
-    int offset = (pageNumber - 1) * perPage;
-    int limit = perPage;
-
-    List<Transaction> items = new ArrayList<>();
-
-    try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-      stmt.setInt(1, limit);
-      stmt.setInt(2, offset);
-
-      try (ResultSet rs = stmt.executeQuery()) {
-        while (rs.next()) {
-          items.add(mapper.map(rs));
-        }
-      }
-    }
-
-    return new PaginationResponse<>(items, countAll(), pageNumber, perPage);
   }
 
   private int countAll() throws SQLException {

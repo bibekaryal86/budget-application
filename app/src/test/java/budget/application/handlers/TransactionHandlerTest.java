@@ -1,12 +1,14 @@
 package budget.application.handlers;
 
 import budget.application.IntegrationBaseTest;
+import budget.application.common.Constants;
 import budget.application.model.dto.TransactionItemRequest;
 import budget.application.model.dto.TransactionRequest;
 import budget.application.model.dto.TransactionResponse;
 import budget.application.server.util.ApiPaths;
 import budget.application.server.util.JsonUtils;
 import budget.application.service.util.ResponseMetadataUtils;
+import io.github.bibekaryal86.shdsvc.dtos.ResponseMetadata;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseWithMetadata;
 import java.math.BigDecimal;
 import java.net.http.HttpResponse;
@@ -144,6 +146,11 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
     Assertions.assertEquals(200, resp.statusCode());
     TransactionResponse response = JsonUtils.fromJson(resp.body(), TransactionResponse.class);
     Assertions.assertEquals(4, response.data().size());
+    Assertions.assertNotNull(response.metadata().responsePageInfo());
+    Assertions.assertEquals(
+        new ResponseMetadata.ResponsePageInfo(
+            4, 1, Constants.DEFAULT_PAGE_NUMBER, Constants.DEFAULT_PER_PAGE),
+        response.metadata().responsePageInfo());
 
     resp = httpGet(ApiPaths.TRANSACTIONS_V1 + "?catTypeIds=" + TEST_ID + "," + ctId1, Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());

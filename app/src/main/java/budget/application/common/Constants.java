@@ -78,6 +78,9 @@ public class Constants {
   public static final List<String> NO_EXPENSE_CATEGORY_TYPES =
       List.of(CATEGORY_TYPE_INCOME_NAME, CATEGORY_TYPE_SAVINGS_NAME, CATEGORY_TYPE_TRANSFER_NAME);
 
+  public static final int DEFAULT_PAGE_NUMBER = 1;
+  public static final int DEFAULT_PER_PAGE = 100;
+
   static {
     IS_PRODUCTION =
         Objects.equals(

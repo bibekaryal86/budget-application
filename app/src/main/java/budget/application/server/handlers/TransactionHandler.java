@@ -1,6 +1,7 @@
 package budget.application.server.handlers;
 
 import budget.application.common.Constants;
+import budget.application.model.dto.PaginationRequest;
 import budget.application.model.dto.RequestParams;
 import budget.application.model.dto.TransactionRequest;
 import budget.application.model.dto.TransactionResponse;
@@ -57,7 +58,8 @@ public class TransactionHandler extends SimpleChannelInboundHandler<FullHttpRequ
     // READ ALL: GET /petssvc/api/v1/transactions
     if (path.equals(ApiPaths.TRANSACTIONS_V1) && method.equals(HttpMethod.GET)) {
       RequestParams.TransactionParams params = ServerUtils.getTransactionParams(decoder);
-      handleReadAll(requestId, ctx, params);
+      PaginationRequest paginationRequest = ServerUtils.getPaginationRequest(decoder);
+      handleReadAll(requestId, ctx, params, paginationRequest);
       return;
     }
 
@@ -102,16 +104,19 @@ public class TransactionHandler extends SimpleChannelInboundHandler<FullHttpRequ
 
   // READ ALL
   private void handleReadAll(
-      String requestId, ChannelHandlerContext ctx, RequestParams.TransactionParams params)
+      String requestId,
+      ChannelHandlerContext ctx,
+      RequestParams.TransactionParams params,
+      PaginationRequest paginationRequest)
       throws Exception {
-    TransactionResponse response = service.read(requestId, List.of(), params);
+    TransactionResponse response = service.read(requestId, List.of(), params, paginationRequest);
     ServerUtils.sendResponse(ctx, HttpResponseStatus.OK, response);
   }
 
   // READ ONE
   private void handleReadOne(String requestId, ChannelHandlerContext ctx, UUID id)
       throws Exception {
-    TransactionResponse response = service.read(requestId, List.of(id), null);
+    TransactionResponse response = service.read(requestId, List.of(id), null, null);
     ServerUtils.sendResponse(ctx, HttpResponseStatus.OK, response);
   }
 

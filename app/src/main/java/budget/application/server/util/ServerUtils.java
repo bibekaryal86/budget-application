@@ -1,6 +1,8 @@
 package budget.application.server.util;
 
+import budget.application.common.Constants;
 import budget.application.common.Exceptions;
+import budget.application.model.dto.PaginationRequest;
 import budget.application.model.dto.RequestParams;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseMetadata;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseWithMetadata;
@@ -69,6 +71,18 @@ public class ServerUtils {
 
   public static RequestParams.CategoryParams getCategoryParams(QueryStringDecoder decoder) {
     return new RequestParams.CategoryParams(parseUUIDs(decoder, "catTypeIds"));
+  }
+
+  public static PaginationRequest getPaginationRequest(QueryStringDecoder decoder) {
+    int pageNumber = parseIntNoEx(decoder, "pageNumber");
+    if (pageNumber == 0) {
+      pageNumber = Constants.DEFAULT_PAGE_NUMBER;
+    }
+    int perPage = parseIntNoEx(decoder, "perPage");
+    if (perPage == 0) {
+      perPage = Constants.DEFAULT_PER_PAGE;
+    }
+    return new PaginationRequest(pageNumber, perPage);
   }
 
   public static RequestParams.TransactionParams getTransactionParams(QueryStringDecoder decoder) {
@@ -209,6 +223,14 @@ public class ServerUtils {
         .findFirst()
         .map(Integer::parseInt)
         .orElse(0);
+  }
+
+  private static int parseIntNoEx(QueryStringDecoder decoder, String paramName) {
+    try {
+      return parseInt(decoder, paramName);
+    } catch (Exception e) {
+      return 0;
+    }
   }
 
   private static boolean parseBoolean(QueryStringDecoder decoder, String paramName) {
