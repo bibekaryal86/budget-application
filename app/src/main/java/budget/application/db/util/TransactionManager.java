@@ -1,6 +1,5 @@
-package budget.application.service.util;
+package budget.application.db.util;
 
-import budget.application.db.dao.BaseRepository;
 import java.sql.Connection;
 import java.sql.SQLException;
 import javax.sql.DataSource;
@@ -14,19 +13,19 @@ public class TransactionManager {
   }
 
   /** Execute a function inside a transaction. Allows throwing SQLException inside the lambda. */
-  public <T> T execute(SqlWork<T> work) throws SQLException {
-    try (BaseRepository bs = new BaseRepository(getConnection())) {
-      T result = work.apply(bs);
-      bs.commit();
+  public <T> T execute(String requestId, SqlWork<T> work) throws SQLException {
+    try (TransactionContext txnCxt = new TransactionContext(requestId, getConnection())) {
+      T result = work.apply(txnCxt);
+      txnCxt.commit();
       return result;
     }
   }
 
   /** Execute a void operation inside a transaction. */
-  public void executeVoid(SqlVoidWork work) throws SQLException {
-    try (BaseRepository bs = new BaseRepository(getConnection())) {
-      work.apply(bs);
-      bs.commit();
+  public void executeVoid(String requestId, SqlVoidWork work) throws SQLException {
+    try (TransactionContext txnCxt = new TransactionContext(requestId, getConnection())) {
+      work.apply(txnCxt);
+      txnCxt.commit();
     }
   }
 
@@ -34,12 +33,12 @@ public class TransactionManager {
 
   @FunctionalInterface
   public interface SqlWork<T> {
-    T apply(BaseRepository bs) throws SQLException;
+    T apply(TransactionContext txnCxt) throws SQLException;
   }
 
   @FunctionalInterface
   public interface SqlVoidWork {
-    void apply(BaseRepository bs) throws SQLException;
+    void apply(TransactionContext txnCxt) throws SQLException;
   }
 
   // ---- Utilities ----

@@ -4,11 +4,11 @@ import budget.application.common.Exceptions;
 import budget.application.common.Validations;
 import budget.application.db.dao.CategoryDao;
 import budget.application.db.dao.TransactionItemDao;
+import budget.application.db.util.TransactionManager;
 import budget.application.model.dto.TransactionItemRequest;
 import budget.application.model.dto.TransactionItemResponse;
 import budget.application.model.entity.TransactionItem;
 import budget.application.service.util.ResponseMetadataUtils;
-import budget.application.service.util.TransactionManager;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseMetadata;
 import java.sql.SQLException;
 import java.util.List;
@@ -20,19 +20,20 @@ import org.slf4j.LoggerFactory;
 public class TransactionItemService {
   private static final Logger log = LoggerFactory.getLogger(TransactionItemService.class);
 
-  private final TransactionManager tx;
+  private final TransactionManager transactionManager;
 
   public TransactionItemService(DataSource dataSource) {
-    this.tx = new TransactionManager(dataSource);
+    this.transactionManager = new TransactionManager(dataSource);
   }
 
   public TransactionItemResponse create(String requestId, TransactionItemRequest tir)
       throws SQLException {
     log.debug("[{}] Create transaction item: TransactionItemRequest=[{}]", requestId, tir);
-    return tx.execute(
-        bs -> {
-          TransactionItemDao dao = new TransactionItemDao(requestId, bs.connection());
-          CategoryDao categoryDao = new CategoryDao(requestId, bs.connection());
+    return transactionManager.execute(
+        requestId,
+        transactionContext -> {
+          TransactionItemDao dao = new TransactionItemDao(requestId, transactionContext.connection());
+          CategoryDao categoryDao = new CategoryDao(requestId, transactionContext.connection());
 
           Validations.validateTransactionItem(
               requestId, tir, categoryDao, Boolean.FALSE, List.of());
@@ -57,9 +58,10 @@ public class TransactionItemService {
 
   public TransactionItemResponse read(String requestId, List<UUID> txnItemIds) throws SQLException {
     log.debug("[{}] Read transaction items: Ids={}", requestId, txnItemIds);
-    return tx.execute(
-        bs -> {
-          TransactionItemDao dao = new TransactionItemDao(requestId, bs.connection());
+    return transactionManager.execute(
+        requestId,
+        transactionContext -> {
+          TransactionItemDao dao = new TransactionItemDao(requestId, transactionContext.connection());
           List<TransactionItemResponse.TransactionItem> tiList =
               dao.readTransactionItems(txnItemIds);
 
@@ -75,9 +77,10 @@ public class TransactionItemService {
   public TransactionItemResponse.TransactionItemTags readTransactionItemTags(String requestId)
       throws SQLException {
     log.debug("[{}] Read transaction item tags", requestId);
-    return tx.execute(
-        bs -> {
-          TransactionItemDao txnItemDao = new TransactionItemDao(requestId, bs.connection());
+    return transactionManager.execute(
+        requestId,
+        transactionContext -> {
+          TransactionItemDao txnItemDao = new TransactionItemDao(requestId, transactionContext.connection());
           List<String> txnItemTags = txnItemDao.readAllTags();
           return new TransactionItemResponse.TransactionItemTags(
               txnItemTags, ResponseMetadata.emptyResponseMetadata());
@@ -88,10 +91,11 @@ public class TransactionItemService {
       throws SQLException {
     log.debug(
         "[{}] Update transaction item: Id=[{}], TransactionItemRequest=[{}]", requestId, id, tir);
-    return tx.execute(
-        bs -> {
-          TransactionItemDao dao = new TransactionItemDao(requestId, bs.connection());
-          CategoryDao categoryDao = new CategoryDao(requestId, bs.connection());
+    return transactionManager.execute(
+        requestId,
+        transactionContext -> {
+          TransactionItemDao dao = new TransactionItemDao(requestId, transactionContext.connection());
+          CategoryDao categoryDao = new CategoryDao(requestId, transactionContext.connection());
           Validations.validateTransactionItem(
               requestId, tir, categoryDao, Boolean.FALSE, List.of());
 
@@ -113,9 +117,10 @@ public class TransactionItemService {
 
   public TransactionItemResponse delete(String requestId, List<UUID> ids) throws SQLException {
     log.info("[{}] Delete transaction items: Ids=[{}]", requestId, ids);
-    return tx.execute(
-        bs -> {
-          TransactionItemDao dao = new TransactionItemDao(requestId, bs.connection());
+    return transactionManager.execute(
+        requestId,
+        transactionContext -> {
+          TransactionItemDao dao = new TransactionItemDao(requestId, transactionContext.connection());
 
           List<TransactionItem> tiList = dao.read(ids);
           if (ids.size() == 1 && tiList.isEmpty()) {

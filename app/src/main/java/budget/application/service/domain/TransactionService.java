@@ -6,6 +6,7 @@ import budget.application.common.Validations;
 import budget.application.db.dao.CategoryDao;
 import budget.application.db.dao.TransactionDao;
 import budget.application.db.dao.TransactionItemDao;
+import budget.application.db.util.TransactionManager;
 import budget.application.model.dto.PaginationRequest;
 import budget.application.model.dto.PaginationResponse;
 import budget.application.model.dto.RequestParams;
@@ -14,7 +15,6 @@ import budget.application.model.dto.TransactionResponse;
 import budget.application.model.entity.Transaction;
 import budget.application.model.entity.TransactionItem;
 import budget.application.service.util.ResponseMetadataUtils;
-import budget.application.service.util.TransactionManager;
 import io.github.bibekaryal86.shdsvc.Email;
 import io.github.bibekaryal86.shdsvc.dtos.EmailRequest;
 import io.github.bibekaryal86.shdsvc.dtos.EmailResponse;
@@ -32,21 +32,22 @@ import org.slf4j.LoggerFactory;
 public class TransactionService {
   private static final Logger log = LoggerFactory.getLogger(TransactionService.class);
 
-  private final TransactionManager tx;
+  private final TransactionManager transactionManager;
   private final Email email;
 
   public TransactionService(DataSource dataSource, Email email) {
-    this.tx = new TransactionManager(dataSource);
+    this.transactionManager = new TransactionManager(dataSource);
     this.email = email;
   }
 
   public TransactionResponse create(String requestId, TransactionRequest tr) throws SQLException {
     log.debug("[{}] Create transaction: TransactionRequest=[{}]", requestId, tr);
-    return tx.execute(
-        bs -> {
-          TransactionDao txnDao = new TransactionDao(requestId, bs.connection());
-          CategoryDao categoryDao = new CategoryDao(requestId, bs.connection());
-          TransactionItemDao itemDao = new TransactionItemDao(requestId, bs.connection());
+    return transactionManager.execute(
+        requestId,
+        transactionContext -> {
+          TransactionDao txnDao = new TransactionDao(requestId, transactionContext.connection());
+          CategoryDao categoryDao = new CategoryDao(requestId, transactionContext.connection());
+          TransactionItemDao itemDao = new TransactionItemDao(requestId, transactionContext.connection());
 
           Validations.validateTransaction(requestId, tr, categoryDao);
           Transaction txnIn =
@@ -91,9 +92,10 @@ public class TransactionService {
         requestId,
         txnIds,
         requestParams);
-    return tx.execute(
-        bs -> {
-          TransactionDao txnDao = new TransactionDao(requestId, bs.connection());
+    return transactionManager.execute(
+        requestId,
+        transactionContext -> {
+          TransactionDao txnDao = new TransactionDao(requestId, transactionContext.connection());
 
           PaginationResponse<TransactionResponse.Transaction> txnsPageResponse =
               txnDao.readTransactions(txnIds, requestParams, paginationRequest);
@@ -117,9 +119,10 @@ public class TransactionService {
   public TransactionResponse.TransactionMerchants readTransactionMerchants(String requestId)
       throws SQLException {
     log.debug("[{}] Read transaction merchants", requestId);
-    return tx.execute(
-        bs -> {
-          TransactionDao txnDao = new TransactionDao(requestId, bs.connection());
+    return transactionManager.execute(
+        requestId,
+        transactionContext -> {
+          TransactionDao txnDao = new TransactionDao(requestId, transactionContext.connection());
           List<String> txnMerchants = txnDao.readAllMerchants();
           return new TransactionResponse.TransactionMerchants(
               txnMerchants, ResponseMetadata.emptyResponseMetadata());
@@ -129,11 +132,12 @@ public class TransactionService {
   public TransactionResponse update(String requestId, UUID id, TransactionRequest tr)
       throws SQLException {
     log.debug("[{}] Update transaction: Id=[{}], TransactionRequest=[{}]", requestId, id, tr);
-    return tx.execute(
-        bs -> {
-          TransactionDao txnDao = new TransactionDao(requestId, bs.connection());
-          TransactionItemDao itemDao = new TransactionItemDao(requestId, bs.connection());
-          CategoryDao categoryDao = new CategoryDao(requestId, bs.connection());
+    return transactionManager.execute(
+        requestId,
+        transactionContext -> {
+          TransactionDao txnDao = new TransactionDao(requestId, transactionContext.connection());
+          TransactionItemDao itemDao = new TransactionItemDao(requestId, transactionContext.connection());
+          CategoryDao categoryDao = new CategoryDao(requestId, transactionContext.connection());
 
           Validations.validateTransaction(requestId, tr, categoryDao);
 
@@ -187,10 +191,11 @@ public class TransactionService {
 
   public TransactionResponse delete(String requestId, List<UUID> ids) throws SQLException {
     log.info("[{}] Delete transactions: Ids=[{}]", requestId, ids);
-    return tx.execute(
-        bs -> {
-          TransactionDao txnDao = new TransactionDao(requestId, bs.connection());
-          TransactionItemDao itemDao = new TransactionItemDao(requestId, bs.connection());
+    return transactionManager.execute(
+        requestId,
+        transactionContext -> {
+          TransactionDao txnDao = new TransactionDao(requestId, transactionContext.connection());
+          TransactionItemDao itemDao = new TransactionItemDao(requestId, transactionContext.connection());
 
           List<Transaction> txns = txnDao.read(ids);
           if (ids.size() == 1 && txns.isEmpty()) {
@@ -216,10 +221,11 @@ public class TransactionService {
   public void reconcileAll(String requestId) throws SQLException {
     log.debug("[{}] Reconciling all transactions...", requestId);
     List<TransactionResponse.Transaction> mmTxns = new ArrayList<>();
-    tx.executeVoid(
-        bs -> {
-          TransactionDao txnDao = new TransactionDao(requestId, bs.connection());
-          TransactionItemDao itemDao = new TransactionItemDao(requestId, bs.connection());
+    transactionManager.executeVoid(
+        requestId,
+        transactionContext -> {
+          TransactionDao txnDao = new TransactionDao(requestId, transactionContext.connection());
+          TransactionItemDao itemDao = new TransactionItemDao(requestId, transactionContext.connection());
           // Read all transactions
           int pageNumber = 1;
           int pageSize = 1000;
