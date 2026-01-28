@@ -60,8 +60,8 @@ public class InsightsService {
 
           LocalDate beginDate = requestParams.beginDate();
           LocalDate endDate = requestParams.endDate();
-          List<UUID> categoryIds = requestParams.catIds();
-          List<UUID> categoryTypeIds = requestParams.catTypeIds();
+          List<UUID> categoryIds = requestParams.categoryIds();
+          List<UUID> categoryTypeIds = requestParams.categoryTypeIds();
 
           List<InsightsResponse.CategorySummary> currentMonth =
               insightsDao.readCategorySummary(beginDate, endDate, categoryIds, categoryTypeIds);

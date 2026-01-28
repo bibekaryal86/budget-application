@@ -96,12 +96,12 @@ public class CategoryHandlerTest extends IntegrationBaseTest {
     CategoryResponse response = JsonUtils.fromJson(resp.body(), CategoryResponse.class);
     Assertions.assertEquals(4, response.data().size());
 
-    resp = httpGet(ApiPaths.CATEGORIES_V1 + "?catTypeIds=" + TEST_ID, Boolean.TRUE);
+    resp = httpGet(ApiPaths.CATEGORIES_V1 + "?categoryTypeIds=" + TEST_ID, Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());
     response = JsonUtils.fromJson(resp.body(), CategoryResponse.class);
     Assertions.assertEquals(1, response.data().size());
 
-    resp = httpGet(ApiPaths.CATEGORIES_V1 + "?catTypeIds=" + TEST_ID + "," + ctId1, Boolean.TRUE);
+    resp = httpGet(ApiPaths.CATEGORIES_V1 + "?categoryTypeIds=" + TEST_ID + "," + ctId1, Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());
     response = JsonUtils.fromJson(resp.body(), CategoryResponse.class);
     Assertions.assertEquals(3, response.data().size());

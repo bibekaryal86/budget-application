@@ -152,7 +152,7 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
             4, 1, Constants.DEFAULT_PAGE_NUMBER, Constants.DEFAULT_PER_PAGE),
         response.metadata().responsePageInfo());
 
-    resp = httpGet(ApiPaths.TRANSACTIONS_V1 + "?catTypeIds=" + TEST_ID + "," + ctId1, Boolean.TRUE);
+    resp = httpGet(ApiPaths.TRANSACTIONS_V1 + "?categoryTypeIds=" + TEST_ID + "," + ctId1, Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());
     response = JsonUtils.fromJson(resp.body(), TransactionResponse.class);
     Assertions.assertEquals(3, response.data().size());
@@ -162,7 +162,7 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
     response = JsonUtils.fromJson(resp.body(), TransactionResponse.class);
     Assertions.assertEquals(1, response.data().size());
 
-    resp = httpGet(ApiPaths.TRANSACTIONS_V1 + "?catIds=" + TEST_ID + "," + cId2, Boolean.TRUE);
+    resp = httpGet(ApiPaths.TRANSACTIONS_V1 + "?categoryIds=" + TEST_ID + "," + cId2, Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());
     response = JsonUtils.fromJson(resp.body(), TransactionResponse.class);
     Assertions.assertEquals(3, response.data().size());
@@ -177,13 +177,13 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
     resp =
         httpGet(
             ApiPaths.TRANSACTIONS_V1
-                + "?accIds="
+                + "?accountIds="
                 + TEST_ID
-                + "&catIds="
+                + "&categoryIds="
                 + TEST_ID
                 + ","
                 + cId2
-                + "&catTypeIds="
+                + "&categoryTypeIds="
                 + TEST_ID
                 + "&merchants=TEST%20MERCHANT,SOME_MERCHANT"
                 + "&tags=TEST%20TAG,SOME_TAG"

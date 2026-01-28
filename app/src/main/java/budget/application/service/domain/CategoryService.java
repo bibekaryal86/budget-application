@@ -33,9 +33,9 @@ public class CategoryService {
         requestId,
         transactionContext -> {
           CategoryDao categoryDao = new CategoryDao(requestId, transactionContext.connection());
-          CategoryTypeDao typeDao = new CategoryTypeDao(requestId, transactionContext.connection());
+          CategoryTypeDao categoryTypeDao = new CategoryTypeDao(requestId, transactionContext.connection());
 
-          Validations.validateCategory(requestId, categoryRequest, typeDao);
+          Validations.validateCategory(requestId, categoryRequest, categoryTypeDao);
 
           Category categoryIn =
               new Category(null, categoryRequest.categoryTypeId(), categoryRequest.name());
@@ -80,8 +80,8 @@ public class CategoryService {
         requestId,
         transactionContext -> {
           CategoryDao categoryDao = new CategoryDao(requestId, transactionContext.connection());
-          CategoryTypeDao typeDao = new CategoryTypeDao(requestId, transactionContext.connection());
-          Validations.validateCategory(requestId, categoryRequest, typeDao);
+          CategoryTypeDao categoryTypeDao = new CategoryTypeDao(requestId, transactionContext.connection());
+          Validations.validateCategory(requestId, categoryRequest, categoryTypeDao);
 
           List<Category> categoryList = categoryDao.read(List.of(id));
           if (categoryList.isEmpty()) {

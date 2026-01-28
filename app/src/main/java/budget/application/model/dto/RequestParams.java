@@ -10,21 +10,21 @@ public record RequestParams(TransactionParams transactionParams, CategoryParams 
       LocalDate beginDate,
       LocalDate endDate,
       List<String> merchants,
-      List<UUID> catIds,
-      List<UUID> catTypeIds,
-      List<UUID> accIds,
+      List<UUID> categoryIds,
+      List<UUID> categoryTypeIds,
+      List<UUID> accountIds,
       List<String> tags) {}
 
-  public record CategoryParams(List<UUID> catTypesId) {}
+  public record CategoryParams(List<UUID> categoryTypeIds) {}
 
-  public record BudgetParams(int budgetMonth, int budgetYear, List<UUID> catIds) {}
+  public record BudgetParams(int budgetMonth, int budgetYear, List<UUID> categoryIds) {}
 
   public record CashFlowSummaryParams(LocalDate beginDate, LocalDate endDate) {}
 
   public record CategorySummaryParams(
       LocalDate beginDate,
       LocalDate endDate,
-      List<UUID> catIds,
-      List<UUID> catTypeIds,
+      List<UUID> categoryIds,
+      List<UUID> categoryTypeIds,
       boolean topExpenses) {}
 }

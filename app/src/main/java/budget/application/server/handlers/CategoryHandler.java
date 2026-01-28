@@ -50,7 +50,7 @@ public class CategoryHandler extends SimpleChannelInboundHandler<FullHttpRequest
 
     // READ ALL: GET /petssvc/api/v1/categories
     if (path.equals(ApiPaths.CATEGORIES_V1) && method.equals(HttpMethod.GET)) {
-      List<UUID> catTypeIds = ServerUtils.getCategoryParams(decoder).catTypesId();
+      List<UUID> catTypeIds = ServerUtils.getCategoryParams(decoder).categoryTypeIds();
       handleReadAll(requestId, channelHandlerContext, catTypeIds);
       return;
     }

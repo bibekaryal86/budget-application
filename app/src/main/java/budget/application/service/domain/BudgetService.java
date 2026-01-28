@@ -70,7 +70,7 @@ public class BudgetService {
                   ids,
                   budgetParams.budgetMonth(),
                   budgetParams.budgetYear(),
-                  budgetParams.catIds());
+                  budgetParams.categoryIds());
 
           if (ids.size() == 1 && budgets.isEmpty()) {
             throw new Exceptions.NotFoundException(requestId, "Budget", ids.getFirst().toString());

@@ -74,7 +74,7 @@ public class ServerUtils {
   }
 
   public static RequestParams.CategoryParams getCategoryParams(QueryStringDecoder decoder) {
-    return new RequestParams.CategoryParams(parseUUIDs(decoder, "catTypeIds"));
+    return new RequestParams.CategoryParams(parseUUIDs(decoder, "categoryTypeIds"));
   }
 
   public static PaginationRequest getPaginationRequest(QueryStringDecoder decoder) {
@@ -93,9 +93,9 @@ public class ServerUtils {
     LocalDate beginDate = parseDate(decoder, "beginDate");
     LocalDate endDate = parseDate(decoder, "endDate");
     List<String> merchants = parseStrings(decoder, "merchants");
-    List<UUID> categoryIds = parseUUIDs(decoder, "catIds");
-    List<UUID> categoryTypeIds = parseUUIDs(decoder, "catTypeIds");
-    List<UUID> accountIds = parseUUIDs(decoder, "accIds");
+    List<UUID> categoryIds = parseUUIDs(decoder, "categoryIds");
+    List<UUID> categoryTypeIds = parseUUIDs(decoder, "categoryTypeIds");
+    List<UUID> accountIds = parseUUIDs(decoder, "accountIds");
     List<String> tags = parseStrings(decoder, "tags");
     return new RequestParams.TransactionParams(
         beginDate, endDate, merchants, categoryIds, categoryTypeIds, accountIds, tags);
@@ -104,7 +104,7 @@ public class ServerUtils {
   public static RequestParams.BudgetParams getBudgetParams(QueryStringDecoder decoder) {
     int budgetMonth = parseInt(decoder, "budgetMonth");
     int budgetYear = parseInt(decoder, "budgetYear");
-    List<UUID> categoryIds = parseUUIDs(decoder, "catIds");
+    List<UUID> categoryIds = parseUUIDs(decoder, "categoryIds");
     return new RequestParams.BudgetParams(budgetMonth, budgetYear, categoryIds);
   }
 
@@ -149,8 +149,8 @@ public class ServerUtils {
       beginDate = endDate.withDayOfMonth(1);
     }
 
-    List<UUID> categoryIds = parseUUIDs(decoder, "catIds");
-    List<UUID> categoryTypeIds = parseUUIDs(decoder, "catTypeIds");
+    List<UUID> categoryIds = parseUUIDs(decoder, "categoryIds");
+    List<UUID> categoryTypeIds = parseUUIDs(decoder, "categoryTypeIds");
     boolean topExpenses = parseBoolean(decoder, "topExpenses");
 
     return new RequestParams.CategorySummaryParams(

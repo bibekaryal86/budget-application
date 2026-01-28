@@ -101,12 +101,12 @@ public class TransactionDao extends BaseDao<Transaction> {
           new PaginationRequest(Constants.DEFAULT_PAGE_NUMBER, Constants.DEFAULT_PER_PAGE);
     }
 
-    List<UUID> categoryIds = requestParams.catIds();
-    List<UUID> categoryTypeIds = requestParams.catTypeIds();
+    List<UUID> categoryIds = requestParams.categoryIds();
+    List<UUID> categoryTypeIds = requestParams.categoryTypeIds();
     LocalDate beginDate = requestParams.beginDate();
     LocalDate endDate = requestParams.endDate();
     List<String> merchants = requestParams.merchants();
-    List<UUID> accountIds = requestParams.accIds();
+    List<UUID> accountIds = requestParams.accountIds();
     List<String> tags = requestParams.tags();
     int pageNumber = paginationRequest.pageNumber();
     int perPage = paginationRequest.perPage();
