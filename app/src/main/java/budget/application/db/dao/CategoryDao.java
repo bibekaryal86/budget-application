@@ -1,7 +1,6 @@
 package budget.application.db.dao;
 
 import budget.application.db.mapper.CategoryRowMappers;
-import budget.application.db.mapper.RowMapper;
 import budget.application.db.util.DaoUtils;
 import budget.application.model.dto.CategoryResponse;
 import budget.application.model.entity.Category;
@@ -18,11 +17,11 @@ import java.util.function.Consumer;
 
 public class CategoryDao extends BaseDao<Category> {
 
-  private final RowMapper<CategoryResponse.Category> catRespMapper;
+  private final CategoryRowMappers.CategoryRowMapperResponse categoryRowMapperResponse;
 
   public CategoryDao(String requestId, Connection connection) {
     super(requestId, connection, new CategoryRowMappers.CategoryRowMapper());
-    this.catRespMapper = new CategoryRowMappers.CategoryRowMapperResponse();
+    this.categoryRowMapperResponse = new CategoryRowMappers.CategoryRowMapperResponse();
   }
 
   @Override
@@ -36,8 +35,8 @@ public class CategoryDao extends BaseDao<Category> {
   }
 
   @Override
-  protected List<Object> insertValues(Category c) {
-    return List.of(c.categoryTypeId(), c.name().toUpperCase());
+  protected List<Object> insertValues(Category category) {
+    return List.of(category.categoryTypeId(), category.name().toUpperCase());
   }
 
   @Override
@@ -46,13 +45,13 @@ public class CategoryDao extends BaseDao<Category> {
   }
 
   @Override
-  protected List<Object> updateValues(Category c) {
-    return List.of(c.categoryTypeId(), c.name().toUpperCase());
+  protected List<Object> updateValues(Category category) {
+    return List.of(category.categoryTypeId(), category.name().toUpperCase());
   }
 
   @Override
-  protected UUID getId(Category c) {
-    return c.id();
+  protected UUID getId(Category category) {
+    return category.id();
   }
 
   @Override
@@ -68,17 +67,21 @@ public class CategoryDao extends BaseDao<Category> {
     }
   }
 
-  public List<CategoryResponse.Category> readCategoriesByIdsNoEx(List<UUID> catIds) {
+  public List<CategoryResponse.Category> readCategoriesByIdsNoEx(List<UUID> categoryIds) {
     try {
-      return readCategories(catIds, List.of());
+      return readCategories(categoryIds, List.of());
     } catch (Exception e) {
       return List.of();
     }
   }
 
-  public List<CategoryResponse.Category> readCategories(List<UUID> catIds, List<UUID> catTypeIds)
-      throws SQLException {
-    log.debug("[{}] Read Categories: CatIds=[{}], CatTypeIds=[{}]", requestId, catIds, catTypeIds);
+  public List<CategoryResponse.Category> readCategories(
+      List<UUID> categoryIds, List<UUID> categoryTypeIds) throws SQLException {
+    log.debug(
+        "[{}] Read Categories: CategoryIds=[{}], CategoryTypeIds=[{}]",
+        requestId,
+        categoryIds,
+        categoryTypeIds);
     StringBuilder sql =
         new StringBuilder(
             """
@@ -102,27 +105,28 @@ public class CategoryDao extends BaseDao<Category> {
           whereAdded[0] = true;
         };
 
-    if (!CommonUtilities.isEmpty(catIds)) {
-      addWhere.accept("c.id IN (" + DaoUtils.placeholders(catIds.size()) + ")");
-      params.addAll(catIds);
+    if (!CommonUtilities.isEmpty(categoryIds)) {
+      addWhere.accept("c.id IN (" + DaoUtils.placeholders(categoryIds.size()) + ")");
+      params.addAll(categoryIds);
     }
-    if (!CommonUtilities.isEmpty(catTypeIds)) {
-      addWhere.accept("c.category_type_id IN (" + DaoUtils.placeholders(catTypeIds.size()) + ")");
-      params.addAll(catTypeIds);
+    if (!CommonUtilities.isEmpty(categoryTypeIds)) {
+      addWhere.accept(
+          "c.category_type_id IN (" + DaoUtils.placeholders(categoryTypeIds.size()) + ")");
+      params.addAll(categoryTypeIds);
     }
     sql.append(" ORDER BY ct.name, c.name ASC ");
 
     log.debug("[{}] Read Categories SQL=[{}]", requestId, sql);
 
-    try (PreparedStatement stmt = connection.prepareStatement(sql.toString())) {
+    try (PreparedStatement preparedStatement = connection.prepareStatement(sql.toString())) {
       if (!params.isEmpty()) {
-        DaoUtils.bindParams(stmt, params, Boolean.TRUE);
+        DaoUtils.bindParams(preparedStatement, params, Boolean.TRUE);
       }
 
       List<CategoryResponse.Category> results = new ArrayList<>();
-      try (ResultSet rs = stmt.executeQuery()) {
-        while (rs.next()) {
-          results.add(catRespMapper.map(rs));
+      try (ResultSet resultSet = preparedStatement.executeQuery()) {
+        while (resultSet.next()) {
+          results.add(categoryRowMapperResponse.map(resultSet));
         }
       }
       return results;

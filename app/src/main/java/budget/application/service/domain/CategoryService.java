@@ -26,64 +26,75 @@ public class CategoryService {
     this.transactionManager = new TransactionManager(dataSource);
   }
 
-  public CategoryResponse create(String requestId, CategoryRequest cr) throws SQLException {
-    log.debug("[{}] Create category: CategoryRequest=[{}]", requestId, cr);
+  public CategoryResponse create(String requestId, CategoryRequest categoryRequest)
+      throws SQLException {
+    log.debug("[{}] Create category: CategoryRequest=[{}]", requestId, categoryRequest);
     return transactionManager.execute(
         requestId,
         transactionContext -> {
-          CategoryDao dao = new CategoryDao(requestId, transactionContext.connection());
+          CategoryDao categoryDao = new CategoryDao(requestId, transactionContext.connection());
           CategoryTypeDao typeDao = new CategoryTypeDao(requestId, transactionContext.connection());
 
-          Validations.validateCategory(requestId, cr, typeDao);
+          Validations.validateCategory(requestId, categoryRequest, typeDao);
 
-          Category cIn = new Category(null, cr.categoryTypeId(), cr.name());
-          UUID id = dao.create(cIn).id();
+          Category categoryIn =
+              new Category(null, categoryRequest.categoryTypeId(), categoryRequest.name());
+          UUID id = categoryDao.create(categoryIn).id();
           log.debug("[{}] Created category: Id=[{}]", requestId, id);
-          CategoryResponse.Category cOut = dao.readCategories(List.of(id), List.of()).getFirst();
+          CategoryResponse.Category category =
+              categoryDao.readCategories(List.of(id), List.of()).getFirst();
 
           return new CategoryResponse(
-              List.of(cOut), ResponseMetadataUtils.defaultInsertResponseMetadata());
+              List.of(category), ResponseMetadataUtils.defaultInsertResponseMetadata());
         });
   }
 
-  public CategoryResponse read(String requestId, List<UUID> catIds, List<UUID> catTypeIds)
+  public CategoryResponse read(String requestId, List<UUID> categoryIds, List<UUID> categoryTypeIds)
       throws SQLException {
-    log.debug("[{}] Read categories: CatIds=[{}], CatTypeIds=[{}]", requestId, catIds, catTypeIds);
+    log.debug(
+        "[{}] Read categories: CategoryIds=[{}], CategoryTypeIds=[{}]",
+        requestId,
+        categoryIds,
+        categoryTypeIds);
     return transactionManager.execute(
         requestId,
         transactionContext -> {
-          CategoryDao dao = new CategoryDao(requestId, transactionContext.connection());
-          List<CategoryResponse.Category> cList = dao.readCategories(catIds, catTypeIds);
+          CategoryDao categoryDao = new CategoryDao(requestId, transactionContext.connection());
+          List<CategoryResponse.Category> categories =
+              categoryDao.readCategories(categoryIds, categoryTypeIds);
 
-          if (catIds.size() == 1 && cList.isEmpty()) {
+          if (categoryIds.size() == 1 && categories.isEmpty()) {
             throw new Exceptions.NotFoundException(
-                requestId, "Category", catIds.getFirst().toString());
+                requestId, "Category", categoryIds.getFirst().toString());
           }
 
-          return new CategoryResponse(cList, ResponseMetadata.emptyResponseMetadata());
+          return new CategoryResponse(categories, ResponseMetadata.emptyResponseMetadata());
         });
   }
 
-  public CategoryResponse update(String requestId, UUID id, CategoryRequest cr)
+  public CategoryResponse update(String requestId, UUID id, CategoryRequest categoryRequest)
       throws SQLException {
-    log.debug("[{}] Update category: Id=[{}], CategoryRequest=[{}]", requestId, id, cr);
+    log.debug(
+        "[{}] Update category: Id=[{}], CategoryRequest=[{}]", requestId, id, categoryRequest);
     return transactionManager.execute(
         requestId,
         transactionContext -> {
-          CategoryDao dao = new CategoryDao(requestId, transactionContext.connection());
+          CategoryDao categoryDao = new CategoryDao(requestId, transactionContext.connection());
           CategoryTypeDao typeDao = new CategoryTypeDao(requestId, transactionContext.connection());
-          Validations.validateCategory(requestId, cr, typeDao);
+          Validations.validateCategory(requestId, categoryRequest, typeDao);
 
-          List<Category> cList = dao.read(List.of(id));
-          if (cList.isEmpty()) {
+          List<Category> categoryList = categoryDao.read(List.of(id));
+          if (categoryList.isEmpty()) {
             throw new Exceptions.NotFoundException(requestId, "Category", id.toString());
           }
 
-          Category cIn = new Category(id, cr.categoryTypeId(), cr.name());
-          dao.update(cIn);
-          CategoryResponse.Category cOut = dao.readCategories(List.of(id), List.of()).getFirst();
+          Category categoryIn =
+              new Category(id, categoryRequest.categoryTypeId(), categoryRequest.name());
+          categoryDao.update(categoryIn);
+          CategoryResponse.Category category =
+              categoryDao.readCategories(List.of(id), List.of()).getFirst();
           return new CategoryResponse(
-              List.of(cOut), ResponseMetadataUtils.defaultUpdateResponseMetadata());
+              List.of(category), ResponseMetadataUtils.defaultUpdateResponseMetadata());
         });
   }
 
@@ -92,15 +103,15 @@ public class CategoryService {
     return transactionManager.execute(
         requestId,
         transactionContext -> {
-          CategoryDao dao = new CategoryDao(requestId, transactionContext.connection());
+          CategoryDao categoryDao = new CategoryDao(requestId, transactionContext.connection());
 
-          List<Category> cList = dao.read(ids);
-          if (ids.size() == 1 && cList.isEmpty()) {
+          List<Category> categoryList = categoryDao.read(ids);
+          if (ids.size() == 1 && categoryList.isEmpty()) {
             throw new Exceptions.NotFoundException(
                 requestId, "Category", ids.getFirst().toString());
           }
 
-          int deleteCount = dao.delete(ids);
+          int deleteCount = categoryDao.delete(ids);
           return new CategoryResponse(
               List.of(), ResponseMetadataUtils.defaultDeleteResponseMetadata(deleteCount));
         });

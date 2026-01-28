@@ -13,35 +13,40 @@ public class ServerLogging extends ChannelDuplexHandler {
   private static final Logger log = LoggerFactory.getLogger(ServerLogging.class);
 
   @Override
-  public void channelRead(final ChannelHandlerContext ctx, final Object obj) throws Exception {
-    if (obj instanceof FullHttpRequest req) {
+  public void channelRead(final ChannelHandlerContext channelHandlerContext, final Object object)
+      throws Exception {
+    if (object instanceof FullHttpRequest fullHttpRequest) {
       final String requestId = UUID.randomUUID().toString();
       // set requestId in channel handler context for later use
-      ctx.channel().attr(Constants.REQUEST_ID).set(requestId);
+      channelHandlerContext.channel().attr(Constants.REQUEST_ID).set(requestId);
 
       final String requestContentLength =
-          req.headers().get(HttpHeaderNames.CONTENT_LENGTH, Constants.CONTENT_LENGTH_DEFAULT);
+          fullHttpRequest
+              .headers()
+              .get(HttpHeaderNames.CONTENT_LENGTH, Constants.CONTENT_LENGTH_DEFAULT);
       log.info(
           "[{}] Request IN: Method=[{}], Uri=[{}], ContentLength=[{}]",
           requestId,
-          req.method(),
-          req.uri(),
+          fullHttpRequest.method(),
+          fullHttpRequest.uri(),
           requestContentLength);
     }
-    super.channelRead(ctx, obj);
+    super.channelRead(channelHandlerContext, object);
   }
 
   @Override
   public void write(
-      final ChannelHandlerContext ctx, final Object obj, final ChannelPromise channelPromise)
+      final ChannelHandlerContext channelHandlerContext,
+      final Object object,
+      final ChannelPromise channelPromise)
       throws Exception {
-    if (obj instanceof FullHttpResponse fullHttpResponse) {
+    if (object instanceof FullHttpResponse fullHttpResponse) {
       final String responseContentLength =
           fullHttpResponse
               .headers()
               .get(HttpHeaderNames.CONTENT_LENGTH, Constants.CONTENT_LENGTH_DEFAULT);
       final HttpResponseStatus responseStatus = fullHttpResponse.status();
-      final String requestId = ctx.channel().attr(Constants.REQUEST_ID).get();
+      final String requestId = channelHandlerContext.channel().attr(Constants.REQUEST_ID).get();
 
       log.info(
           "[{}] Response OUT: Status=[{}], ContentLength=[{}]",
@@ -49,6 +54,6 @@ public class ServerLogging extends ChannelDuplexHandler {
           responseStatus,
           responseContentLength);
     }
-    super.write(ctx, obj, channelPromise);
+    super.write(channelHandlerContext, object, channelPromise);
   }
 }

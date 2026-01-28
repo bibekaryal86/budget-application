@@ -13,16 +13,16 @@ import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class DailyTxnReconScheduler {
-  private static final Logger log = LoggerFactory.getLogger(DailyTxnReconScheduler.class);
+public class DailyTransactionReconScheduler {
+  private static final Logger log = LoggerFactory.getLogger(DailyTransactionReconScheduler.class);
 
-  private final ScheduledExecutorService executor;
-  private final TransactionService svc;
+  private final ScheduledExecutorService scheduledExecutorService;
+  private final TransactionService transactionService;
 
-  public DailyTxnReconScheduler(
-      DataSource dataSource, ScheduledExecutorService executor, Email email) {
-    this.svc = new TransactionService(dataSource, email);
-    this.executor = executor;
+  public DailyTransactionReconScheduler(
+      DataSource dataSource, ScheduledExecutorService scheduledExecutorService, Email email) {
+    this.transactionService = new TransactionService(dataSource, email);
+    this.scheduledExecutorService = scheduledExecutorService;
   }
 
   public void start(LocalTime runAt) {
@@ -30,7 +30,7 @@ public class DailyTxnReconScheduler {
     long initialDelayMillis = computeInitialDelayMillis(runAt);
     long periodMillis = Duration.ofDays(1).toMillis();
 
-    executor.scheduleAtFixedRate(
+    scheduledExecutorService.scheduleAtFixedRate(
         this::runSafe, initialDelayMillis, periodMillis, TimeUnit.MILLISECONDS);
   }
 
@@ -45,7 +45,7 @@ public class DailyTxnReconScheduler {
   private void run() throws SQLException {
     String requestId = UUID.randomUUID().toString();
     log.info("[{}] Running daily transaction reconciliation...", requestId);
-    svc.reconcileAll(requestId);
+    transactionService.reconcileAll(requestId);
   }
 
   private long computeInitialDelayMillis(LocalTime runAt) {

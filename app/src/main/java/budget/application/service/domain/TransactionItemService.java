@@ -26,51 +26,58 @@ public class TransactionItemService {
     this.transactionManager = new TransactionManager(dataSource);
   }
 
-  public TransactionItemResponse create(String requestId, TransactionItemRequest tir)
-      throws SQLException {
-    log.debug("[{}] Create transaction item: TransactionItemRequest=[{}]", requestId, tir);
+  public TransactionItemResponse create(
+      String requestId, TransactionItemRequest transactionItemRequest) throws SQLException {
+    log.debug(
+        "[{}] Create transaction item: TransactionItemRequest=[{}]",
+        requestId,
+        transactionItemRequest);
     return transactionManager.execute(
         requestId,
         transactionContext -> {
-          TransactionItemDao dao = new TransactionItemDao(requestId, transactionContext.connection());
+          TransactionItemDao transactionItemDao =
+              new TransactionItemDao(requestId, transactionContext.connection());
           CategoryDao categoryDao = new CategoryDao(requestId, transactionContext.connection());
 
           Validations.validateTransactionItem(
-              requestId, tir, categoryDao, Boolean.FALSE, List.of());
+              requestId, transactionItemRequest, categoryDao, Boolean.FALSE, List.of());
 
-          TransactionItem tiIn =
+          TransactionItem transactionItemIn =
               new TransactionItem(
                   null,
-                  tir.transactionId(),
-                  tir.categoryId(),
-                  tir.amount(),
-                  tir.tags(),
-                  tir.notes());
-          UUID id = dao.create(tiIn).id();
+                  transactionItemRequest.transactionId(),
+                  transactionItemRequest.categoryId(),
+                  transactionItemRequest.amount(),
+                  transactionItemRequest.tags(),
+                  transactionItemRequest.notes());
+          UUID id = transactionItemDao.create(transactionItemIn).id();
           log.debug("[{}] Created transaction item: Id=[{}]", requestId, id);
 
-          List<TransactionItemResponse.TransactionItem> tiOut =
-              dao.readTransactionItems(List.of(id));
+          List<TransactionItemResponse.TransactionItem> transactionItems =
+              transactionItemDao.readTransactionItems(List.of(id));
           return new TransactionItemResponse(
-              tiOut, ResponseMetadataUtils.defaultInsertResponseMetadata());
+              transactionItems, ResponseMetadataUtils.defaultInsertResponseMetadata());
         });
   }
 
-  public TransactionItemResponse read(String requestId, List<UUID> txnItemIds) throws SQLException {
-    log.debug("[{}] Read transaction items: Ids={}", requestId, txnItemIds);
+  public TransactionItemResponse read(String requestId, List<UUID> transactionItemIds)
+      throws SQLException {
+    log.debug("[{}] Read transaction items: Ids={}", requestId, transactionItemIds);
     return transactionManager.execute(
         requestId,
         transactionContext -> {
-          TransactionItemDao dao = new TransactionItemDao(requestId, transactionContext.connection());
-          List<TransactionItemResponse.TransactionItem> tiList =
-              dao.readTransactionItems(txnItemIds);
+          TransactionItemDao transactionItemDao =
+              new TransactionItemDao(requestId, transactionContext.connection());
+          List<TransactionItemResponse.TransactionItem> transactionItems =
+              transactionItemDao.readTransactionItems(transactionItemIds);
 
-          if (txnItemIds.size() == 1 && tiList.isEmpty()) {
+          if (transactionItemIds.size() == 1 && transactionItems.isEmpty()) {
             throw new Exceptions.NotFoundException(
-                requestId, "TransactionItem", txnItemIds.getFirst().toString());
+                requestId, "TransactionItem", transactionItemIds.getFirst().toString());
           }
 
-          return new TransactionItemResponse(tiList, ResponseMetadata.emptyResponseMetadata());
+          return new TransactionItemResponse(
+              transactionItems, ResponseMetadata.emptyResponseMetadata());
         });
   }
 
@@ -80,38 +87,49 @@ public class TransactionItemService {
     return transactionManager.execute(
         requestId,
         transactionContext -> {
-          TransactionItemDao txnItemDao = new TransactionItemDao(requestId, transactionContext.connection());
-          List<String> txnItemTags = txnItemDao.readAllTags();
+          TransactionItemDao transactionItemDao =
+              new TransactionItemDao(requestId, transactionContext.connection());
+          List<String> transactionItemTags = transactionItemDao.readAllTags();
           return new TransactionItemResponse.TransactionItemTags(
-              txnItemTags, ResponseMetadata.emptyResponseMetadata());
+              transactionItemTags, ResponseMetadata.emptyResponseMetadata());
         });
   }
 
-  public TransactionItemResponse update(String requestId, UUID id, TransactionItemRequest tir)
+  public TransactionItemResponse update(
+      String requestId, UUID id, TransactionItemRequest transactionItemRequest)
       throws SQLException {
     log.debug(
-        "[{}] Update transaction item: Id=[{}], TransactionItemRequest=[{}]", requestId, id, tir);
+        "[{}] Update transaction item: Id=[{}], TransactionItemRequest=[{}]",
+        requestId,
+        id,
+        transactionItemRequest);
     return transactionManager.execute(
         requestId,
         transactionContext -> {
-          TransactionItemDao dao = new TransactionItemDao(requestId, transactionContext.connection());
+          TransactionItemDao transactionItemDao =
+              new TransactionItemDao(requestId, transactionContext.connection());
           CategoryDao categoryDao = new CategoryDao(requestId, transactionContext.connection());
           Validations.validateTransactionItem(
-              requestId, tir, categoryDao, Boolean.FALSE, List.of());
+              requestId, transactionItemRequest, categoryDao, Boolean.FALSE, List.of());
 
-          List<TransactionItem> tiList = dao.read(List.of(id));
-          if (tiList.isEmpty()) {
+          List<TransactionItem> transactionItemList = transactionItemDao.read(List.of(id));
+          if (transactionItemList.isEmpty()) {
             throw new Exceptions.NotFoundException(requestId, "TransactionItem", id.toString());
           }
 
-          TransactionItem tiIn =
+          TransactionItem transactionItemIn =
               new TransactionItem(
-                  id, tir.transactionId(), tir.categoryId(), tir.amount(), tir.tags(), tir.notes());
-          dao.update(tiIn);
-          TransactionItemResponse.TransactionItem tiOut =
-              dao.readTransactionItems(List.of(id)).getFirst();
+                  id,
+                  transactionItemRequest.transactionId(),
+                  transactionItemRequest.categoryId(),
+                  transactionItemRequest.amount(),
+                  transactionItemRequest.tags(),
+                  transactionItemRequest.notes());
+          transactionItemDao.update(transactionItemIn);
+          TransactionItemResponse.TransactionItem transactionItem =
+              transactionItemDao.readTransactionItems(List.of(id)).getFirst();
           return new TransactionItemResponse(
-              List.of(tiOut), ResponseMetadataUtils.defaultUpdateResponseMetadata());
+              List.of(transactionItem), ResponseMetadataUtils.defaultUpdateResponseMetadata());
         });
   }
 
@@ -120,15 +138,16 @@ public class TransactionItemService {
     return transactionManager.execute(
         requestId,
         transactionContext -> {
-          TransactionItemDao dao = new TransactionItemDao(requestId, transactionContext.connection());
+          TransactionItemDao transactionItemDao =
+              new TransactionItemDao(requestId, transactionContext.connection());
 
-          List<TransactionItem> tiList = dao.read(ids);
-          if (ids.size() == 1 && tiList.isEmpty()) {
+          List<TransactionItem> transactionItemList = transactionItemDao.read(ids);
+          if (ids.size() == 1 && transactionItemList.isEmpty()) {
             throw new Exceptions.NotFoundException(
                 requestId, "TransactionItem", ids.getFirst().toString());
           }
 
-          int deleteCount = dao.delete(ids);
+          int deleteCount = transactionItemDao.delete(ids);
           return new TransactionItemResponse(
               List.of(), ResponseMetadataUtils.defaultDeleteResponseMetadata(deleteCount));
         });

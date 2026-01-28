@@ -10,29 +10,29 @@ import java.util.UUID;
 public class AccountRowMappers {
   public static class AccountRowMapper implements RowMapper<Account> {
     @Override
-    public Account map(ResultSet rs) throws SQLException {
+    public Account map(ResultSet resultSet) throws SQLException {
       return new Account(
-          rs.getObject("id", UUID.class),
-          rs.getString("name"),
-          rs.getString("account_type"),
-          rs.getString("bank_name"),
-          rs.getBigDecimal("opening_balance"),
-          rs.getString("status"),
-          rs.getObject("created_at", LocalDateTime.class),
-          rs.getObject("updated_at", LocalDateTime.class));
+          resultSet.getObject("id", UUID.class),
+          resultSet.getString("name"),
+          resultSet.getString("account_type"),
+          resultSet.getString("bank_name"),
+          resultSet.getBigDecimal("opening_balance"),
+          resultSet.getString("status"),
+          resultSet.getObject("created_at", LocalDateTime.class),
+          resultSet.getObject("updated_at", LocalDateTime.class));
     }
   }
 
   public static class AccountRowMapperResponse implements RowMapper<AccountResponse.Account> {
     @Override
-    public AccountResponse.Account map(ResultSet rs) throws SQLException {
+    public AccountResponse.Account map(ResultSet resultSet) throws SQLException {
       return new AccountResponse.Account(
-          rs.getObject("id", UUID.class),
-          rs.getString("name"),
-          rs.getString("account_type"),
-          rs.getString("bank_name"),
-          rs.getBigDecimal("opening_balance"),
-          rs.getString("status"));
+          resultSet.getObject("id", UUID.class),
+          resultSet.getString("name"),
+          resultSet.getString("account_type"),
+          resultSet.getString("bank_name"),
+          resultSet.getBigDecimal("opening_balance"),
+          resultSet.getString("status"));
     }
   }
 }

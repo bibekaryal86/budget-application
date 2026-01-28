@@ -23,13 +23,13 @@ public class AccountDao extends BaseDao<Account> {
   }
 
   @Override
-  protected List<Object> insertValues(Account acc) {
+  protected List<Object> insertValues(Account account) {
     return List.of(
-        acc.name().toUpperCase(),
-        acc.accountType(),
-        acc.bankName(),
-        acc.openingBalance(),
-        acc.status());
+        account.name().toUpperCase(),
+        account.accountType(),
+        account.bankName(),
+        account.openingBalance(),
+        account.status());
   }
 
   @Override
@@ -38,18 +38,18 @@ public class AccountDao extends BaseDao<Account> {
   }
 
   @Override
-  protected List<Object> updateValues(Account acc) {
+  protected List<Object> updateValues(Account account) {
     return List.of(
-        acc.name().toUpperCase(),
-        acc.accountType(),
-        acc.bankName(),
-        acc.openingBalance(),
-        acc.status());
+        account.name().toUpperCase(),
+        account.accountType(),
+        account.bankName(),
+        account.openingBalance(),
+        account.status());
   }
 
   @Override
-  protected UUID getId(Account acc) {
-    return acc.id();
+  protected UUID getId(Account account) {
+    return account.id();
   }
 
   @Override

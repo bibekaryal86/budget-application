@@ -7,7 +7,7 @@ import java.util.UUID;
 
 public class CategoryTypeRowMapper implements RowMapper<CategoryType> {
   @Override
-  public CategoryType map(ResultSet rs) throws SQLException {
-    return new CategoryType(rs.getObject("id", UUID.class), rs.getString("name"));
+  public CategoryType map(ResultSet resultSet) throws SQLException {
+    return new CategoryType(resultSet.getObject("id", UUID.class), resultSet.getString("name"));
   }
 }

@@ -20,14 +20,14 @@ public class InsightsDao {
 
   private final String requestId;
   private final Connection connection;
-  private final InsightsRowMappers.CashFlowSummaryRowMapper txnSummaryMapper;
-  private final InsightsRowMappers.CategorySummaryRowMapper catSummaryMapper;
+  private final InsightsRowMappers.CashFlowSummaryRowMapper cashFlowSummaryRowMapper;
+  private final InsightsRowMappers.CategorySummaryRowMapper categorySummaryRowMapper;
 
   public InsightsDao(String requestId, Connection connection) {
     this.requestId = requestId;
     this.connection = connection;
-    this.txnSummaryMapper = new InsightsRowMappers.CashFlowSummaryRowMapper();
-    this.catSummaryMapper = new InsightsRowMappers.CategorySummaryRowMapper();
+    this.cashFlowSummaryRowMapper = new InsightsRowMappers.CashFlowSummaryRowMapper();
+    this.categorySummaryRowMapper = new InsightsRowMappers.CategorySummaryRowMapper();
   }
 
   public InsightsResponse.CashFlowSummary readCashFlowSummary(
@@ -68,7 +68,7 @@ public class InsightsDao {
       DaoUtils.bindParams(stmt, params, Boolean.TRUE);
       try (ResultSet rs = stmt.executeQuery()) {
         while (rs.next()) {
-          results.add(txnSummaryMapper.map(rs));
+          results.add(cashFlowSummaryRowMapper.map(rs));
         }
       }
     }
@@ -76,15 +76,15 @@ public class InsightsDao {
   }
 
   public List<InsightsResponse.CategorySummary> readCategorySummary(
-      LocalDate beginDate, LocalDate endDate, List<UUID> catIds, List<UUID> catTypeIds)
+      LocalDate beginDate, LocalDate endDate, List<UUID> categoryIds, List<UUID> categoryTypeIds)
       throws SQLException {
     log.debug(
         "[{}] Read category summary: BeginDate=[{}], EndDate=[{}], CategoryIds=[{}], CategoryTypeIds=[{}]",
         requestId,
         beginDate,
         endDate,
-        catIds,
-        catTypeIds);
+        categoryIds,
+        categoryTypeIds);
 
     List<InsightsResponse.CategorySummary> results = new ArrayList<>();
     String sql =
@@ -116,20 +116,20 @@ public class InsightsDao {
     params.add(beginDate);
     params.add(endDate);
 
-    boolean hasCat = !CommonUtilities.isEmpty(catIds);
-    boolean hasCatTypes = !CommonUtilities.isEmpty(catTypeIds);
+    boolean hasCat = !CommonUtilities.isEmpty(categoryIds);
+    boolean hasCatTypes = !CommonUtilities.isEmpty(categoryTypeIds);
     params.add(hasCat);
-    params.add(catIds);
+    params.add(categoryIds);
     params.add(hasCatTypes);
-    params.add(catTypeIds);
+    params.add(categoryTypeIds);
 
     log.debug("[{}] Read Category Summary SQL=[{}]", requestId, sql);
 
-    try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-      DaoUtils.bindParams(stmt, params, Boolean.TRUE);
-      try (ResultSet rs = stmt.executeQuery()) {
-        while (rs.next()) {
-          results.add(catSummaryMapper.map(rs));
+    try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+      DaoUtils.bindParams(preparedStatement, params, Boolean.TRUE);
+      try (ResultSet resultSet = preparedStatement.executeQuery()) {
+        while (resultSet.next()) {
+          results.add(categorySummaryRowMapper.map(resultSet));
         }
       }
     }

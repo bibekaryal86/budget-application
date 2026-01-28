@@ -16,30 +16,32 @@ public class AppTestsHandler extends SimpleChannelInboundHandler<FullHttpRequest
   private static final Logger log = LoggerFactory.getLogger(AppTestsHandler.class);
 
   @Override
-  protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest req) throws Exception {
-    String requestId = ctx.channel().attr(Constants.REQUEST_ID).get();
-    String path = req.uri();
-    HttpMethod method = req.method();
+  protected void channelRead0(
+      ChannelHandlerContext channelHandlerContext, FullHttpRequest fullHttpRequest)
+      throws Exception {
+    String requestId = channelHandlerContext.channel().attr(Constants.REQUEST_ID).get();
+    String path = fullHttpRequest.uri();
+    HttpMethod method = fullHttpRequest.method();
 
     if (!path.startsWith(ApiPaths.APP_TESTS)) {
-      ctx.fireChannelRead(req.retain());
+      channelHandlerContext.fireChannelRead(fullHttpRequest.retain());
       return;
     }
     log.info("[{}] Request: Method=[{}] Path=[{}]", requestId, method, path);
 
     // PING: GET /petssvc/tests/ping
     if (path.equals(ApiPaths.APP_TESTS_PING) && method.equals(HttpMethod.GET)) {
-      handlePing(requestId, ctx);
+      handlePing(requestId, channelHandlerContext);
       return;
     }
 
     log.info("[{}] Action Not Found: Method=[{}] Path=[{}]", requestId, method, path);
-    ctx.fireChannelRead(req.retain());
+    channelHandlerContext.fireChannelRead(fullHttpRequest.retain());
   }
 
   // TESTS PING
-  private void handlePing(String requestId, ChannelHandlerContext ctx) {
+  private void handlePing(String requestId, ChannelHandlerContext channelHandlerContext) {
     Map<String, String> response = Map.of("ping", String.format("[%s] successful", requestId));
-    ServerUtils.sendResponse(ctx, HttpResponseStatus.OK, response);
+    ServerUtils.sendResponse(channelHandlerContext, HttpResponseStatus.OK, response);
   }
 }

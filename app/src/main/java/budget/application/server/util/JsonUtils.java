@@ -23,50 +23,53 @@ import java.util.UUID;
 
 public final class JsonUtils {
 
-  private static final ObjectMapper mapper = buildMapper();
+  private static final ObjectMapper OBJECT_MAPPER = buildMapper();
 
   private JsonUtils() {}
 
   private static ObjectMapper buildMapper() {
-    ObjectMapper m = CommonUtilities.objectMapperProvider();
+    ObjectMapper objectMapper = CommonUtilities.objectMapperProvider();
 
-    m.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-    m.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    m.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+    objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
 
-    JavaTimeModule timeModule = new JavaTimeModule();
-    timeModule.addSerializer(
+    JavaTimeModule javaTimeModule = new JavaTimeModule();
+    javaTimeModule.addSerializer(
         LocalDateTime.class, new LocalDateTimeSerializer(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
-    timeModule.addDeserializer(
+    javaTimeModule.addDeserializer(
         LocalDateTime.class, new LocalDateTimeDeserializer(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
-    m.registerModule(timeModule);
+    objectMapper.registerModule(javaTimeModule);
 
-    SimpleModule uuidModule = new SimpleModule();
-    uuidModule.addSerializer(
+    SimpleModule simpleModuleUuid = new SimpleModule();
+    simpleModuleUuid.addSerializer(
         UUID.class,
         new JsonSerializer<UUID>() {
           @Override
-          public void serialize(UUID value, JsonGenerator gen, SerializerProvider serializers)
+          public void serialize(
+              UUID uuid, JsonGenerator jsonGenerator, SerializerProvider serializerProvider)
               throws IOException {
-            gen.writeString(value.toString());
+            jsonGenerator.writeString(uuid.toString());
           }
         });
-    uuidModule.addDeserializer(
+    simpleModuleUuid.addDeserializer(
         UUID.class,
         new JsonDeserializer<UUID>() {
           @Override
-          public UUID deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
-            return UUID.fromString(p.getValueAsString());
+          public UUID deserialize(
+              JsonParser jsonParser, DeserializationContext deserializationContext)
+              throws IOException {
+            return UUID.fromString(jsonParser.getValueAsString());
           }
         });
-    m.registerModule(uuidModule);
+    objectMapper.registerModule(simpleModuleUuid);
 
-    return m;
+    return objectMapper;
   }
 
-  public static String toJson(Object obj) {
+  public static String toJson(Object object) {
     try {
-      return mapper.writeValueAsString(obj);
+      return OBJECT_MAPPER.writeValueAsString(object);
     } catch (JsonProcessingException e) {
       throw new RuntimeException("JSON serialization failed...", e);
     }
@@ -74,13 +77,13 @@ public final class JsonUtils {
 
   public static <T> T fromJson(String json, Class<T> type) {
     try {
-      return mapper.readValue(json, type);
+      return OBJECT_MAPPER.readValue(json, type);
     } catch (IOException e) {
       throw new RuntimeException("JSON deserialization failed...", e);
     }
   }
 
   public static ObjectMapper mapper() {
-    return mapper;
+    return OBJECT_MAPPER;
   }
 }

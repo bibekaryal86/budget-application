@@ -67,12 +67,12 @@ public class Main {
       envKeyNames.addAll(Constants.ENV_KEY_NAMES_SANDBOX);
     }
 
-    final Map<String, String> properties = CommonUtilities.getSystemEnvProperties(envKeyNames);
+    final Map<String, String> envProperties = CommonUtilities.getSystemEnvProperties(envKeyNames);
     final List<String> requiredEnvProperties =
         envKeyNames.stream().filter(key -> !Constants.ENV_SERVER_PORT.equals(key)).toList();
 
     final List<String> errors =
-        requiredEnvProperties.stream().filter(key -> properties.get(key) == null).toList();
+        requiredEnvProperties.stream().filter(key -> envProperties.get(key) == null).toList();
     if (!errors.isEmpty()) {
       throw new IllegalStateException(
           "One or more environment configurations could not be accessed...");

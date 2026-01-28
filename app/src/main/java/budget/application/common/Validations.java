@@ -19,65 +19,67 @@ import java.util.stream.Collectors;
 public class Validations {
   private Validations() {}
 
-  public static void validateAccount(String requestId, AccountRequest ar) {
-    if (ar == null) {
+  public static void validateAccount(String requestId, AccountRequest accountRequest) {
+    if (accountRequest == null) {
       throw new Exceptions.BadRequestException(
           String.format("[%s] Account request cannot be null...", requestId));
     }
-    if (CommonUtilities.isEmpty(ar.name())) {
+    if (CommonUtilities.isEmpty(accountRequest.name())) {
       throw new Exceptions.BadRequestException(
           String.format("[%s] Account name cannot be empty...", requestId));
     }
-    if (CommonUtilities.isEmpty(ar.accountType())) {
+    if (CommonUtilities.isEmpty(accountRequest.accountType())) {
       throw new Exceptions.BadRequestException(
           String.format("[%s] Account type cannot be empty...", requestId));
     }
-    if (!Constants.ACCOUNT_TYPES.contains(ar.accountType())) {
+    if (!Constants.ACCOUNT_TYPES.contains(accountRequest.accountType())) {
       throw new Exceptions.BadRequestException(
           String.format("[%s] Account type is invalid...", requestId));
     }
-    if (CommonUtilities.isEmpty(ar.bankName())) {
+    if (CommonUtilities.isEmpty(accountRequest.bankName())) {
       throw new Exceptions.BadRequestException(
           String.format("[%s] Bank name cannot be empty...", requestId));
     }
-    if (ar.openingBalance() == null || ar.openingBalance().intValue() < 0) {
+    if (accountRequest.openingBalance() == null || accountRequest.openingBalance().intValue() < 0) {
       throw new Exceptions.BadRequestException(
           String.format("[%s] Opening balance cannot be null or negative...", requestId));
     }
-    if (CommonUtilities.isEmpty(ar.status())) {
+    if (CommonUtilities.isEmpty(accountRequest.status())) {
       throw new Exceptions.BadRequestException(
           String.format("[%s] Account status cannot be empty...", requestId));
     }
-    if (!Constants.ACCOUNT_STATUSES.contains(ar.status())) {
+    if (!Constants.ACCOUNT_STATUSES.contains(accountRequest.status())) {
       throw new Exceptions.BadRequestException(
           String.format("[%s] Account status is invalid...", requestId));
     }
   }
 
-  public static void validateBudget(String requestId, BudgetRequest br, CategoryDao categoryDao) {
-    if (br == null) {
+  public static void validateBudget(
+      String requestId, BudgetRequest budgetRequest, CategoryDao categoryDao) {
+    if (budgetRequest == null) {
       throw new Exceptions.BadRequestException(
           String.format("[%s] Budget request cannot be null...", requestId));
     }
-    if (br.categoryId() == null) {
+    if (budgetRequest.categoryId() == null) {
       throw new Exceptions.BadRequestException(
           String.format("[%s] Budget category cannot be null...", requestId));
     }
-    if (br.budgetMonth() < 1 || br.budgetMonth() > 12) {
+    if (budgetRequest.budgetMonth() < 1 || budgetRequest.budgetMonth() > 12) {
       throw new Exceptions.BadRequestException(
           String.format("[%s] Budget month should be between 1 and 12...", requestId));
     }
-    if (br.budgetYear() < 2025 || br.budgetYear() > 2100) {
+    if (budgetRequest.budgetYear() < 2025 || budgetRequest.budgetYear() > 2100) {
       throw new Exceptions.BadRequestException(
           String.format("[%s] Budget year should be between 2025 and 2100...", requestId));
     }
 
-    if (br.amount() == null || br.amount().intValue() < 1) {
+    if (budgetRequest.amount() == null || budgetRequest.amount().intValue() < 1) {
       throw new Exceptions.BadRequestException(
           String.format("[%s] Budget amount cannot be zero or negative...", requestId));
     }
 
-    CategoryResponse.Category category = categoryDao.readByIdNoEx(br.categoryId()).orElse(null);
+    CategoryResponse.Category category =
+        categoryDao.readByIdNoEx(budgetRequest.categoryId()).orElse(null);
     if (category == null) {
       throw new Exceptions.BadRequestException(
           String.format("[%s] Category does not exist...", requestId));
@@ -85,31 +87,32 @@ public class Validations {
   }
 
   public static void validateCategory(
-      String requestId, CategoryRequest cr, CategoryTypeDao categoryTypeDao) {
-    if (cr == null) {
+      String requestId, CategoryRequest categoryRequest, CategoryTypeDao categoryTypeDao) {
+    if (categoryRequest == null) {
       throw new Exceptions.BadRequestException(
           String.format("[%s] Category request cannot be null...", requestId));
     }
-    if (cr.categoryTypeId() == null) {
+    if (categoryRequest.categoryTypeId() == null) {
       throw new Exceptions.BadRequestException(
           String.format("[%s] Category type cannot be null...", requestId));
     }
-    if (CommonUtilities.isEmpty(cr.name())) {
+    if (CommonUtilities.isEmpty(categoryRequest.name())) {
       throw new Exceptions.BadRequestException(
           String.format("[%s] Category name cannot be empty...", requestId));
     }
-    if (categoryTypeDao.readByIdNoEx(cr.categoryTypeId()).isEmpty()) {
+    if (categoryTypeDao.readByIdNoEx(categoryRequest.categoryTypeId()).isEmpty()) {
       throw new Exceptions.BadRequestException(
           String.format("[%s] Category type does not exist...", requestId));
     }
   }
 
-  public static void validateCategoryType(String requestId, CategoryTypeRequest ctr) {
-    if (ctr == null) {
+  public static void validateCategoryType(
+      String requestId, CategoryTypeRequest categoryTypeRequest) {
+    if (categoryTypeRequest == null) {
       throw new Exceptions.BadRequestException(
           String.format("[%s] Category type request cannot be null...", requestId));
     }
-    if (CommonUtilities.isEmpty(ctr.name())) {
+    if (CommonUtilities.isEmpty(categoryTypeRequest.name())) {
       throw new Exceptions.BadRequestException(
           String.format("[%s] Category type name cannot be empty...", requestId));
     }
@@ -117,32 +120,33 @@ public class Validations {
 
   public static void validateTransactionItem(
       String requestId,
-      TransactionItemRequest tir,
+      TransactionItemRequest transactionItemRequest,
       CategoryDao categoryDao,
-      Boolean isCreateTxn,
+      Boolean isCreateTransaction,
       List<CategoryResponse.Category> categories) {
-    if (tir == null) {
+    if (transactionItemRequest == null) {
       throw new Exceptions.BadRequestException(
           String.format("[%s] Transaction item request cannot be null...", requestId));
     }
-    if (!isCreateTxn && tir.transactionId() == null) {
+    if (!isCreateTransaction && transactionItemRequest.transactionId() == null) {
       throw new Exceptions.BadRequestException(
           String.format("[%s] Transaction item transaction cannot be null...", requestId));
     }
-    if (tir.categoryId() == null) {
+    if (transactionItemRequest.categoryId() == null) {
       throw new Exceptions.BadRequestException(
           String.format("[%s] Transaction item category cannot be null...", requestId));
     }
-    if (tir.amount() == null || tir.amount().compareTo(BigDecimal.ZERO) <= 0) {
+    if (transactionItemRequest.amount() == null
+        || transactionItemRequest.amount().compareTo(BigDecimal.ZERO) <= 0) {
       throw new Exceptions.BadRequestException(
           String.format("[%s] Transaction item amount cannot be null or negative...", requestId));
     }
 
     CategoryResponse.Category category =
         CommonUtilities.isEmpty(categories)
-            ? categoryDao.readByIdNoEx(tir.categoryId()).orElse(null)
+            ? categoryDao.readByIdNoEx(transactionItemRequest.categoryId()).orElse(null)
             : categories.stream()
-                .filter(cat -> cat.id().equals(tir.categoryId()))
+                .filter(cat -> cat.id().equals(transactionItemRequest.categoryId()))
                 .findFirst()
                 .orElse(null);
     if (category == null) {
@@ -152,55 +156,58 @@ public class Validations {
   }
 
   public static void validateTransaction(
-      String requestId, TransactionRequest tr, CategoryDao categoryDao) {
-    if (tr == null) {
+      String requestId, TransactionRequest transactionRequest, CategoryDao categoryDao) {
+    if (transactionRequest == null) {
       throw new Exceptions.BadRequestException(
           String.format("[%s] Transaction request cannot be null...", requestId));
     }
-    if (CommonUtilities.isEmpty(tr.merchant())) {
+    if (CommonUtilities.isEmpty(transactionRequest.merchant())) {
       throw new Exceptions.BadRequestException(
           String.format("[%s] Transaction merchant cannot be empty...", requestId));
     }
-    if (tr.accountId() == null) {
+    if (transactionRequest.accountId() == null) {
       throw new Exceptions.BadRequestException(
           String.format("[%s] Transaction account cannot be null...", requestId));
     }
-    if (tr.totalAmount() == null || tr.totalAmount().compareTo(BigDecimal.ZERO) <= 0) {
+    if (transactionRequest.totalAmount() == null
+        || transactionRequest.totalAmount().compareTo(BigDecimal.ZERO) <= 0) {
       throw new Exceptions.BadRequestException(
           String.format("[%s] Transaction total cannot be null or negative...", requestId));
     }
-    if (CommonUtilities.isEmpty(tr.items())) {
+    if (CommonUtilities.isEmpty(transactionRequest.items())) {
       throw new Exceptions.BadRequestException(
           String.format("[%s] Transaction must have at least one item...", requestId));
     }
     BigDecimal sumItems =
-        tr.items().stream()
+        transactionRequest.items().stream()
             .map(TransactionItemRequest::amount)
             .reduce(BigDecimal.ZERO, BigDecimal::add);
-    if (sumItems.compareTo(tr.totalAmount()) != 0) {
+    if (sumItems.compareTo(transactionRequest.totalAmount()) != 0) {
       throw new Exceptions.BadRequestException(
           String.format("[%s] Total amount does not match sum of items...", requestId));
     }
 
-    List<UUID> catIds = tr.items().stream().map(TransactionItemRequest::categoryId).toList();
-    List<CategoryResponse.Category> categories = categoryDao.readCategoriesByIdsNoEx(catIds);
+    List<UUID> categoryIds =
+        transactionRequest.items().stream().map(TransactionItemRequest::categoryId).toList();
+    List<CategoryResponse.Category> categories = categoryDao.readCategoriesByIdsNoEx(categoryIds);
     if (CommonUtilities.isEmpty(categories)) {
       throw new Exceptions.BadRequestException(
           String.format("[%s] Category does not exist...", requestId));
     }
-    Set<String> typeNames =
+    Set<String> categoryTypeNames =
         categories.stream().map(c -> c.categoryType().name()).collect(Collectors.toSet());
-    for (String typeName : Constants.NO_EXPENSE_CATEGORY_TYPES) {
-      if (typeNames.contains(typeName) && typeNames.size() > 1) {
+    for (String categoryTypeName : Constants.NO_EXPENSE_CATEGORY_TYPES) {
+      if (categoryTypeNames.contains(categoryTypeName) && categoryTypeNames.size() > 1) {
         throw new Exceptions.BadRequestException(
             String.format(
                 "[%s] Category type [%s] cannot be mixed with other category types...",
-                requestId, typeName));
+                requestId, categoryTypeName));
       }
     }
 
-    for (TransactionItemRequest tir : tr.items()) {
-      validateTransactionItem(requestId, tir, categoryDao, Boolean.TRUE, categories);
+    for (TransactionItemRequest transactionItemRequest : transactionRequest.items()) {
+      validateTransactionItem(
+          requestId, transactionItemRequest, categoryDao, Boolean.TRUE, categories);
     }
   }
 }

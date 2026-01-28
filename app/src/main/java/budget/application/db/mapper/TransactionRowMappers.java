@@ -11,15 +11,15 @@ import java.util.UUID;
 public class TransactionRowMappers {
   public static class TransactionRowMapper implements RowMapper<Transaction> {
     @Override
-    public Transaction map(ResultSet rs) throws SQLException {
+    public Transaction map(ResultSet resultSet) throws SQLException {
       return new Transaction(
-          rs.getObject("id", UUID.class),
-          rs.getObject("txn_date", LocalDateTime.class),
-          rs.getString("merchant"),
-          rs.getObject("account_id", UUID.class),
-          rs.getBigDecimal("total_amount"),
-          rs.getObject("created_at", LocalDateTime.class),
-          rs.getObject("updated_at", LocalDateTime.class));
+          resultSet.getObject("id", UUID.class),
+          resultSet.getObject("txn_date", LocalDateTime.class),
+          resultSet.getString("merchant"),
+          resultSet.getObject("account_id", UUID.class),
+          resultSet.getBigDecimal("total_amount"),
+          resultSet.getObject("created_at", LocalDateTime.class),
+          resultSet.getObject("updated_at", LocalDateTime.class));
     }
   }
 
@@ -27,12 +27,12 @@ public class TransactionRowMappers {
   public static class TransactionRowMapperResponse
       implements RowMapper<TransactionResponse.Transaction> {
     @Override
-    public TransactionResponse.Transaction map(ResultSet rs) throws SQLException {
+    public TransactionResponse.Transaction map(ResultSet resultSet) throws SQLException {
       return new TransactionResponse.Transaction(
-          rs.getObject("txn_id", UUID.class),
-          rs.getObject("txn_date", LocalDateTime.class),
-          rs.getString("txn_merchant"),
-          rs.getBigDecimal("txn_total_amount"),
+          resultSet.getObject("txn_id", UUID.class),
+          resultSet.getObject("txn_date", LocalDateTime.class),
+          resultSet.getString("txn_merchant"),
+          resultSet.getBigDecimal("txn_total_amount"),
           null,
           List.of());
     }

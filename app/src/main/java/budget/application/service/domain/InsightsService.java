@@ -31,17 +31,18 @@ public class InsightsService {
     return transactionManager.execute(
         requestId,
         transactionContext -> {
-          InsightsDao dao = new InsightsDao(requestId, transactionContext.connection());
+          InsightsDao insightsDao = new InsightsDao(requestId, transactionContext.connection());
 
           LocalDate beginDate = requestParams.beginDate();
           LocalDate endDate = requestParams.endDate();
 
-          LocalDate prevBegin = beginDate.minusMonths(1);
-          LocalDate prevEnd = endDate.minusMonths(1);
+          LocalDate previousMonthBeginDate = beginDate.minusMonths(1);
+          LocalDate previousMonthEndDate = endDate.minusMonths(1);
 
           InsightsResponse.CashFlowSummary currentMonth =
-              dao.readCashFlowSummary(beginDate, endDate);
-          InsightsResponse.CashFlowSummary prevMonth = dao.readCashFlowSummary(prevBegin, prevEnd);
+              insightsDao.readCashFlowSummary(beginDate, endDate);
+          InsightsResponse.CashFlowSummary prevMonth =
+              insightsDao.readCashFlowSummary(previousMonthBeginDate, previousMonthEndDate);
 
           return new InsightsResponse.CashFlowSummaries(
               currentMonth, prevMonth, ResponseMetadata.emptyResponseMetadata());
@@ -55,15 +56,15 @@ public class InsightsService {
     return transactionManager.execute(
         requestId,
         transactionContext -> {
-          InsightsDao dao = new InsightsDao(requestId, transactionContext.connection());
+          InsightsDao insightsDao = new InsightsDao(requestId, transactionContext.connection());
 
           LocalDate beginDate = requestParams.beginDate();
           LocalDate endDate = requestParams.endDate();
-          List<UUID> catIds = requestParams.catIds();
-          List<UUID> catTypeIds = requestParams.catTypeIds();
+          List<UUID> categoryIds = requestParams.catIds();
+          List<UUID> categoryTypeIds = requestParams.catTypeIds();
 
           List<InsightsResponse.CategorySummary> currentMonth =
-              dao.readCategorySummary(beginDate, endDate, catIds, catTypeIds);
+              insightsDao.readCategorySummary(beginDate, endDate, categoryIds, categoryTypeIds);
 
           List<InsightsResponse.CategorySummary> filteredCurrentMonth = currentMonth;
           if (requestParams.topExpenses()) {
@@ -79,13 +80,14 @@ public class InsightsService {
                     .toList();
           }
 
-          LocalDate prevBegin = beginDate.minusMonths(1);
-          LocalDate prevEnd = endDate.minusMonths(1);
+          LocalDate previousMonthBeginDate = beginDate.minusMonths(1);
+          LocalDate previousMonthEndDate = endDate.minusMonths(1);
           List<UUID> relevantCatIds =
               filteredCurrentMonth.stream().map(cs -> cs.category().id()).toList();
 
           List<InsightsResponse.CategorySummary> previousMonth =
-              dao.readCategorySummary(prevBegin, prevEnd, relevantCatIds, List.of());
+              insightsDao.readCategorySummary(
+                  previousMonthBeginDate, previousMonthEndDate, relevantCatIds, List.of());
 
           return new InsightsResponse.CategorySummaries(
               filteredCurrentMonth, previousMonth, ResponseMetadata.emptyResponseMetadata());

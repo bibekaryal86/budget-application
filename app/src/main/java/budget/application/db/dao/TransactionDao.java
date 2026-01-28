@@ -46,9 +46,12 @@ public class TransactionDao extends BaseDao<Transaction> {
   }
 
   @Override
-  protected List<Object> insertValues(Transaction t) {
+  protected List<Object> insertValues(Transaction transaction) {
     return List.of(
-        t.txnDate().toLocalDate(), t.merchant().toUpperCase(), t.accountId(), t.totalAmount());
+        transaction.txnDate().toLocalDate(),
+        transaction.merchant().toUpperCase(),
+        transaction.accountId(),
+        transaction.totalAmount());
   }
 
   @Override
@@ -57,18 +60,18 @@ public class TransactionDao extends BaseDao<Transaction> {
   }
 
   @Override
-  protected List<Object> updateValues(Transaction t) {
+  protected List<Object> updateValues(Transaction transaction) {
     return List.of(
-        t.txnDate().toLocalDate(),
-        t.merchant().toUpperCase(),
-        t.accountId(),
-        t.totalAmount(),
+        transaction.txnDate().toLocalDate(),
+        transaction.merchant().toUpperCase(),
+        transaction.accountId(),
+        transaction.totalAmount(),
         LocalDateTime.now());
   }
 
   @Override
-  protected UUID getId(Transaction t) {
-    return t.id();
+  protected UUID getId(Transaction transaction) {
+    return transaction.id();
   }
 
   @Override
@@ -77,11 +80,15 @@ public class TransactionDao extends BaseDao<Transaction> {
   }
 
   public PaginationResponse<TransactionResponse.Transaction> readTransactions(
-      List<UUID> txnIds,
+      List<UUID> transactionIds,
       RequestParams.TransactionParams requestParams,
       PaginationRequest paginationRequest)
       throws SQLException {
-    log.debug("[{}] Read Transactions: TxnIds=[{}], Params=[{}]", requestId, txnIds, requestParams);
+    log.debug(
+        "[{}] Read Transactions: TransactionIds=[{}], Params=[{}]",
+        requestId,
+        transactionIds,
+        requestParams);
 
     if (requestParams == null) {
       requestParams =
@@ -94,12 +101,12 @@ public class TransactionDao extends BaseDao<Transaction> {
           new PaginationRequest(Constants.DEFAULT_PAGE_NUMBER, Constants.DEFAULT_PER_PAGE);
     }
 
-    List<UUID> catIds = requestParams.catIds();
-    List<UUID> catTypeIds = requestParams.catTypeIds();
+    List<UUID> categoryIds = requestParams.catIds();
+    List<UUID> categoryTypeIds = requestParams.catTypeIds();
     LocalDate beginDate = requestParams.beginDate();
     LocalDate endDate = requestParams.endDate();
     List<String> merchants = requestParams.merchants();
-    List<UUID> accIds = requestParams.accIds();
+    List<UUID> accountIds = requestParams.accIds();
     List<String> tags = requestParams.tags();
     int pageNumber = paginationRequest.pageNumber();
     int perPage = paginationRequest.perPage();
@@ -151,25 +158,26 @@ public class TransactionDao extends BaseDao<Transaction> {
       params.add(beginDate);
       params.add(endDate);
     }
-    if (!CommonUtilities.isEmpty(txnIds)) {
-      addWhere.accept("t.id IN (" + DaoUtils.placeholders(txnIds.size()) + ")");
-      params.addAll(txnIds);
+    if (!CommonUtilities.isEmpty(transactionIds)) {
+      addWhere.accept("t.id IN (" + DaoUtils.placeholders(transactionIds.size()) + ")");
+      params.addAll(transactionIds);
     }
     if (!CommonUtilities.isEmpty(merchants)) {
       addWhere.accept("t.merchant IN (" + DaoUtils.placeholders(merchants.size()) + ")");
       params.addAll(merchants);
     }
-    if (!CommonUtilities.isEmpty(accIds)) {
-      addWhere.accept("t.account_id IN (" + DaoUtils.placeholders(accIds.size()) + ")");
-      params.addAll(accIds);
+    if (!CommonUtilities.isEmpty(accountIds)) {
+      addWhere.accept("t.account_id IN (" + DaoUtils.placeholders(accountIds.size()) + ")");
+      params.addAll(accountIds);
     }
-    if (!CommonUtilities.isEmpty(catIds)) {
-      addWhere.accept("ti.category_id IN (" + DaoUtils.placeholders(catIds.size()) + ")");
-      params.addAll(catIds);
+    if (!CommonUtilities.isEmpty(categoryIds)) {
+      addWhere.accept("ti.category_id IN (" + DaoUtils.placeholders(categoryIds.size()) + ")");
+      params.addAll(categoryIds);
     }
-    if (!CommonUtilities.isEmpty(catTypeIds)) {
-      addWhere.accept("c.category_type_id IN (" + DaoUtils.placeholders(catTypeIds.size()) + ")");
-      params.addAll(catTypeIds);
+    if (!CommonUtilities.isEmpty(categoryTypeIds)) {
+      addWhere.accept(
+          "c.category_type_id IN (" + DaoUtils.placeholders(categoryTypeIds.size()) + ")");
+      params.addAll(categoryTypeIds);
     }
     if (!CommonUtilities.isEmpty(tags)) {
       Array sqlArray = connection.createArrayOf("text", tags.toArray());
@@ -184,63 +192,70 @@ public class TransactionDao extends BaseDao<Transaction> {
 
     log.debug("[{}] Read Transactions SQL=[{}]", requestId, sql);
 
-    List<TransactionResponse.Transaction> items;
+    List<TransactionResponse.Transaction> transactions;
 
-    try (PreparedStatement stmt = connection.prepareStatement(sql.toString())) {
+    try (PreparedStatement preparedStatement = connection.prepareStatement(sql.toString())) {
       if (!params.isEmpty()) {
-        DaoUtils.bindParams(stmt, params, Boolean.TRUE);
+        DaoUtils.bindParams(preparedStatement, params, Boolean.TRUE);
       }
-      stmt.setInt(params.size() + 1, limit);
-      stmt.setInt(params.size() + 2, offset);
+      preparedStatement.setInt(params.size() + 1, limit);
+      preparedStatement.setInt(params.size() + 2, offset);
 
-      Map<UUID, TransactionResultBuilder> txnMap = new LinkedHashMap<>();
+      Map<UUID, TransactionResultBuilder> transactionResultBuilderMap = new LinkedHashMap<>();
 
-      try (ResultSet rs = stmt.executeQuery()) {
-        while (rs.next()) {
-          UUID txnId = rs.getObject("txn_id", UUID.class);
-          TransactionResultBuilder txnBuilder = txnMap.get(txnId);
-          if (txnBuilder == null) {
+      try (ResultSet resultSet = preparedStatement.executeQuery()) {
+        while (resultSet.next()) {
+          UUID transactionId = resultSet.getObject("txn_id", UUID.class);
+          TransactionResultBuilder transactionResultBuilder =
+              transactionResultBuilderMap.get(transactionId);
+          if (transactionResultBuilder == null) {
             AccountResponse.Account account =
                 new AccountResponse.Account(
-                    rs.getObject("account_id", UUID.class),
-                    rs.getString("account_name"),
-                    rs.getString("account_type"),
-                    rs.getString("account_bank_name"),
-                    rs.getBigDecimal("account_opening_balance"),
-                    rs.getString("account_status"));
-            txnBuilder =
+                    resultSet.getObject("account_id", UUID.class),
+                    resultSet.getString("account_name"),
+                    resultSet.getString("account_type"),
+                    resultSet.getString("account_bank_name"),
+                    resultSet.getBigDecimal("account_opening_balance"),
+                    resultSet.getString("account_status"));
+            transactionResultBuilder =
                 new TransactionResultBuilder(
-                    txnId,
-                    rs.getObject("txn_date", LocalDateTime.class),
-                    rs.getString("txn_merchant"),
+                    transactionId,
+                    resultSet.getObject("txn_date", LocalDateTime.class),
+                    resultSet.getString("txn_merchant"),
                     account,
-                    rs.getBigDecimal("txn_total_amount"));
-            txnMap.put(txnId, txnBuilder);
+                    resultSet.getBigDecimal("txn_total_amount"));
+            transactionResultBuilderMap.put(transactionId, transactionResultBuilder);
           }
 
-          UUID itemId = rs.getObject("item_id", UUID.class);
-          if (itemId != null) {
-            CategoryTypeResponse.CategoryType ct =
+          UUID transactionItemId = resultSet.getObject("item_id", UUID.class);
+          if (transactionItemId != null) {
+            CategoryTypeResponse.CategoryType categoryType =
                 new CategoryTypeResponse.CategoryType(
-                    rs.getObject("category_type_id", UUID.class),
-                    rs.getString("category_type_name"));
-            CategoryResponse.Category c =
+                    resultSet.getObject("category_type_id", UUID.class),
+                    resultSet.getString("category_type_name"));
+            CategoryResponse.Category category =
                 new CategoryResponse.Category(
-                    rs.getObject("category_id", UUID.class), ct, rs.getString("category_name"));
+                    resultSet.getObject("category_id", UUID.class),
+                    categoryType,
+                    resultSet.getString("category_name"));
 
             TransactionItemResponse.TransactionItem item =
                 new TransactionItemResponse.TransactionItem(
-                    itemId,
-                    new TransactionResponse.Transaction(txnId, null, null, null, null, List.of()),
-                    c,
-                    rs.getBigDecimal("item_amount"),
-                    List.of((String[]) rs.getArray("item_tags").getArray()),
-                    rs.getString("item_notes"));
-            txnMap.get(txnId).addItem(item);
+                    transactionItemId,
+                    new TransactionResponse.Transaction(
+                        transactionId, null, null, null, null, List.of()),
+                    category,
+                    resultSet.getBigDecimal("item_amount"),
+                    List.of((String[]) resultSet.getArray("item_tags").getArray()),
+                    resultSet.getString("item_notes"));
+            transactionResultBuilderMap.get(transactionId).addItem(item);
           }
         }
       }
-      items = txnMap.values().stream().map(TransactionResultBuilder::build).toList();
+      transactions =
+          transactionResultBuilderMap.values().stream()
+              .map(TransactionResultBuilder::build)
+              .toList();
     }
 
     int totalItems = countAll();
@@ -248,16 +263,16 @@ public class TransactionDao extends BaseDao<Transaction> {
     ResponseMetadata.ResponsePageInfo pageInfo =
         new ResponseMetadata.ResponsePageInfo(totalItems, totalPages, pageNumber, perPage);
 
-    return new PaginationResponse<>(items, pageInfo);
+    return new PaginationResponse<>(transactions, pageInfo);
   }
 
   public List<String> readAllMerchants() throws SQLException {
     String sql = "SELECT DISTINCT merchant FROM transaction ORDER BY merchant ASC";
     List<String> merchants = new ArrayList<>();
-    try (PreparedStatement stmt = connection.prepareStatement(sql);
-        ResultSet rs = stmt.executeQuery()) {
-      while (rs.next()) {
-        merchants.add(rs.getString("merchant"));
+    try (PreparedStatement preparedStatement = connection.prepareStatement(sql);
+        ResultSet resultSet = preparedStatement.executeQuery()) {
+      while (resultSet.next()) {
+        merchants.add(resultSet.getString("merchant"));
       }
     }
     return merchants;
@@ -266,42 +281,43 @@ public class TransactionDao extends BaseDao<Transaction> {
   private int countAll() throws SQLException {
     String sql = "SELECT COUNT(*) FROM transaction";
 
-    try (PreparedStatement ps = connection.prepareStatement(sql);
-        ResultSet rs = ps.executeQuery()) {
+    try (PreparedStatement preparedStatement = connection.prepareStatement(sql);
+        ResultSet resultSet = preparedStatement.executeQuery()) {
 
-      rs.next();
-      return rs.getInt(1);
+      resultSet.next();
+      return resultSet.getInt(1);
     }
   }
 
   private static class TransactionResultBuilder {
     private final UUID id;
-    private final LocalDateTime txnDate;
+    private final LocalDateTime transactionDate;
     private final String merchant;
     private final AccountResponse.Account account;
     private final BigDecimal totalAmount;
-    private final List<TransactionItemResponse.TransactionItem> items = new ArrayList<>();
+    private final List<TransactionItemResponse.TransactionItem> transactionItems =
+        new ArrayList<>();
 
     TransactionResultBuilder(
         UUID id,
-        LocalDateTime txnDate,
+        LocalDateTime transactionDate,
         String merchant,
         AccountResponse.Account account,
         BigDecimal totalAmount) {
       this.id = id;
-      this.txnDate = txnDate;
+      this.transactionDate = transactionDate;
       this.merchant = merchant;
       this.account = account;
       this.totalAmount = totalAmount;
     }
 
     void addItem(TransactionItemResponse.TransactionItem item) {
-      items.add(item);
+      transactionItems.add(item);
     }
 
     TransactionResponse.Transaction build() {
       return new TransactionResponse.Transaction(
-          id, txnDate, merchant, totalAmount, account, List.copyOf(items));
+          id, transactionDate, merchant, totalAmount, account, List.copyOf(transactionItems));
     }
   }
 }

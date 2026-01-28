@@ -12,33 +12,34 @@ import java.util.UUID;
 public class BudgetRowMappers {
   public static class BudgetRowMapper implements RowMapper<Budget> {
     @Override
-    public Budget map(ResultSet rs) throws SQLException {
+    public Budget map(ResultSet resultSet) throws SQLException {
       return new Budget(
-          rs.getObject("id", UUID.class),
-          rs.getObject("category_id", UUID.class),
-          rs.getInt("budget_month"),
-          rs.getInt("budget_year"),
-          rs.getBigDecimal("amount"),
-          rs.getString("notes"),
-          rs.getObject("created_at", LocalDateTime.class),
-          rs.getObject("updated_at", LocalDateTime.class));
+          resultSet.getObject("id", UUID.class),
+          resultSet.getObject("category_id", UUID.class),
+          resultSet.getInt("budget_month"),
+          resultSet.getInt("budget_year"),
+          resultSet.getBigDecimal("amount"),
+          resultSet.getString("notes"),
+          resultSet.getObject("created_at", LocalDateTime.class),
+          resultSet.getObject("updated_at", LocalDateTime.class));
     }
   }
 
   public static class BudgetRowMapperResponse implements RowMapper<BudgetResponse.Budget> {
     @Override
-    public BudgetResponse.Budget map(ResultSet rs) throws SQLException {
+    public BudgetResponse.Budget map(ResultSet resultSet) throws SQLException {
       return new BudgetResponse.Budget(
-          rs.getObject("budget_id", UUID.class),
+          resultSet.getObject("budget_id", UUID.class),
           new CategoryResponse.Category(
-              rs.getObject("category_id", UUID.class),
+              resultSet.getObject("category_id", UUID.class),
               new CategoryTypeResponse.CategoryType(
-                  rs.getObject("category_type_id", UUID.class), rs.getString("category_type_name")),
-              rs.getString("category_name")),
-          rs.getInt("budget_month"),
-          rs.getInt("budget_year"),
-          rs.getBigDecimal("budget_amount"),
-          rs.getString("budget_notes"));
+                  resultSet.getObject("category_type_id", UUID.class),
+                  resultSet.getString("category_type_name")),
+              resultSet.getString("category_name")),
+          resultSet.getInt("budget_month"),
+          resultSet.getInt("budget_year"),
+          resultSet.getBigDecimal("budget_amount"),
+          resultSet.getString("budget_notes"));
     }
   }
 }

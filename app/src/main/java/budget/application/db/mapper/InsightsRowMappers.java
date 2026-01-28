@@ -13,29 +13,30 @@ public class InsightsRowMappers {
   public static class CashFlowSummaryRowMapper
       implements RowMapper<InsightsResponse.CashFlowSummary> {
     @Override
-    public InsightsResponse.CashFlowSummary map(ResultSet rs) throws SQLException {
+    public InsightsResponse.CashFlowSummary map(ResultSet resultSet) throws SQLException {
       return new InsightsResponse.CashFlowSummary(
-          rs.getObject("begin_date", LocalDate.class),
-          rs.getObject("end_date", LocalDate.class),
-          rs.getBigDecimal("incomes"),
-          rs.getBigDecimal("expenses"),
-          rs.getBigDecimal("savings"));
+          resultSet.getObject("begin_date", LocalDate.class),
+          resultSet.getObject("end_date", LocalDate.class),
+          resultSet.getBigDecimal("incomes"),
+          resultSet.getBigDecimal("expenses"),
+          resultSet.getBigDecimal("savings"));
     }
   }
 
   public static class CategorySummaryRowMapper
       implements RowMapper<InsightsResponse.CategorySummary> {
     @Override
-    public InsightsResponse.CategorySummary map(ResultSet rs) throws SQLException {
+    public InsightsResponse.CategorySummary map(ResultSet resultSet) throws SQLException {
       return new InsightsResponse.CategorySummary(
-          rs.getObject("begin_date", LocalDate.class),
-          rs.getObject("end_date", LocalDate.class),
+          resultSet.getObject("begin_date", LocalDate.class),
+          resultSet.getObject("end_date", LocalDate.class),
           new CategoryResponse.Category(
-              rs.getObject("category_id", UUID.class),
+              resultSet.getObject("category_id", UUID.class),
               new CategoryTypeResponse.CategoryType(
-                  rs.getObject("category_type_id", UUID.class), rs.getString("category_type_name")),
-              rs.getString("category_name")),
-          rs.getBigDecimal("total_amount"));
+                  resultSet.getObject("category_type_id", UUID.class),
+                  resultSet.getString("category_type_name")),
+              resultSet.getString("category_name")),
+          resultSet.getBigDecimal("total_amount"));
     }
   }
 }

@@ -20,93 +20,104 @@ import org.slf4j.LoggerFactory;
 public class AccountHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
   private static final Logger log = LoggerFactory.getLogger(AccountHandler.class);
 
-  private final AccountService service;
+  private final AccountService accountService;
 
   public AccountHandler(DataSource dataSource) {
-    this.service = new AccountService(dataSource);
+    this.accountService = new AccountService(dataSource);
   }
 
   @Override
-  protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest req) throws Exception {
-    String requestId = ctx.channel().attr(Constants.REQUEST_ID).get();
-    String path = req.uri();
-    HttpMethod method = req.method();
+  protected void channelRead0(
+      ChannelHandlerContext channelHandlerContext, FullHttpRequest fullHttpRequest)
+      throws Exception {
+    String requestId = channelHandlerContext.channel().attr(Constants.REQUEST_ID).get();
+    String path = fullHttpRequest.uri();
+    HttpMethod method = fullHttpRequest.method();
 
     if (!path.startsWith(ApiPaths.ACCOUNTS_V1)) {
-      ctx.fireChannelRead(req.retain());
+      channelHandlerContext.fireChannelRead(fullHttpRequest.retain());
       return;
     }
     log.info("[{}] Request: Method=[{}] Path=[{}]", requestId, method, path);
 
     // CREATE: POST /petssvc/api/v1/accounts
     if (path.equals(ApiPaths.ACCOUNTS_V1) && method.equals(HttpMethod.POST)) {
-      handleCreate(requestId, ctx, req);
+      handleCreate(requestId, channelHandlerContext, fullHttpRequest);
       return;
     }
 
     // READ ALL: GET /petssvc/api/v1/accounts
     if (path.equals(ApiPaths.ACCOUNTS_V1) && method.equals(HttpMethod.GET)) {
-      handleReadAll(requestId, ctx);
+      handleReadAll(requestId, channelHandlerContext);
       return;
     }
 
     // READ ONE: GET /petssvc/api/v1/accounts/{id}
     if (path.startsWith(ApiPaths.ACCOUNTS_V1_WITH_ID) && method.equals(HttpMethod.GET)) {
       UUID id = ServerUtils.getEntityId(path, ApiPaths.ACCOUNTS_V1_WITH_ID);
-      handleReadOne(requestId, ctx, id);
+      handleReadOne(requestId, channelHandlerContext, id);
       return;
     }
 
     // UPDATE: PUT /petssvc/api/v1/accounts/{id}
     if (path.startsWith(ApiPaths.ACCOUNTS_V1_WITH_ID) && method.equals(HttpMethod.PUT)) {
       UUID id = ServerUtils.getEntityId(path, ApiPaths.ACCOUNTS_V1_WITH_ID);
-      handleUpdate(requestId, ctx, req, id);
+      handleUpdate(requestId, channelHandlerContext, fullHttpRequest, id);
       return;
     }
 
     // DELETE: DELETE /petssvc/api/v1/accounts/{id}
     if (path.startsWith(ApiPaths.ACCOUNTS_V1_WITH_ID) && method.equals(HttpMethod.DELETE)) {
       UUID id = ServerUtils.getEntityId(path, ApiPaths.ACCOUNTS_V1_WITH_ID);
-      handleDelete(requestId, ctx, id);
+      handleDelete(requestId, channelHandlerContext, id);
       return;
     }
 
     log.info("[{}] Action Not Found: Method=[{}] Path=[{}]", requestId, method, path);
-    ctx.fireChannelRead(req.retain());
+    channelHandlerContext.fireChannelRead(fullHttpRequest.retain());
   }
 
   // CREATE
-  private void handleCreate(String requestId, ChannelHandlerContext ctx, FullHttpRequest req)
+  private void handleCreate(
+      String requestId,
+      ChannelHandlerContext channelHandlerContext,
+      FullHttpRequest fullHttpRequest)
       throws Exception {
-    AccountRequest request = ServerUtils.getRequestBody(req, AccountRequest.class);
-    AccountResponse response = service.create(requestId, request);
-    ServerUtils.sendResponse(ctx, HttpResponseStatus.CREATED, response);
+    AccountRequest request = ServerUtils.getRequestBody(fullHttpRequest, AccountRequest.class);
+    AccountResponse response = accountService.create(requestId, request);
+    ServerUtils.sendResponse(channelHandlerContext, HttpResponseStatus.CREATED, response);
   }
 
   // READ ALL
-  private void handleReadAll(String requestId, ChannelHandlerContext ctx) throws Exception {
-    AccountResponse response = service.read(requestId, List.of());
-    ServerUtils.sendResponse(ctx, HttpResponseStatus.OK, response);
+  private void handleReadAll(String requestId, ChannelHandlerContext channelHandlerContext)
+      throws Exception {
+    AccountResponse response = accountService.read(requestId, List.of());
+    ServerUtils.sendResponse(channelHandlerContext, HttpResponseStatus.OK, response);
   }
 
   // READ ONE
-  private void handleReadOne(String requestId, ChannelHandlerContext ctx, UUID id)
+  private void handleReadOne(String requestId, ChannelHandlerContext channelHandlerContext, UUID id)
       throws Exception {
-    AccountResponse response = service.read(requestId, List.of(id));
-    ServerUtils.sendResponse(ctx, HttpResponseStatus.OK, response);
+    AccountResponse response = accountService.read(requestId, List.of(id));
+    ServerUtils.sendResponse(channelHandlerContext, HttpResponseStatus.OK, response);
   }
 
   // UPDATE
   private void handleUpdate(
-      String requestId, ChannelHandlerContext ctx, FullHttpRequest req, UUID id) throws Exception {
-    AccountRequest request = ServerUtils.getRequestBody(req, AccountRequest.class);
-    AccountResponse response = service.update(requestId, id, request);
-    ServerUtils.sendResponse(ctx, HttpResponseStatus.OK, response);
+      String requestId,
+      ChannelHandlerContext channelHandlerContext,
+      FullHttpRequest fullHttpRequest,
+      UUID id)
+      throws Exception {
+    AccountRequest request = ServerUtils.getRequestBody(fullHttpRequest, AccountRequest.class);
+    AccountResponse response = accountService.update(requestId, id, request);
+    ServerUtils.sendResponse(channelHandlerContext, HttpResponseStatus.OK, response);
   }
 
   // DELETE
-  private void handleDelete(String requestId, ChannelHandlerContext ctx, UUID id) throws Exception {
-    AccountResponse response = service.delete(requestId, List.of(id));
-    ServerUtils.sendResponse(ctx, HttpResponseStatus.OK, response);
+  private void handleDelete(String requestId, ChannelHandlerContext channelHandlerContext, UUID id)
+      throws Exception {
+    AccountResponse response = accountService.delete(requestId, List.of(id));
+    ServerUtils.sendResponse(channelHandlerContext, HttpResponseStatus.OK, response);
   }
 }

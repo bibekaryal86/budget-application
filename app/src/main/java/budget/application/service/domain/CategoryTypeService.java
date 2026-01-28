@@ -26,21 +26,23 @@ public class CategoryTypeService {
     this.transactionManager = new TransactionManager(dataSource);
   }
 
-  public CategoryTypeResponse create(String requestId, CategoryTypeRequest ctr)
+  public CategoryTypeResponse create(String requestId, CategoryTypeRequest categoryTypeRequest)
       throws SQLException {
-    log.debug("[{}] Create category type: CategoryTypeRequest=[{}]", requestId, ctr);
+    log.debug(
+        "[{}] Create category type: CategoryTypeRequest=[{}]", requestId, categoryTypeRequest);
     return transactionManager.execute(
         requestId,
         transactionContext -> {
-          CategoryTypeDao dao = new CategoryTypeDao(requestId, transactionContext.connection());
-          Validations.validateCategoryType(requestId, ctr);
-          CategoryType ctIn = new CategoryType(null, ctr.name());
-          UUID id = dao.create(ctIn).id();
+          CategoryTypeDao categoryTypeDao =
+              new CategoryTypeDao(requestId, transactionContext.connection());
+          Validations.validateCategoryType(requestId, categoryTypeRequest);
+          CategoryType categoryTypeIn = new CategoryType(null, categoryTypeRequest.name());
+          UUID id = categoryTypeDao.create(categoryTypeIn).id();
           log.debug("[{}] Created category type: Id=[{}]", requestId, id);
-          CategoryTypeResponse.CategoryType ctOut =
-              new CategoryTypeResponse.CategoryType(id, ctIn.name().toUpperCase());
+          CategoryTypeResponse.CategoryType categoryType =
+              new CategoryTypeResponse.CategoryType(id, categoryTypeIn.name().toUpperCase());
           return new CategoryTypeResponse(
-              List.of(ctOut), ResponseMetadataUtils.defaultInsertResponseMetadata());
+              List.of(categoryType), ResponseMetadataUtils.defaultInsertResponseMetadata());
         });
   }
 
@@ -49,44 +51,50 @@ public class CategoryTypeService {
     return transactionManager.execute(
         requestId,
         transactionContext -> {
-          CategoryTypeDao dao = new CategoryTypeDao(requestId, transactionContext.connection());
-          List<CategoryType> ctList = dao.read(ids);
+          CategoryTypeDao categoryTypeDao =
+              new CategoryTypeDao(requestId, transactionContext.connection());
+          List<CategoryType> categoryTypeList = categoryTypeDao.read(ids);
 
-          if (ids.size() == 1 && ctList.isEmpty()) {
+          if (ids.size() == 1 && categoryTypeList.isEmpty()) {
             throw new Exceptions.NotFoundException(
                 requestId, "CategoryType", ids.getFirst().toString());
           }
 
-          List<CategoryTypeResponse.CategoryType> ctOutList =
-              ctList.stream()
+          List<CategoryTypeResponse.CategoryType> categoryTypes =
+              categoryTypeList.stream()
                   .map(ct -> new CategoryTypeResponse.CategoryType(ct.id(), ct.name()))
                   .toList();
 
-          return new CategoryTypeResponse(ctOutList, ResponseMetadata.emptyResponseMetadata());
+          return new CategoryTypeResponse(categoryTypes, ResponseMetadata.emptyResponseMetadata());
         });
   }
 
-  public CategoryTypeResponse update(String requestId, UUID id, CategoryTypeRequest ctr)
-      throws SQLException {
-    log.debug("[{}] Update category type: Id=[{}], CategoryTypeRequest=[{}]", requestId, id, ctr);
+  public CategoryTypeResponse update(
+      String requestId, UUID id, CategoryTypeRequest categoryTypeRequest) throws SQLException {
+    log.debug(
+        "[{}] Update category type: Id=[{}], CategoryTypeRequest=[{}]",
+        requestId,
+        id,
+        categoryTypeRequest);
     return transactionManager.execute(
         requestId,
         transactionContext -> {
-          CategoryTypeDao dao = new CategoryTypeDao(requestId, transactionContext.connection());
-          Validations.validateCategoryType(requestId, ctr);
+          CategoryTypeDao categoryTypeDao =
+              new CategoryTypeDao(requestId, transactionContext.connection());
+          Validations.validateCategoryType(requestId, categoryTypeRequest);
 
-          List<CategoryType> ctList = dao.read(List.of(id));
+          List<CategoryType> categoryTypeList = categoryTypeDao.read(List.of(id));
 
-          if (ctList.isEmpty()) {
+          if (categoryTypeList.isEmpty()) {
             throw new Exceptions.NotFoundException(requestId, "CategoryType", id.toString());
           }
 
-          CategoryType ctIn = new CategoryType(id, ctr.name());
-          dao.update(ctIn);
-          CategoryTypeResponse.CategoryType ctOut =
-              new CategoryTypeResponse.CategoryType(id, ctIn.name().toUpperCase());
+          CategoryType categoryTypeIn = new CategoryType(id, categoryTypeRequest.name());
+          categoryTypeDao.update(categoryTypeIn);
+          CategoryTypeResponse.CategoryType categoryType =
+              new CategoryTypeResponse.CategoryType(id, categoryTypeIn.name().toUpperCase());
           return new CategoryTypeResponse(
-              List.of(ctOut), ResponseMetadataUtils.defaultUpdateResponseMetadata());
+              List.of(categoryType), ResponseMetadataUtils.defaultUpdateResponseMetadata());
         });
   }
 
@@ -95,16 +103,17 @@ public class CategoryTypeService {
     return transactionManager.execute(
         requestId,
         transactionContext -> {
-          CategoryTypeDao dao = new CategoryTypeDao(requestId, transactionContext.connection());
+          CategoryTypeDao categoryTypeDao =
+              new CategoryTypeDao(requestId, transactionContext.connection());
 
-          List<CategoryType> ctList = dao.read(ids);
+          List<CategoryType> categoryTypeList = categoryTypeDao.read(ids);
 
-          if (ids.size() == 1 && ctList.isEmpty()) {
+          if (ids.size() == 1 && categoryTypeList.isEmpty()) {
             throw new Exceptions.NotFoundException(
                 requestId, "CategoryType", ids.getFirst().toString());
           }
 
-          int deleteCount = dao.delete(ids);
+          int deleteCount = categoryTypeDao.delete(ids);
           return new CategoryTypeResponse(
               List.of(), ResponseMetadataUtils.defaultDeleteResponseMetadata(deleteCount));
         });

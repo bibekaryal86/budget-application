@@ -10,22 +10,23 @@ import java.util.UUID;
 public class CategoryRowMappers {
   public static class CategoryRowMapper implements RowMapper<Category> {
     @Override
-    public Category map(ResultSet rs) throws SQLException {
+    public Category map(ResultSet resultSet) throws SQLException {
       return new Category(
-          rs.getObject("id", UUID.class),
-          rs.getObject("category_type_id", UUID.class),
-          rs.getString("name"));
+          resultSet.getObject("id", UUID.class),
+          resultSet.getObject("category_type_id", UUID.class),
+          resultSet.getString("name"));
     }
   }
 
   public static class CategoryRowMapperResponse implements RowMapper<CategoryResponse.Category> {
     @Override
-    public CategoryResponse.Category map(ResultSet rs) throws SQLException {
+    public CategoryResponse.Category map(ResultSet resultSet) throws SQLException {
       return new CategoryResponse.Category(
-          rs.getObject("category_id", UUID.class),
+          resultSet.getObject("category_id", UUID.class),
           new CategoryTypeResponse.CategoryType(
-              rs.getObject("category_type_id", UUID.class), rs.getString("category_type_name")),
-          rs.getString("category_name"));
+              resultSet.getObject("category_type_id", UUID.class),
+              resultSet.getString("category_type_name")),
+          resultSet.getString("category_name"));
     }
   }
 }

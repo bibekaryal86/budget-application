@@ -1,6 +1,5 @@
 package budget.application.db.dao;
 
-import budget.application.db.mapper.RowMapper;
 import budget.application.db.mapper.TransactionItemRowMappers;
 import budget.application.db.util.DaoUtils;
 import budget.application.model.dto.TransactionItemResponse;
@@ -18,11 +17,13 @@ import java.util.function.Consumer;
 
 public class TransactionItemDao extends BaseDao<TransactionItem> {
 
-  private final RowMapper<TransactionItemResponse.TransactionItem> txnItemRespMapper;
+  private final TransactionItemRowMappers.TransactionItemRowMapperResponse
+      transactionItemRowMapperResponse;
 
   public TransactionItemDao(String requestId, Connection connection) {
     super(requestId, connection, new TransactionItemRowMappers.TransactionItemRowMapper());
-    this.txnItemRespMapper = new TransactionItemRowMappers.TransactionItemRowMapperResponse();
+    this.transactionItemRowMapperResponse =
+        new TransactionItemRowMappers.TransactionItemRowMapperResponse();
   }
 
   @Override
@@ -36,16 +37,16 @@ public class TransactionItemDao extends BaseDao<TransactionItem> {
   }
 
   @Override
-  protected List<Object> insertValues(TransactionItem ti) {
+  protected List<Object> insertValues(TransactionItem transactionItem) {
     return List.of(
-        ti.transactionId(),
-        ti.categoryId(),
-        ti.amount(),
-        switch (ti.tags()) {
+        transactionItem.transactionId(),
+        transactionItem.categoryId(),
+        transactionItem.amount(),
+        switch (transactionItem.tags()) {
           case null -> Collections.emptyList();
           case List<String> tags -> tags.stream().map(String::toUpperCase).toList();
         },
-        ti.notes().toUpperCase());
+        transactionItem.notes().toUpperCase());
   }
 
   @Override
@@ -54,20 +55,20 @@ public class TransactionItemDao extends BaseDao<TransactionItem> {
   }
 
   @Override
-  protected List<Object> updateValues(TransactionItem ti) {
+  protected List<Object> updateValues(TransactionItem transactionItem) {
     return List.of(
-        ti.categoryId(),
-        ti.amount(),
-        switch (ti.tags()) {
+        transactionItem.categoryId(),
+        transactionItem.amount(),
+        switch (transactionItem.tags()) {
           case null -> Collections.emptyList();
           case List<String> tags -> tags.stream().map(String::toUpperCase).toList();
         },
-        ti.notes().toUpperCase());
+        transactionItem.notes().toUpperCase());
   }
 
   @Override
-  protected UUID getId(TransactionItem ti) {
-    return ti.id();
+  protected UUID getId(TransactionItem transactionItem) {
+    return transactionItem.id();
   }
 
   @Override
@@ -76,17 +77,18 @@ public class TransactionItemDao extends BaseDao<TransactionItem> {
   }
 
   // --- Custom ---
-  public List<TransactionItem> createItems(List<TransactionItem> itemsIn) throws SQLException {
-    List<TransactionItem> itemsOut = new ArrayList<>();
-    for (TransactionItem item : itemsIn) {
-      itemsOut.add(create(item));
+  public List<TransactionItem> createItems(List<TransactionItem> transactionItemsIn)
+      throws SQLException {
+    List<TransactionItem> transactionItemsOut = new ArrayList<>();
+    for (TransactionItem transactionItem : transactionItemsIn) {
+      transactionItemsOut.add(create(transactionItem));
     }
-    return itemsOut;
+    return transactionItemsOut;
   }
 
-  public List<TransactionItemResponse.TransactionItem> readTransactionItems(List<UUID> txnItemIds)
-      throws SQLException {
-    log.debug("[{}] Read Transaction Items: TxnItemIds={}", requestId, txnItemIds);
+  public List<TransactionItemResponse.TransactionItem> readTransactionItems(
+      List<UUID> transactionItemIds) throws SQLException {
+    log.debug("[{}] Read Transaction Items: TransactionItemIds={}", requestId, transactionItemIds);
 
     StringBuilder sql =
         new StringBuilder(
@@ -123,32 +125,32 @@ public class TransactionItemDao extends BaseDao<TransactionItem> {
           whereAdded[0] = true;
         };
 
-    if (!CommonUtilities.isEmpty(txnItemIds)) {
-      addWhere.accept("ti.id IN (" + DaoUtils.placeholders(txnItemIds.size()) + ")");
-      params.addAll(txnItemIds);
+    if (!CommonUtilities.isEmpty(transactionItemIds)) {
+      addWhere.accept("ti.id IN (" + DaoUtils.placeholders(transactionItemIds.size()) + ")");
+      params.addAll(transactionItemIds);
     }
 
     sql.append(" ORDER BY ti.transaction_id ASC, t.txn_date DESC ");
 
     log.debug("[{}] Read Transaction Items SQL=[{}]", requestId, sql);
 
-    try (PreparedStatement stmt = connection.prepareStatement(sql.toString())) {
+    try (PreparedStatement preparedStatement = connection.prepareStatement(sql.toString())) {
       if (!params.isEmpty()) {
-        DaoUtils.bindParams(stmt, params, Boolean.TRUE);
+        DaoUtils.bindParams(preparedStatement, params, Boolean.TRUE);
       }
       List<TransactionItemResponse.TransactionItem> results = new ArrayList<>();
-      try (ResultSet rs = stmt.executeQuery()) {
-        while (rs.next()) {
-          results.add(txnItemRespMapper.map(rs));
+      try (ResultSet resultSet = preparedStatement.executeQuery()) {
+        while (resultSet.next()) {
+          results.add(transactionItemRowMapperResponse.map(resultSet));
         }
         return results;
       }
     }
   }
 
-  public List<TransactionItem> readByTransactionIds(List<UUID> txnIds) throws SQLException {
-    log.debug("[{}] Reading transaction items for TxnIds: {}", requestId, txnIds);
-    if (CommonUtilities.isEmpty(txnIds)) {
+  public List<TransactionItem> readByTransactionIds(List<UUID> transactionIds) throws SQLException {
+    log.debug("[{}] Reading transaction items for TransactionIds: {}", requestId, transactionIds);
+    if (CommonUtilities.isEmpty(transactionIds)) {
       return List.of();
     }
 
@@ -156,17 +158,17 @@ public class TransactionItemDao extends BaseDao<TransactionItem> {
         "SELECT * FROM "
             + tableName()
             + " WHERE transaction_id IN ("
-            + DaoUtils.placeholders(txnIds.size())
+            + DaoUtils.placeholders(transactionIds.size())
             + ")";
     log.debug("[{}] Read By Transaction Ids SQL=[{}]", requestId, sql);
 
-    try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-      DaoUtils.bindParams(stmt, txnIds, Boolean.TRUE);
+    try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+      DaoUtils.bindParams(preparedStatement, transactionIds, Boolean.TRUE);
 
-      try (ResultSet rs = stmt.executeQuery()) {
+      try (ResultSet resultSet = preparedStatement.executeQuery()) {
         List<TransactionItem> results = new ArrayList<>();
-        while (rs.next()) {
-          results.add(mapper.map(rs));
+        while (resultSet.next()) {
+          results.add(mapper.map(resultSet));
         }
         return results;
       }
@@ -184,17 +186,17 @@ public class TransactionItemDao extends BaseDao<TransactionItem> {
         """;
 
     List<String> tags = new ArrayList<>();
-    try (PreparedStatement stmt = connection.prepareStatement(sql);
-        ResultSet rs = stmt.executeQuery()) {
-      while (rs.next()) {
-        tags.add(rs.getString("tag"));
+    try (PreparedStatement preparedStatement = connection.prepareStatement(sql);
+        ResultSet resultSet = preparedStatement.executeQuery()) {
+      while (resultSet.next()) {
+        tags.add(resultSet.getString("tag"));
       }
     }
     return tags;
   }
 
-  public int deleteByTransactionIds(List<UUID> txnIds) throws SQLException {
-    if (CommonUtilities.isEmpty(txnIds)) {
+  public int deleteByTransactionIds(List<UUID> transactionIds) throws SQLException {
+    if (CommonUtilities.isEmpty(transactionIds)) {
       return 0;
     }
 
@@ -202,12 +204,12 @@ public class TransactionItemDao extends BaseDao<TransactionItem> {
         "DELETE FROM "
             + tableName()
             + " WHERE transaction_id IN ("
-            + DaoUtils.placeholders(txnIds.size())
+            + DaoUtils.placeholders(transactionIds.size())
             + ")";
 
-    try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-      DaoUtils.bindParams(stmt, txnIds, Boolean.FALSE);
-      return stmt.executeUpdate();
+    try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+      DaoUtils.bindParams(preparedStatement, transactionIds, Boolean.FALSE);
+      return preparedStatement.executeUpdate();
     }
   }
 }

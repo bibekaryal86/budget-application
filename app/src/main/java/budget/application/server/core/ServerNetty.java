@@ -28,7 +28,7 @@ public class ServerNetty {
   private final DataSource dataSource;
   private final Email email;
 
-  private Channel serverChannel;
+  private Channel channel;
   private EventLoopGroup bossGroup;
   private EventLoopGroup workerGroup;
 
@@ -70,10 +70,10 @@ public class ServerNetty {
               CommonUtilities.getSystemEnvProperty(
                   Constants.ENV_SERVER_PORT, Constants.ENV_PORT_DEFAULT));
       final ChannelFuture channelFuture = serverBootstrap.bind(serverPort).sync();
-      serverChannel = channelFuture.channel();
+      channel = channelFuture.channel();
       log.info("Budget Server Started on Port [{}]...", getBoundPort());
       if (!isTestMode()) {
-        serverChannel.closeFuture().sync();
+        channel.closeFuture().sync();
       }
     } catch (Exception ex) {
       log.error("Budget Server Start Exception", ex);
@@ -83,8 +83,8 @@ public class ServerNetty {
 
   public void stop() {
     try {
-      if (serverChannel != null) {
-        serverChannel.close().sync();
+      if (channel != null) {
+        channel.close().sync();
       }
     } catch (InterruptedException ignored) {
     }
@@ -98,10 +98,10 @@ public class ServerNetty {
   }
 
   public int getBoundPort() {
-    if (serverChannel == null) {
+    if (channel == null) {
       throw new IllegalStateException("Server not started yet...");
     }
-    return ((InetSocketAddress) serverChannel.localAddress()).getPort();
+    return ((InetSocketAddress) channel.localAddress()).getPort();
   }
 
   private boolean isTestMode() {

@@ -27,44 +27,50 @@ public class BudgetService {
     this.transactionManager = new TransactionManager(dataSource);
   }
 
-  public BudgetResponse create(String requestId, BudgetRequest br) throws SQLException {
-    log.debug("[{}] Create budget: BudgetRequest=[{}]", requestId, br);
+  public BudgetResponse create(String requestId, BudgetRequest budgetRequest) throws SQLException {
+    log.debug("[{}] Create budget: BudgetRequest=[{}]", requestId, budgetRequest);
     return transactionManager.execute(
         requestId,
         transactionContext -> {
-          BudgetDao dao = new BudgetDao(requestId, transactionContext.connection());
+          BudgetDao budgetDao = new BudgetDao(requestId, transactionContext.connection());
           CategoryDao categoryDao = new CategoryDao(requestId, transactionContext.connection());
 
-          Validations.validateBudget(requestId, br, categoryDao);
+          Validations.validateBudget(requestId, budgetRequest, categoryDao);
 
-          Budget bIn =
+          Budget budgetIn =
               new Budget(
                   null,
-                  br.categoryId(),
-                  br.budgetMonth(),
-                  br.budgetYear(),
-                  br.amount(),
-                  br.notes(),
+                  budgetRequest.categoryId(),
+                  budgetRequest.budgetMonth(),
+                  budgetRequest.budgetYear(),
+                  budgetRequest.amount(),
+                  budgetRequest.notes(),
                   null,
                   null);
-          UUID id = dao.create(bIn).id();
+          UUID id = budgetDao.create(budgetIn).id();
           log.debug("[{}] Created budget: Id=[{}]", requestId, id);
-          BudgetResponse.Budget budget = dao.readBudgets(List.of(id), 0, 0, List.of()).getFirst();
+          BudgetResponse.Budget budget =
+              budgetDao.readBudgets(List.of(id), 0, 0, List.of()).getFirst();
 
           return new BudgetResponse(
               List.of(budget), ResponseMetadataUtils.defaultInsertResponseMetadata());
         });
   }
 
-  public BudgetResponse read(String requestId, List<UUID> ids, RequestParams.BudgetParams params)
+  public BudgetResponse read(
+      String requestId, List<UUID> ids, RequestParams.BudgetParams budgetParams)
       throws SQLException {
-    log.debug("[{}] Read budgets:Ids: {}, BudgetParams=[{}]", requestId, ids, params);
+    log.debug("[{}] Read budgets:Ids: {}, BudgetParams=[{}]", requestId, ids, budgetParams);
     return transactionManager.execute(
         requestId,
         transactionContext -> {
-          BudgetDao dao = new BudgetDao(requestId, transactionContext.connection());
+          BudgetDao budgetDao = new BudgetDao(requestId, transactionContext.connection());
           List<BudgetResponse.Budget> budgets =
-              dao.readBudgets(ids, params.budgetMonth(), params.budgetYear(), params.catIds());
+              budgetDao.readBudgets(
+                  ids,
+                  budgetParams.budgetMonth(),
+                  budgetParams.budgetYear(),
+                  budgetParams.catIds());
 
           if (ids.size() == 1 && budgets.isEmpty()) {
             throw new Exceptions.NotFoundException(requestId, "Budget", ids.getFirst().toString());
@@ -74,32 +80,34 @@ public class BudgetService {
         });
   }
 
-  public BudgetResponse update(String requestId, UUID id, BudgetRequest br) throws SQLException {
-    log.debug("[{}] Update budget: Id=[{}], BudgetRequest=[{}]", requestId, id, br);
+  public BudgetResponse update(String requestId, UUID id, BudgetRequest budgetRequest)
+      throws SQLException {
+    log.debug("[{}] Update budget: Id=[{}], BudgetRequest=[{}]", requestId, id, budgetRequest);
     return transactionManager.execute(
         requestId,
         transactionContext -> {
-          BudgetDao dao = new BudgetDao(requestId, transactionContext.connection());
+          BudgetDao budgetDao = new BudgetDao(requestId, transactionContext.connection());
           CategoryDao categoryDao = new CategoryDao(requestId, transactionContext.connection());
-          Validations.validateBudget(requestId, br, categoryDao);
+          Validations.validateBudget(requestId, budgetRequest, categoryDao);
 
-          List<Budget> bList = dao.read(List.of(id));
-          if (bList.isEmpty()) {
+          List<Budget> budgets = budgetDao.read(List.of(id));
+          if (budgets.isEmpty()) {
             throw new Exceptions.NotFoundException(requestId, "Budget", id.toString());
           }
 
-          Budget bIn =
+          Budget budgetIn =
               new Budget(
                   id,
-                  br.categoryId(),
-                  br.budgetMonth(),
-                  br.budgetYear(),
-                  br.amount(),
-                  br.notes(),
+                  budgetRequest.categoryId(),
+                  budgetRequest.budgetMonth(),
+                  budgetRequest.budgetYear(),
+                  budgetRequest.amount(),
+                  budgetRequest.notes(),
                   null,
                   null);
-          dao.update(bIn);
-          BudgetResponse.Budget budget = dao.readBudgets(List.of(id), 0, 0, List.of()).getFirst();
+          budgetDao.update(budgetIn);
+          BudgetResponse.Budget budget =
+              budgetDao.readBudgets(List.of(id), 0, 0, List.of()).getFirst();
           return new BudgetResponse(
               List.of(budget), ResponseMetadataUtils.defaultUpdateResponseMetadata());
         });
@@ -110,14 +118,14 @@ public class BudgetService {
     return transactionManager.execute(
         requestId,
         transactionContext -> {
-          BudgetDao dao = new BudgetDao(requestId, transactionContext.connection());
+          BudgetDao budgetDao = new BudgetDao(requestId, transactionContext.connection());
 
-          List<Budget> aList = dao.read(ids);
-          if (ids.size() == 1 && aList.isEmpty()) {
+          List<Budget> budgets = budgetDao.read(ids);
+          if (ids.size() == 1 && budgets.isEmpty()) {
             throw new Exceptions.NotFoundException(requestId, "Budget", ids.getFirst().toString());
           }
 
-          int deleteCount = dao.delete(ids);
+          int deleteCount = budgetDao.delete(ids);
           return new BudgetResponse(
               List.of(), ResponseMetadataUtils.defaultDeleteResponseMetadata(deleteCount));
         });

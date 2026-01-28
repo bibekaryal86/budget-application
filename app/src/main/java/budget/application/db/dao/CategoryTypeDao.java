@@ -24,8 +24,8 @@ public class CategoryTypeDao extends BaseDao<CategoryType> {
   }
 
   @Override
-  protected List<Object> insertValues(CategoryType ct) {
-    return List.of(ct.name().toUpperCase());
+  protected List<Object> insertValues(CategoryType categoryType) {
+    return List.of(categoryType.name().toUpperCase());
   }
 
   @Override
@@ -34,13 +34,13 @@ public class CategoryTypeDao extends BaseDao<CategoryType> {
   }
 
   @Override
-  protected List<Object> updateValues(CategoryType ct) {
-    return List.of(ct.name().toUpperCase());
+  protected List<Object> updateValues(CategoryType categoryType) {
+    return List.of(categoryType.name().toUpperCase());
   }
 
   @Override
-  protected UUID getId(CategoryType ct) {
-    return ct.id();
+  protected UUID getId(CategoryType categoryType) {
+    return categoryType.id();
   }
 
   @Override

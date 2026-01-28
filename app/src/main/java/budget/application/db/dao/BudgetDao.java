@@ -17,11 +17,11 @@ import java.util.function.Consumer;
 
 public class BudgetDao extends BaseDao<Budget> {
 
-  private final BudgetRowMappers.BudgetRowMapperResponse budRespRowMapper;
+  private final BudgetRowMappers.BudgetRowMapperResponse budgetRowMapperResponse;
 
   public BudgetDao(String requestId, Connection connection) {
     super(requestId, connection, new BudgetRowMappers.BudgetRowMapper());
-    this.budRespRowMapper = new BudgetRowMappers.BudgetRowMapperResponse();
+    this.budgetRowMapperResponse = new BudgetRowMappers.BudgetRowMapperResponse();
   }
 
   @Override
@@ -61,8 +61,8 @@ public class BudgetDao extends BaseDao<Budget> {
   }
 
   @Override
-  protected UUID getId(Budget acc) {
-    return acc.id();
+  protected UUID getId(Budget budget) {
+    return budget.id();
   }
 
   @Override
@@ -71,14 +71,14 @@ public class BudgetDao extends BaseDao<Budget> {
   }
 
   public List<BudgetResponse.Budget> readBudgets(
-      List<UUID> ids, int budgetMonth, int budgetYear, List<UUID> catIds) throws SQLException {
+      List<UUID> ids, int budgetMonth, int budgetYear, List<UUID> categoryIds) throws SQLException {
     log.debug(
-        "[{}] Read Budgets: Ids={}, Month=[{}], Year=[{}], CatIds={}",
+        "[{}] Read Budgets: Ids={}, Month=[{}], Year=[{}], CategoryIds={}",
         requestId,
         ids,
         budgetMonth,
         budgetYear,
-        catIds);
+        categoryIds);
     StringBuilder sql =
         new StringBuilder(
             """
@@ -118,23 +118,23 @@ public class BudgetDao extends BaseDao<Budget> {
       params.add(budgetMonth);
       params.add(budgetYear);
     }
-    if (!CommonUtilities.isEmpty(catIds)) {
-      addWhere.accept("b.category_id IN (" + DaoUtils.placeholders(catIds.size()) + ")");
-      params.addAll(catIds);
+    if (!CommonUtilities.isEmpty(categoryIds)) {
+      addWhere.accept("b.category_id IN (" + DaoUtils.placeholders(categoryIds.size()) + ")");
+      params.addAll(categoryIds);
     }
     sql.append(" ORDER BY ct.name, c.name ASC");
 
     log.debug("[{}] Read Budgets SQL=[{}]", requestId, sql);
 
-    try (PreparedStatement stmt = connection.prepareStatement(sql.toString())) {
+    try (PreparedStatement preparedStatement = connection.prepareStatement(sql.toString())) {
       if (!params.isEmpty()) {
-        DaoUtils.bindParams(stmt, params, Boolean.TRUE);
+        DaoUtils.bindParams(preparedStatement, params, Boolean.TRUE);
       }
 
       List<BudgetResponse.Budget> results = new ArrayList<>();
-      try (ResultSet rs = stmt.executeQuery()) {
-        while (rs.next()) {
-          results.add(budRespRowMapper.map(rs));
+      try (ResultSet resultSet = preparedStatement.executeQuery()) {
+        while (resultSet.next()) {
+          results.add(budgetRowMapperResponse.map(resultSet));
         }
       }
       return results;

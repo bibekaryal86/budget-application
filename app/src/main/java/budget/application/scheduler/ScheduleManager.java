@@ -11,11 +11,11 @@ import org.slf4j.LoggerFactory;
 public class ScheduleManager {
   private static final Logger log = LoggerFactory.getLogger(ScheduleManager.class);
 
-  private final ScheduledExecutorService executor;
-  private final DailyTxnReconScheduler dailyTxnReconScheduler;
+  private final ScheduledExecutorService scheduledExecutorService;
+  private final DailyTransactionReconScheduler dailyTransactionReconScheduler;
 
   public ScheduleManager(DataSource dataSource, Email email) {
-    this.executor =
+    this.scheduledExecutorService =
         Executors.newSingleThreadScheduledExecutor(
             r -> {
               Thread t = new Thread(r, "scheduler-main");
@@ -23,25 +23,26 @@ public class ScheduleManager {
               return t;
             });
 
-    this.dailyTxnReconScheduler = new DailyTxnReconScheduler(dataSource, executor, email);
+    this.dailyTransactionReconScheduler =
+        new DailyTransactionReconScheduler(dataSource, scheduledExecutorService, email);
   }
 
   public void start() {
     LocalTime startTime = LocalTime.of(2, 0);
-    dailyTxnReconScheduler.start(startTime);
+    dailyTransactionReconScheduler.start(startTime);
     log.info("DailyTxnReconScheduler scheduled for [{}]", startTime);
   }
 
   public void shutdown() {
     log.info("Shutting down scheduler...");
-    executor.shutdown();
+    scheduledExecutorService.shutdown();
     try {
-      if (!executor.awaitTermination(10, java.util.concurrent.TimeUnit.SECONDS)) {
+      if (!scheduledExecutorService.awaitTermination(10, java.util.concurrent.TimeUnit.SECONDS)) {
         log.info("Forcing scheduler shutdown...");
-        executor.shutdownNow();
+        scheduledExecutorService.shutdownNow();
       }
     } catch (InterruptedException e) {
-      executor.shutdownNow();
+      scheduledExecutorService.shutdownNow();
       Thread.currentThread().interrupt();
     }
   }

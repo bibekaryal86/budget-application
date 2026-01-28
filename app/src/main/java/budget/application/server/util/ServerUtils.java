@@ -33,14 +33,18 @@ public class ServerUtils {
   private ServerUtils() {}
 
   public static void sendResponse(
-      ChannelHandlerContext ctx, HttpResponseStatus status, Object body) {
-    String jsonBody = JsonUtils.toJson(body);
-    FullHttpResponse response =
+      ChannelHandlerContext channelHandlerContext,
+      HttpResponseStatus httpResponseStatus,
+      Object bodyObject) {
+    String jsonBody = JsonUtils.toJson(bodyObject);
+    FullHttpResponse fullHttpResponse =
         new DefaultFullHttpResponse(
-            HttpVersion.HTTP_1_1, status, Unpooled.copiedBuffer(jsonBody, CharsetUtil.UTF_8));
-    response.headers().set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_JSON);
-    response.headers().set(HttpHeaderNames.CONTENT_LENGTH, jsonBody.length());
-    ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
+            HttpVersion.HTTP_1_1,
+            httpResponseStatus,
+            Unpooled.copiedBuffer(jsonBody, CharsetUtil.UTF_8));
+    fullHttpResponse.headers().set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_JSON);
+    fullHttpResponse.headers().set(HttpHeaderNames.CONTENT_LENGTH, jsonBody.length());
+    channelHandlerContext.writeAndFlush(fullHttpResponse).addListener(ChannelFutureListener.CLOSE);
   }
 
   public static UUID getEntityId(String path, String prefix) {
@@ -52,11 +56,11 @@ public class ServerUtils {
     }
   }
 
-  public static <T> T getRequestBody(FullHttpRequest req, Class<T> type) {
+  public static <T> T getRequestBody(FullHttpRequest fullHttpRequest, Class<T> type) {
     try {
-      return JsonUtils.fromJson(req.content().toString(CharsetUtil.UTF_8), type);
-    } catch (Exception e) {
-      log.error("Error parsing request body", e);
+      return JsonUtils.fromJson(fullHttpRequest.content().toString(CharsetUtil.UTF_8), type);
+    } catch (Exception ex) {
+      log.error("Error parsing request bodyObject", ex);
       return null;
     }
   }
@@ -89,24 +93,23 @@ public class ServerUtils {
     LocalDate beginDate = parseDate(decoder, "beginDate");
     LocalDate endDate = parseDate(decoder, "endDate");
     List<String> merchants = parseStrings(decoder, "merchants");
-    List<UUID> catIds = parseUUIDs(decoder, "catIds");
-    List<UUID> catTypeIds = parseUUIDs(decoder, "catTypeIds");
-    List<UUID> accIds = parseUUIDs(decoder, "accIds");
+    List<UUID> categoryIds = parseUUIDs(decoder, "catIds");
+    List<UUID> categoryTypeIds = parseUUIDs(decoder, "catTypeIds");
+    List<UUID> accountIds = parseUUIDs(decoder, "accIds");
     List<String> tags = parseStrings(decoder, "tags");
     return new RequestParams.TransactionParams(
-        beginDate, endDate, merchants, catIds, catTypeIds, accIds, tags);
+        beginDate, endDate, merchants, categoryIds, categoryTypeIds, accountIds, tags);
   }
 
   public static RequestParams.BudgetParams getBudgetParams(QueryStringDecoder decoder) {
     int budgetMonth = parseInt(decoder, "budgetMonth");
     int budgetYear = parseInt(decoder, "budgetYear");
-    List<UUID> catIds = parseUUIDs(decoder, "catIds");
-    return new RequestParams.BudgetParams(budgetMonth, budgetYear, catIds);
+    List<UUID> categoryIds = parseUUIDs(decoder, "catIds");
+    return new RequestParams.BudgetParams(budgetMonth, budgetYear, categoryIds);
   }
 
   public static RequestParams.CashFlowSummaryParams getTransactionSummaryParams(
       QueryStringDecoder decoder) {
-
     LocalDate beginDate = parseDate(decoder, "beginDate");
     LocalDate endDate = parseDate(decoder, "endDate");
 
@@ -146,12 +149,12 @@ public class ServerUtils {
       beginDate = endDate.withDayOfMonth(1);
     }
 
-    List<UUID> catIds = parseUUIDs(decoder, "catIds");
-    List<UUID> catTypeIds = parseUUIDs(decoder, "catTypeIds");
+    List<UUID> categoryIds = parseUUIDs(decoder, "catIds");
+    List<UUID> categoryTypeIds = parseUUIDs(decoder, "catTypeIds");
     boolean topExpenses = parseBoolean(decoder, "topExpenses");
 
     return new RequestParams.CategorySummaryParams(
-        beginDate, endDate, catIds, catTypeIds, topExpenses);
+        beginDate, endDate, categoryIds, categoryTypeIds, topExpenses);
   }
 
   private static List<String> getParameterValues(QueryStringDecoder decoder, String paramName) {
