@@ -1,6 +1,5 @@
 package budget.application.server.handlers;
 
-import budget.application.cache.CacheContext;
 import budget.application.common.Constants;
 import budget.application.model.dto.CategoryRequest;
 import budget.application.model.dto.CategoryResponse;
@@ -24,8 +23,8 @@ public class CategoryHandler extends SimpleChannelInboundHandler<FullHttpRequest
 
   private final CategoryService categoryService;
 
-  public CategoryHandler(DataSource dataSource, CacheContext cacheContext) {
-    this.categoryService = new CategoryService(dataSource, cacheContext.category());
+  public CategoryHandler(DataSource dataSource) {
+    this.categoryService = new CategoryService(dataSource);
   }
 
   @Override

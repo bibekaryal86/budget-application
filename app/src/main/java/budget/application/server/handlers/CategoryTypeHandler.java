@@ -1,6 +1,5 @@
 package budget.application.server.handlers;
 
-import budget.application.cache.CacheContext;
 import budget.application.common.Constants;
 import budget.application.model.dto.CategoryTypeRequest;
 import budget.application.model.dto.CategoryTypeResponse;
@@ -22,11 +21,9 @@ public class CategoryTypeHandler extends SimpleChannelInboundHandler<FullHttpReq
   private static final Logger log = LoggerFactory.getLogger(CategoryTypeHandler.class);
 
   private final CategoryTypeService categoryTypeService;
-  private final CacheContext cacheContext;
 
-  public CategoryTypeHandler(DataSource dataSource, CacheContext cacheContext) {
-    this.categoryTypeService = new CategoryTypeService(dataSource, cacheContext.categoryType());
-    this.cacheContext = cacheContext;
+  public CategoryTypeHandler(DataSource dataSource) {
+    this.categoryTypeService = new CategoryTypeService(dataSource);
   }
 
   @Override

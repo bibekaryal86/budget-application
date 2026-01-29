@@ -3,7 +3,6 @@
  */
 package budget.application;
 
-import budget.application.cache.CacheContext;
 import budget.application.common.Constants;
 import budget.application.db.util.DataSourceFactory;
 import budget.application.db.util.DatabaseHealthCheck;
@@ -31,7 +30,7 @@ public class Main {
     var dbHealth = new DatabaseHealthCheck(dataSource).check();
     log.info("{}", dbHealth);
 
-    ServerNetty serverNetty = new ServerNetty(dataSource, email, new CacheContext());
+    ServerNetty serverNetty = new ServerNetty(dataSource, email);
     serverNetty.start();
 
     ScheduleManager schedulerManager = new ScheduleManager(dataSource, email);

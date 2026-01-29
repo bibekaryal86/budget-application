@@ -1,6 +1,5 @@
 package budget.application.service.domain;
 
-import budget.application.cache.CategoryCache;
 import budget.application.common.Exceptions;
 import budget.application.common.Validations;
 import budget.application.db.dao.CategoryDao;
@@ -11,7 +10,6 @@ import budget.application.model.dto.CategoryResponse;
 import budget.application.model.entity.Category;
 import budget.application.service.util.ResponseMetadataUtils;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseMetadata;
-import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
@@ -23,11 +21,9 @@ public class CategoryService {
   private static final Logger log = LoggerFactory.getLogger(CategoryService.class);
 
   private final TransactionManager transactionManager;
-  private final CategoryCache categoryCache;
 
-  public CategoryService(DataSource dataSource, CategoryCache categoryCache) {
+  public CategoryService(DataSource dataSource) {
     this.transactionManager = new TransactionManager(dataSource);
-    this.categoryCache = categoryCache;
   }
 
   public CategoryResponse create(String requestId, CategoryRequest categoryRequest)
@@ -49,8 +45,6 @@ public class CategoryService {
           CategoryResponse.Category category =
               categoryDao.readCategories(List.of(id), List.of()).getFirst();
 
-          categoryCache.put(category);
-
           return new CategoryResponse(
               List.of(category), ResponseMetadataUtils.defaultInsertResponseMetadata());
         });
@@ -64,21 +58,6 @@ public class CategoryService {
         categoryIds,
         categoryTypeIds);
 
-    List<CategoryResponse.Category> categoryCacheList = categoryCache.get(categoryIds);
-    if (!CommonUtilities.isEmpty(categoryCacheList)) {
-      if (CommonUtilities.isEmpty(categoryTypeIds)) {
-        return new CategoryResponse(categoryCacheList, ResponseMetadata.emptyResponseMetadata());
-      } else {
-        List<CategoryResponse.Category> categoryCacheListFiltered =
-            categoryCacheList.stream()
-                .filter(ccl -> categoryTypeIds.contains(ccl.categoryType().id()))
-                .toList();
-        return new CategoryResponse(
-            categoryCacheListFiltered, ResponseMetadata.emptyResponseMetadata());
-      }
-    }
-
-    log.debug("[{}] Read categories from DB", requestId);
     return transactionManager.execute(
         requestId,
         transactionContext -> {

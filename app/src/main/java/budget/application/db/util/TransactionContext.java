@@ -73,7 +73,6 @@ public class TransactionContext implements AutoCloseable {
     } else {
       log.debug("[{}] Rollback called but transaction already {}", requestId, state);
     }
-    // Idempotent - safe to call multiple times
   }
 
   @Override
