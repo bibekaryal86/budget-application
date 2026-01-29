@@ -22,13 +22,13 @@ import org.slf4j.LoggerFactory;
 public class ServerNetty {
   private static final Logger log = LoggerFactory.getLogger(ServerNetty.class);
 
-  private final ServerManager serverManager;
+  private final ServerContext serverContext;
   private Channel channel;
   private EventLoopGroup bossGroup;
   private EventLoopGroup workerGroup;
 
-  public ServerNetty(ServerManager serverManager) {
-    this.serverManager = serverManager;
+  public ServerNetty(ServerContext serverContext) {
+    this.serverContext = serverContext;
   }
 
   public void start() throws Exception {
@@ -53,7 +53,7 @@ public class ServerNetty {
                       .addLast(new HttpObjectAggregator(Constants.MAX_CONTENT_LENGTH))
                       .addLast(new ServerLogging())
                       .addLast(new ServerSecurity())
-                      .addLast(new ServerRouter(serverManager))
+                      .addLast(new ServerRouter(serverContext))
                       .addLast(new NotFoundHandler());
                 }
               });

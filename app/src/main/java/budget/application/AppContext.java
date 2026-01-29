@@ -11,7 +11,7 @@ import budget.application.db.dao.TransactionDao;
 import budget.application.db.dao.TransactionItemDao;
 import budget.application.db.util.DataSourceFactory;
 import budget.application.scheduler.ScheduleManager;
-import budget.application.server.core.ServerManager;
+import budget.application.server.core.ServerContext;
 import budget.application.server.handlers.AccountHandler;
 import budget.application.server.handlers.AppTestsHandler;
 import budget.application.server.handlers.BudgetHandler;
@@ -33,7 +33,7 @@ import javax.sql.DataSource;
 
 public final class AppContext {
   private final ScheduleManager scheduleManager;
-  private final ServerManager serverManager;
+  private final ServerContext serverContext;
 
   public AppContext() throws SQLException {
     DataSource dataSource = DataSourceFactory.create();
@@ -68,8 +68,8 @@ public final class AppContext {
     TransactionItemHandler transactionItemHandler = new TransactionItemHandler(dataSource);
 
     scheduleManager = new ScheduleManager(dataSource, email);
-    serverManager =
-        new ServerManager(
+    serverContext =
+        new ServerContext(
             appTestsHandler,
             accountHandler,
             budgetHandler,
@@ -84,7 +84,7 @@ public final class AppContext {
     return scheduleManager;
   }
 
-  public ServerManager getServerManager() {
-    return serverManager;
+  public ServerContext getServerManager() {
+    return serverContext;
   }
 }

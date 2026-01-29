@@ -9,7 +9,7 @@ import budget.application.server.handlers.InsightsHandler;
 import budget.application.server.handlers.TransactionHandler;
 import budget.application.server.handlers.TransactionItemHandler;
 
-public final class ServerManager {
+public final class ServerContext {
 
   private final AppTestsHandler appTestsHandler;
   private final AccountHandler accountHandler;
@@ -20,7 +20,7 @@ public final class ServerManager {
   private final TransactionItemHandler transactionItemHandler;
   private final TransactionHandler transactionHandler;
 
-  public ServerManager(
+  public ServerContext(
       AppTestsHandler appTestsHandler,
       AccountHandler accountHandler,
       BudgetHandler budgetHandler,

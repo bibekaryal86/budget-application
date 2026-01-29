@@ -27,15 +27,15 @@ public class ServerRouter extends SimpleChannelInboundHandler<FullHttpRequest> {
   private final TransactionItemHandler transactionItemHandler;
   private final TransactionHandler transactionHandler;
 
-  public ServerRouter(ServerManager serverManager) {
-    this.appTestsHandler = serverManager.getAppTestsHandler();
-    this.accountHandler = serverManager.getAccountHandler();
-    this.budgetHandler = serverManager.getBudgetHandler();
-    this.categoryTypeHandler = serverManager.getCategoryTypeHandler();
-    this.categoryHandler = serverManager.getCategoryHandler();
-    this.insightsHandler = serverManager.getInsightsHandler();
-    this.transactionItemHandler = serverManager.getTransactionItemHandler();
-    this.transactionHandler = serverManager.getTransactionHandler();
+  public ServerRouter(ServerContext serverContext) {
+    this.appTestsHandler = serverContext.getAppTestsHandler();
+    this.accountHandler = serverContext.getAccountHandler();
+    this.budgetHandler = serverContext.getBudgetHandler();
+    this.categoryTypeHandler = serverContext.getCategoryTypeHandler();
+    this.categoryHandler = serverContext.getCategoryHandler();
+    this.insightsHandler = serverContext.getInsightsHandler();
+    this.transactionItemHandler = serverContext.getTransactionItemHandler();
+    this.transactionHandler = serverContext.getTransactionHandler();
   }
 
   @Override
