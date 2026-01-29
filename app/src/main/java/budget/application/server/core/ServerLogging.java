@@ -21,19 +21,14 @@ public class ServerLogging extends ChannelDuplexHandler {
   public void channelRead(final ChannelHandlerContext channelHandlerContext, final Object object)
       throws Exception {
     if (object instanceof FullHttpRequest fullHttpRequest) {
-      final String requestId = UUID.randomUUID().toString();
-      // set requestId in MDC
-      MDC.put("requestId", requestId); // put in MDC
-      // set requestId in channel handler context for later use
-      channelHandlerContext.channel().attr(Constants.REQUEST_ID).set(requestId);
+      MDC.put("requestId", UUID.randomUUID().toString());
 
       final String requestContentLength =
           fullHttpRequest
               .headers()
               .get(HttpHeaderNames.CONTENT_LENGTH, Constants.CONTENT_LENGTH_DEFAULT);
       log.info(
-          "[{}] Request IN: Method=[{}], Uri=[{}], ContentLength=[{}]",
-          requestId,
+          "Request IN: Method=[{}], Uri=[{}], ContentLength=[{}]",
           fullHttpRequest.method(),
           fullHttpRequest.uri(),
           requestContentLength);
@@ -54,11 +49,9 @@ public class ServerLogging extends ChannelDuplexHandler {
                 .headers()
                 .get(HttpHeaderNames.CONTENT_LENGTH, Constants.CONTENT_LENGTH_DEFAULT);
         final HttpResponseStatus responseStatus = fullHttpResponse.status();
-        final String requestId = channelHandlerContext.channel().attr(Constants.REQUEST_ID).get();
 
         log.info(
-            "[{}] Response OUT: Status=[{}], ContentLength=[{}]",
-            requestId,
+            "Response OUT: Status=[{}], ContentLength=[{}]",
             responseStatus,
             responseContentLength);
       }
@@ -71,19 +64,13 @@ public class ServerLogging extends ChannelDuplexHandler {
   @Override
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
     try {
-      final String requestId = ctx.channel().attr(Constants.REQUEST_ID).get();
       final String className = cause.getClass().getSimpleName();
       String message = cause.getMessage();
 
-      if (message.contains(requestId)) {
-        message = message.replace(requestId, "");
-        message = message.replace("[]", "");
-      }
-
-      log.error("[{}] Exception caught", requestId, cause);
+      log.error("Exception caught...", cause);
       ResponseWithMetadata response =
           ServerUtils.getResponseWithMetadata(
-              String.format("[%s] [%s]--[%s]", requestId, className, message));
+              String.format("[%s]--[%s]", className, message));
       ServerUtils.sendResponse(ctx, getHttpStatus(cause), response);
     } finally {
       MDC.clear();

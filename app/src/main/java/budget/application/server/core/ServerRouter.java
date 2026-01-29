@@ -1,6 +1,5 @@
 package budget.application.server.core;
 
-import budget.application.common.Constants;
 import budget.application.server.handlers.AccountHandler;
 import budget.application.server.handlers.AppTestsHandler;
 import budget.application.server.handlers.BudgetHandler;
@@ -45,58 +44,57 @@ public class ServerRouter extends SimpleChannelInboundHandler<FullHttpRequest> {
   protected void channelRead0(
       ChannelHandlerContext channelHandlerContext, FullHttpRequest fullHttpRequest)
       throws Exception {
-    final String requestId = channelHandlerContext.channel().attr(Constants.REQUEST_ID).get();
     String path = fullHttpRequest.uri();
 
     if (path.startsWith(ApiPaths.APP_TESTS)) {
-      log.info("[{}] Routing to AppTestsHandler: [{}]", requestId, path);
+      log.info("Routing to AppTestsHandler: [{}]", path);
       appTestsHandler.channelRead(channelHandlerContext, fullHttpRequest.retain());
       return;
     }
 
     if (path.startsWith(ApiPaths.ACCOUNTS_V1)) {
-      log.info("[{}] Routing to AccountHandler: [{}]", requestId, path);
+      log.info("Routing to AccountHandler: [{}]", path);
       accountHandler.channelRead(channelHandlerContext, fullHttpRequest.retain());
       return;
     }
 
     if (path.startsWith(ApiPaths.BUDGETS_V1)) {
-      log.info("[{}] Routing to BudgetHandler: [{}]", requestId, path);
+      log.info("Routing to BudgetHandler: [{}]", path);
       budgetHandler.channelRead(channelHandlerContext, fullHttpRequest.retain());
       return;
     }
 
     if (path.startsWith(ApiPaths.CATEGORIES_V1)) {
-      log.info("[{}] Routing to CategoryHandler: [{}]", requestId, path);
+      log.info("Routing to CategoryHandler: [{}]", path);
       categoryHandler.channelRead(channelHandlerContext, fullHttpRequest.retain());
       return;
     }
 
     if (path.startsWith(ApiPaths.CATEGORY_TYPES_V1)) {
-      log.info("[{}] Routing to CategoryTypeHandler: [{}]", requestId, path);
+      log.info("Routing to CategoryTypeHandler: [{}]", path);
       categoryTypeHandler.channelRead(channelHandlerContext, fullHttpRequest.retain());
       return;
     }
 
     if (path.startsWith(ApiPaths.INSIGHTS_V1)) {
-      log.info("[{}] Routing to InsightsHandler: [{}]", requestId, path);
+      log.info("Routing to InsightsHandler: [{}]", path);
       insightsHandler.channelRead(channelHandlerContext, fullHttpRequest.retain());
       return;
     }
 
     if (path.startsWith(ApiPaths.TRANSACTIONS_V1)) {
-      log.info("[{}] Routing to TransactionHandler: [{}]", requestId, path);
+      log.info("Routing to TransactionHandler: [{}]", path);
       transactionHandler.channelRead(channelHandlerContext, fullHttpRequest.retain());
       return;
     }
 
     if (path.startsWith(ApiPaths.TRANSACTION_ITEMS_V1)) {
-      log.info("[{}] Routing to TransactionItemHandler: [{}]", requestId, path);
+      log.info("Routing to TransactionItemHandler: [{}]", path);
       transactionItemHandler.channelRead(channelHandlerContext, fullHttpRequest.retain());
       return;
     }
 
-    log.info("[{}] Handler Not Found in ServerRouter: [{}]", requestId, path);
+    log.info("Handler Not Found in ServerRouter: [{}]", path);
     channelHandlerContext.fireChannelRead(fullHttpRequest.retain());
   }
 }
