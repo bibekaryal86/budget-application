@@ -1,6 +1,5 @@
 package budget.application.server.handlers;
 
-import budget.application.common.Constants;
 import budget.application.model.dto.InsightsResponse;
 import budget.application.model.dto.RequestParams;
 import budget.application.server.util.ApiPaths;
@@ -29,7 +28,6 @@ public class InsightsHandler extends SimpleChannelInboundHandler<FullHttpRequest
   protected void channelRead0(
       ChannelHandlerContext channelHandlerContext, FullHttpRequest fullHttpRequest)
       throws Exception {
-    String requestId = channelHandlerContext.channel().attr(Constants.REQUEST_ID).get();
     QueryStringDecoder decoder = new QueryStringDecoder(fullHttpRequest.uri());
     String path = decoder.path();
     HttpMethod method = fullHttpRequest.method();
@@ -38,45 +36,39 @@ public class InsightsHandler extends SimpleChannelInboundHandler<FullHttpRequest
       channelHandlerContext.fireChannelRead(fullHttpRequest.retain());
       return;
     }
-    log.info("[{}] Request: Method=[{}] Path=[{}]", requestId, method, path);
+    log.info("Request: Method=[{}] Path=[{}]", method, path);
 
     // READ: GET /petssvc/api/v1/insights/cf-summaries
     if (path.equals(ApiPaths.INSIGHTS_V1_CF_SUMMARIES) && method.equals(HttpMethod.GET)) {
       RequestParams.CashFlowSummaryParams params = ServerUtils.getTransactionSummaryParams(decoder);
-      handleCashFlowSummaries(requestId, channelHandlerContext, params);
+      handleCashFlowSummaries(channelHandlerContext, params);
       return;
     }
 
     // READ: GET /petssvc/api/v1/insights/cat-summaries
     if (path.equals(ApiPaths.INSIGHTS_V1_CAT_SUMMARIES) && method.equals(HttpMethod.GET)) {
       RequestParams.CategorySummaryParams params = ServerUtils.getCategorySummaryParams(decoder);
-      handleCategorySummaries(requestId, channelHandlerContext, params);
+      handleCategorySummaries(channelHandlerContext, params);
       return;
     }
 
-    log.info("[{}] Action Not Found: Method=[{}] Path=[{}]", requestId, method, path);
+    log.info("Action Not Found: Method=[{}] Path=[{}]", method, path);
     channelHandlerContext.fireChannelRead(fullHttpRequest.retain());
   }
 
   // READ TXN SUMMARIES
   private void handleCashFlowSummaries(
-      String requestId,
-      ChannelHandlerContext channelHandlerContext,
-      RequestParams.CashFlowSummaryParams params)
+      ChannelHandlerContext channelHandlerContext, RequestParams.CashFlowSummaryParams params)
       throws Exception {
-    InsightsResponse.CashFlowSummaries response =
-        insightsService.readCashFLowSummaries(requestId, params);
+    InsightsResponse.CashFlowSummaries response = insightsService.readCashFLowSummaries(params);
     ServerUtils.sendResponse(channelHandlerContext, HttpResponseStatus.OK, response);
   }
 
   // READ CAT SUMMARIES
   private void handleCategorySummaries(
-      String requestId,
-      ChannelHandlerContext channelHandlerContext,
-      RequestParams.CategorySummaryParams params)
+      ChannelHandlerContext channelHandlerContext, RequestParams.CategorySummaryParams params)
       throws Exception {
-    InsightsResponse.CategorySummaries response =
-        insightsService.readCategoriesSummary(requestId, params);
+    InsightsResponse.CategorySummaries response = insightsService.readCategoriesSummary(params);
     ServerUtils.sendResponse(channelHandlerContext, HttpResponseStatus.OK, response);
   }
 }

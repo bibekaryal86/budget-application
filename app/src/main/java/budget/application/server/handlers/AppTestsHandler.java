@@ -1,6 +1,5 @@
 package budget.application.server.handlers;
 
-import budget.application.common.Constants;
 import budget.application.server.util.ApiPaths;
 import budget.application.server.util.ServerUtils;
 import io.netty.channel.ChannelHandlerContext;
@@ -19,7 +18,6 @@ public class AppTestsHandler extends SimpleChannelInboundHandler<FullHttpRequest
   protected void channelRead0(
       ChannelHandlerContext channelHandlerContext, FullHttpRequest fullHttpRequest)
       throws Exception {
-    String requestId = channelHandlerContext.channel().attr(Constants.REQUEST_ID).get();
     String path = fullHttpRequest.uri();
     HttpMethod method = fullHttpRequest.method();
 
@@ -27,21 +25,21 @@ public class AppTestsHandler extends SimpleChannelInboundHandler<FullHttpRequest
       channelHandlerContext.fireChannelRead(fullHttpRequest.retain());
       return;
     }
-    log.info("[{}] Request: Method=[{}] Path=[{}]", requestId, method, path);
+    log.info("Request: Method=[{}] Path=[{}]", method, path);
 
     // PING: GET /petssvc/tests/ping
     if (path.equals(ApiPaths.APP_TESTS_PING) && method.equals(HttpMethod.GET)) {
-      handlePing(requestId, channelHandlerContext);
+      handlePing(channelHandlerContext);
       return;
     }
 
-    log.info("[{}] Action Not Found: Method=[{}] Path=[{}]", requestId, method, path);
+    log.info("Action Not Found: Method=[{}] Path=[{}]", method, path);
     channelHandlerContext.fireChannelRead(fullHttpRequest.retain());
   }
 
   // TESTS PING
-  private void handlePing(String requestId, ChannelHandlerContext channelHandlerContext) {
-    Map<String, String> response = Map.of("ping", String.format("[%s] successful", requestId));
+  private void handlePing(ChannelHandlerContext channelHandlerContext) {
+    Map<String, String> response = Map.of("ping", "successful");
     ServerUtils.sendResponse(channelHandlerContext, HttpResponseStatus.OK, response);
   }
 }

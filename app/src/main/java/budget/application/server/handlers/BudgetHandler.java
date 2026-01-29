@@ -1,6 +1,5 @@
 package budget.application.server.handlers;
 
-import budget.application.common.Constants;
 import budget.application.model.dto.BudgetRequest;
 import budget.application.model.dto.BudgetResponse;
 import budget.application.model.dto.RequestParams;
@@ -32,7 +31,6 @@ public class BudgetHandler extends SimpleChannelInboundHandler<FullHttpRequest> 
   protected void channelRead0(
       ChannelHandlerContext channelHandlerContext, FullHttpRequest fullHttpRequest)
       throws Exception {
-    String requestId = channelHandlerContext.channel().attr(Constants.REQUEST_ID).get();
     QueryStringDecoder decoder = new QueryStringDecoder(fullHttpRequest.uri());
     String path = decoder.path();
     HttpMethod method = fullHttpRequest.method();
@@ -41,89 +39,82 @@ public class BudgetHandler extends SimpleChannelInboundHandler<FullHttpRequest> 
       channelHandlerContext.fireChannelRead(fullHttpRequest.retain());
       return;
     }
-    log.info("[{}] Request: Method=[{}] Path=[{}]", requestId, method, path);
+    log.info("Request: Method=[{}] Path=[{}]", method, path);
 
     // CREATE: POST /petssvc/api/v1/budgets
     if (path.equals(ApiPaths.BUDGETS_V1) && method.equals(HttpMethod.POST)) {
-      handleCreate(requestId, channelHandlerContext, fullHttpRequest);
+      handleCreate(channelHandlerContext, fullHttpRequest);
       return;
     }
 
     // READ ALL: GET /petssvc/api/v1/budgets
     if (path.equals(ApiPaths.BUDGETS_V1) && method.equals(HttpMethod.GET)) {
-      handleReadAll(requestId, channelHandlerContext, decoder);
+      handleReadAll(channelHandlerContext, decoder);
       return;
     }
 
     // READ ONE: GET /petssvc/api/v1/budgets/{id}
     if (path.startsWith(ApiPaths.BUDGETS_V1_WITH_ID) && method.equals(HttpMethod.GET)) {
       UUID id = ServerUtils.getEntityId(path, ApiPaths.BUDGETS_V1_WITH_ID);
-      handleReadOne(requestId, channelHandlerContext, id);
+      handleReadOne(channelHandlerContext, id);
       return;
     }
 
     // UPDATE: PUT /petssvc/api/v1/budgets/{id}
     if (path.startsWith(ApiPaths.BUDGETS_V1_WITH_ID) && method.equals(HttpMethod.PUT)) {
       UUID id = ServerUtils.getEntityId(path, ApiPaths.BUDGETS_V1_WITH_ID);
-      handleUpdate(requestId, channelHandlerContext, fullHttpRequest, id);
+      handleUpdate(channelHandlerContext, fullHttpRequest, id);
       return;
     }
 
     // DELETE: DELETE /petssvc/api/v1/budgets/{id}
     if (path.startsWith(ApiPaths.BUDGETS_V1_WITH_ID) && method.equals(HttpMethod.DELETE)) {
       UUID id = ServerUtils.getEntityId(path, ApiPaths.BUDGETS_V1_WITH_ID);
-      handleDelete(requestId, channelHandlerContext, id);
+      handleDelete(channelHandlerContext, id);
       return;
     }
 
-    log.info("[{}] Action Not Found: Method=[{}] Path=[{}]", requestId, method, path);
+    log.info("[{}] Action Not Found: Method=[{}] Path=[{}]", method, path);
     channelHandlerContext.fireChannelRead(fullHttpRequest.retain());
   }
 
   // CREATE
   private void handleCreate(
-      String requestId,
-      ChannelHandlerContext channelHandlerContext,
-      FullHttpRequest fullHttpRequest)
+      ChannelHandlerContext channelHandlerContext, FullHttpRequest fullHttpRequest)
       throws Exception {
     BudgetRequest request = ServerUtils.getRequestBody(fullHttpRequest, BudgetRequest.class);
-    BudgetResponse response = budgetService.create(requestId, request);
+    BudgetResponse response = budgetService.create(request);
     ServerUtils.sendResponse(channelHandlerContext, HttpResponseStatus.CREATED, response);
   }
 
   // READ ALL
   private void handleReadAll(
-      String requestId, ChannelHandlerContext channelHandlerContext, QueryStringDecoder decoder)
-      throws Exception {
+      ChannelHandlerContext channelHandlerContext, QueryStringDecoder decoder) throws Exception {
     RequestParams.BudgetParams params = ServerUtils.getBudgetParams(decoder);
-    BudgetResponse response = budgetService.read(requestId, List.of(), params);
+    BudgetResponse response = budgetService.read(List.of(), params);
     ServerUtils.sendResponse(channelHandlerContext, HttpResponseStatus.OK, response);
   }
 
   // READ ONE
-  private void handleReadOne(String requestId, ChannelHandlerContext channelHandlerContext, UUID id)
+  private void handleReadOne(ChannelHandlerContext channelHandlerContext, UUID id)
       throws Exception {
     BudgetResponse response =
-        budgetService.read(requestId, List.of(id), new RequestParams.BudgetParams(0, 0, List.of()));
+        budgetService.read(List.of(id), new RequestParams.BudgetParams(0, 0, List.of()));
     ServerUtils.sendResponse(channelHandlerContext, HttpResponseStatus.OK, response);
   }
 
   // UPDATE
   private void handleUpdate(
-      String requestId,
-      ChannelHandlerContext channelHandlerContext,
-      FullHttpRequest fullHttpRequest,
-      UUID id)
+      ChannelHandlerContext channelHandlerContext, FullHttpRequest fullHttpRequest, UUID id)
       throws Exception {
     BudgetRequest request = ServerUtils.getRequestBody(fullHttpRequest, BudgetRequest.class);
-    BudgetResponse response = budgetService.update(requestId, id, request);
+    BudgetResponse response = budgetService.update(id, request);
     ServerUtils.sendResponse(channelHandlerContext, HttpResponseStatus.OK, response);
   }
 
   // DELETE
-  private void handleDelete(String requestId, ChannelHandlerContext channelHandlerContext, UUID id)
-      throws Exception {
-    BudgetResponse response = budgetService.delete(requestId, List.of(id));
+  private void handleDelete(ChannelHandlerContext channelHandlerContext, UUID id) throws Exception {
+    BudgetResponse response = budgetService.delete(List.of(id));
     ServerUtils.sendResponse(channelHandlerContext, HttpResponseStatus.OK, response);
   }
 }

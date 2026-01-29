@@ -75,9 +75,8 @@ public class TransactionItemService {
         });
   }
 
-  public TransactionItemResponse.TransactionItemTags readTransactionItemTags(String requestId)
-      throws SQLException {
-    log.debug("[{}] Read transaction item tags", requestId);
+  public TransactionItemResponse.TransactionItemTags readTransactionItemTags() throws SQLException {
+    log.debug("Read transaction item tags...");
     return transactionManager.execute(
         transactionContext -> {
           TransactionItemDao transactionItemDao =

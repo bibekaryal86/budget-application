@@ -1,6 +1,5 @@
 package budget.application.server.handlers;
 
-import budget.application.common.Constants;
 import budget.application.model.dto.PaginationRequest;
 import budget.application.model.dto.RequestParams;
 import budget.application.model.dto.TransactionRequest;
@@ -34,7 +33,6 @@ public class TransactionHandler extends SimpleChannelInboundHandler<FullHttpRequ
   protected void channelRead0(
       ChannelHandlerContext channelHandlerContext, FullHttpRequest fullHttpRequest)
       throws Exception {
-    String requestId = channelHandlerContext.channel().attr(Constants.REQUEST_ID).get();
     QueryStringDecoder decoder = new QueryStringDecoder(fullHttpRequest.uri());
     String path = decoder.path();
     HttpMethod method = fullHttpRequest.method();
@@ -43,17 +41,17 @@ public class TransactionHandler extends SimpleChannelInboundHandler<FullHttpRequ
       channelHandlerContext.fireChannelRead(fullHttpRequest.retain());
       return;
     }
-    log.info("[{}] Request: Method=[{}] Path=[{}]", requestId, method, path);
+    log.info("Request: Method=[{}] Path=[{}]", method, path);
 
     // CREATE: POST /petssvc/api/v1/transactions
     if (path.equals(ApiPaths.TRANSACTIONS_V1) && method.equals(HttpMethod.POST)) {
-      handleCreate(requestId, channelHandlerContext, fullHttpRequest);
+      handleCreate(channelHandlerContext, fullHttpRequest);
       return;
     }
 
     // READ: GET /petssvc/api/v1/transactions/merchants
     if (path.equals(ApiPaths.TRANSACTIONS_V1_WITH_MERCHANTS) && method.equals(HttpMethod.GET)) {
-      handleReadMerchants(requestId, channelHandlerContext);
+      handleReadMerchants(channelHandlerContext);
       return;
     }
 
@@ -61,91 +59,82 @@ public class TransactionHandler extends SimpleChannelInboundHandler<FullHttpRequ
     if (path.equals(ApiPaths.TRANSACTIONS_V1) && method.equals(HttpMethod.GET)) {
       RequestParams.TransactionParams params = ServerUtils.getTransactionParams(decoder);
       PaginationRequest paginationRequest = ServerUtils.getPaginationRequest(decoder);
-      handleReadAll(requestId, channelHandlerContext, params, paginationRequest);
+      handleReadAll(channelHandlerContext, params, paginationRequest);
       return;
     }
 
     // READ ONE: GET /petssvc/api/v1/transactions/{id}
     if (path.startsWith(ApiPaths.TRANSACTIONS_V1_WITH_ID) && method.equals(HttpMethod.GET)) {
       UUID id = ServerUtils.getEntityId(path, ApiPaths.TRANSACTIONS_V1_WITH_ID);
-      handleReadOne(requestId, channelHandlerContext, id);
+      handleReadOne(channelHandlerContext, id);
       return;
     }
 
     // UPDATE: PUT /petssvc/api/v1/transactions/{id}
     if (path.startsWith(ApiPaths.TRANSACTIONS_V1_WITH_ID) && method.equals(HttpMethod.PUT)) {
       UUID id = ServerUtils.getEntityId(path, ApiPaths.TRANSACTIONS_V1_WITH_ID);
-      handleUpdate(requestId, channelHandlerContext, fullHttpRequest, id);
+      handleUpdate(channelHandlerContext, fullHttpRequest, id);
       return;
     }
 
     // DELETE: DELETE /petssvc/api/v1/transactions/{id}
     if (path.startsWith(ApiPaths.TRANSACTIONS_V1_WITH_ID) && method.equals(HttpMethod.DELETE)) {
       UUID id = ServerUtils.getEntityId(path, ApiPaths.TRANSACTIONS_V1_WITH_ID);
-      handleDelete(requestId, channelHandlerContext, id);
+      handleDelete(channelHandlerContext, id);
       return;
     }
 
-    log.info("[{}] Action Not Found: Method=[{}] Path=[{}]", requestId, method, path);
+    log.info("Action Not Found: Method=[{}] Path=[{}]", method, path);
     channelHandlerContext.fireChannelRead(fullHttpRequest.retain());
   }
 
   // CREATE
   private void handleCreate(
-      String requestId,
-      ChannelHandlerContext channelHandlerContext,
-      FullHttpRequest fullHttpRequest)
+      ChannelHandlerContext channelHandlerContext, FullHttpRequest fullHttpRequest)
       throws Exception {
     TransactionRequest request =
         ServerUtils.getRequestBody(fullHttpRequest, TransactionRequest.class);
-    TransactionResponse response = transactionService.create(requestId, request);
+    TransactionResponse response = transactionService.create(request);
     ServerUtils.sendResponse(channelHandlerContext, HttpResponseStatus.CREATED, response);
   }
 
   // READ MERCHANTS
-  private void handleReadMerchants(String requestId, ChannelHandlerContext channelHandlerContext)
-      throws Exception {
+  private void handleReadMerchants(ChannelHandlerContext channelHandlerContext) throws Exception {
     TransactionResponse.TransactionMerchants response =
-        transactionService.readTransactionMerchants(requestId);
+        transactionService.readTransactionMerchants();
     ServerUtils.sendResponse(channelHandlerContext, HttpResponseStatus.OK, response);
   }
 
   // READ ALL
   private void handleReadAll(
-      String requestId,
       ChannelHandlerContext channelHandlerContext,
       RequestParams.TransactionParams params,
       PaginationRequest paginationRequest)
       throws Exception {
-    TransactionResponse response =
-        transactionService.read(requestId, List.of(), params, paginationRequest);
+    TransactionResponse response = transactionService.read(List.of(), params, paginationRequest);
     ServerUtils.sendResponse(channelHandlerContext, HttpResponseStatus.OK, response);
   }
 
   // READ ONE
-  private void handleReadOne(String requestId, ChannelHandlerContext channelHandlerContext, UUID id)
+  private void handleReadOne(ChannelHandlerContext channelHandlerContext, UUID id)
       throws Exception {
-    TransactionResponse response = transactionService.read(requestId, List.of(id), null, null);
+    TransactionResponse response = transactionService.read(List.of(id), null, null);
     ServerUtils.sendResponse(channelHandlerContext, HttpResponseStatus.OK, response);
   }
 
   // UPDATE
   private void handleUpdate(
-      String requestId,
-      ChannelHandlerContext channelHandlerContext,
-      FullHttpRequest fullHttpRequest,
-      UUID id)
+      ChannelHandlerContext channelHandlerContext, FullHttpRequest fullHttpRequest, UUID id)
       throws Exception {
     TransactionRequest request =
         ServerUtils.getRequestBody(fullHttpRequest, TransactionRequest.class);
-    TransactionResponse response = transactionService.update(requestId, id, request);
+    TransactionResponse response = transactionService.update(id, request);
     ServerUtils.sendResponse(channelHandlerContext, HttpResponseStatus.OK, response);
   }
 
   // DELETE
-  private void handleDelete(String requestId, ChannelHandlerContext channelHandlerContext, UUID id)
-      throws Exception {
-    TransactionResponse response = transactionService.delete(requestId, List.of(id));
+  private void handleDelete(ChannelHandlerContext channelHandlerContext, UUID id) throws Exception {
+    TransactionResponse response = transactionService.delete(List.of(id));
     ServerUtils.sendResponse(channelHandlerContext, HttpResponseStatus.OK, response);
   }
 }

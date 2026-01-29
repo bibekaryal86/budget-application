@@ -219,8 +219,8 @@ public class TransactionService {
         });
   }
 
-  public void reconcileAll(String requestId) throws SQLException {
-    log.debug("[{}] Reconciling all transactions...", requestId);
+  public void reconcileAll() throws SQLException {
+    log.debug("Reconciling all transactions...");
     List<TransactionResponse.Transaction> mismatchTransactions = new ArrayList<>();
     transactionManager.executeVoid(
         transactionContext -> {
