@@ -236,7 +236,9 @@ public class BudgetHandlerTest extends IntegrationBaseTest {
     Assertions.assertEquals(4, response.data().size());
 
     resp =
-        httpGet(ApiPaths.BUDGETS_V1 + "?categoryIds=" + TEST_ID + "," + cId2 + "," + cId3, Boolean.TRUE);
+        httpGet(
+            ApiPaths.BUDGETS_V1 + "?categoryIds=" + TEST_ID + "," + cId2 + "," + cId3,
+            Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());
     response = JsonUtils.fromJson(resp.body(), TransactionResponse.class);
     Assertions.assertEquals(2, response.data().size());

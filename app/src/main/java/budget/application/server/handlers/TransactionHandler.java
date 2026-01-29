@@ -24,10 +24,10 @@ import org.slf4j.LoggerFactory;
 public class TransactionHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
   private static final Logger log = LoggerFactory.getLogger(TransactionHandler.class);
 
-  private final TransactionService service;
+  private final TransactionService transactionService;
 
   public TransactionHandler(DataSource dataSource, Email email) {
-    this.service = new TransactionService(dataSource, email);
+    this.transactionService = new TransactionService(dataSource, email);
   }
 
   @Override
@@ -98,14 +98,15 @@ public class TransactionHandler extends SimpleChannelInboundHandler<FullHttpRequ
       throws Exception {
     TransactionRequest request =
         ServerUtils.getRequestBody(fullHttpRequest, TransactionRequest.class);
-    TransactionResponse response = service.create(requestId, request);
+    TransactionResponse response = transactionService.create(requestId, request);
     ServerUtils.sendResponse(channelHandlerContext, HttpResponseStatus.CREATED, response);
   }
 
   // READ MERCHANTS
   private void handleReadMerchants(String requestId, ChannelHandlerContext channelHandlerContext)
       throws Exception {
-    TransactionResponse.TransactionMerchants response = service.readTransactionMerchants(requestId);
+    TransactionResponse.TransactionMerchants response =
+        transactionService.readTransactionMerchants(requestId);
     ServerUtils.sendResponse(channelHandlerContext, HttpResponseStatus.OK, response);
   }
 
@@ -116,14 +117,15 @@ public class TransactionHandler extends SimpleChannelInboundHandler<FullHttpRequ
       RequestParams.TransactionParams params,
       PaginationRequest paginationRequest)
       throws Exception {
-    TransactionResponse response = service.read(requestId, List.of(), params, paginationRequest);
+    TransactionResponse response =
+        transactionService.read(requestId, List.of(), params, paginationRequest);
     ServerUtils.sendResponse(channelHandlerContext, HttpResponseStatus.OK, response);
   }
 
   // READ ONE
   private void handleReadOne(String requestId, ChannelHandlerContext channelHandlerContext, UUID id)
       throws Exception {
-    TransactionResponse response = service.read(requestId, List.of(id), null, null);
+    TransactionResponse response = transactionService.read(requestId, List.of(id), null, null);
     ServerUtils.sendResponse(channelHandlerContext, HttpResponseStatus.OK, response);
   }
 
@@ -136,14 +138,14 @@ public class TransactionHandler extends SimpleChannelInboundHandler<FullHttpRequ
       throws Exception {
     TransactionRequest request =
         ServerUtils.getRequestBody(fullHttpRequest, TransactionRequest.class);
-    TransactionResponse response = service.update(requestId, id, request);
+    TransactionResponse response = transactionService.update(requestId, id, request);
     ServerUtils.sendResponse(channelHandlerContext, HttpResponseStatus.OK, response);
   }
 
   // DELETE
   private void handleDelete(String requestId, ChannelHandlerContext channelHandlerContext, UUID id)
       throws Exception {
-    TransactionResponse response = service.delete(requestId, List.of(id));
+    TransactionResponse response = transactionService.delete(requestId, List.of(id));
     ServerUtils.sendResponse(channelHandlerContext, HttpResponseStatus.OK, response);
   }
 }

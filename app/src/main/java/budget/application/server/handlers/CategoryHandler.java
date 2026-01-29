@@ -1,5 +1,6 @@
 package budget.application.server.handlers;
 
+import budget.application.cache.CacheContext;
 import budget.application.common.Constants;
 import budget.application.model.dto.CategoryRequest;
 import budget.application.model.dto.CategoryResponse;
@@ -21,10 +22,10 @@ import org.slf4j.LoggerFactory;
 public class CategoryHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
   private static final Logger log = LoggerFactory.getLogger(CategoryHandler.class);
 
-  private final CategoryService service;
+  private final CategoryService categoryService;
 
-  public CategoryHandler(DataSource dataSource) {
-    this.service = new CategoryService(dataSource);
+  public CategoryHandler(DataSource dataSource, CacheContext cacheContext) {
+    this.categoryService = new CategoryService(dataSource, cacheContext.category());
   }
 
   @Override
@@ -87,7 +88,7 @@ public class CategoryHandler extends SimpleChannelInboundHandler<FullHttpRequest
       FullHttpRequest fullHttpRequest)
       throws Exception {
     CategoryRequest request = ServerUtils.getRequestBody(fullHttpRequest, CategoryRequest.class);
-    CategoryResponse response = service.create(requestId, request);
+    CategoryResponse response = categoryService.create(requestId, request);
     ServerUtils.sendResponse(channelHandlerContext, HttpResponseStatus.CREATED, response);
   }
 
@@ -95,14 +96,14 @@ public class CategoryHandler extends SimpleChannelInboundHandler<FullHttpRequest
   private void handleReadAll(
       String requestId, ChannelHandlerContext channelHandlerContext, List<UUID> catTypeIds)
       throws Exception {
-    CategoryResponse response = service.read(requestId, List.of(), catTypeIds);
+    CategoryResponse response = categoryService.read(requestId, List.of(), catTypeIds);
     ServerUtils.sendResponse(channelHandlerContext, HttpResponseStatus.OK, response);
   }
 
   // READ ONE
   private void handleReadOne(String requestId, ChannelHandlerContext channelHandlerContext, UUID id)
       throws Exception {
-    CategoryResponse response = service.read(requestId, List.of(id), List.of());
+    CategoryResponse response = categoryService.read(requestId, List.of(id), List.of());
     ServerUtils.sendResponse(channelHandlerContext, HttpResponseStatus.OK, response);
   }
 
@@ -114,14 +115,14 @@ public class CategoryHandler extends SimpleChannelInboundHandler<FullHttpRequest
       UUID id)
       throws Exception {
     CategoryRequest request = ServerUtils.getRequestBody(fullHttpRequest, CategoryRequest.class);
-    CategoryResponse response = service.update(requestId, id, request);
+    CategoryResponse response = categoryService.update(requestId, id, request);
     ServerUtils.sendResponse(channelHandlerContext, HttpResponseStatus.OK, response);
   }
 
   // DELETE
   private void handleDelete(String requestId, ChannelHandlerContext channelHandlerContext, UUID id)
       throws Exception {
-    CategoryResponse response = service.delete(requestId, List.of(id));
+    CategoryResponse response = categoryService.delete(requestId, List.of(id));
     ServerUtils.sendResponse(channelHandlerContext, HttpResponseStatus.OK, response);
   }
 }

@@ -22,10 +22,10 @@ import org.slf4j.LoggerFactory;
 public class BudgetHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
   private static final Logger log = LoggerFactory.getLogger(BudgetHandler.class);
 
-  private final BudgetService service;
+  private final BudgetService budgetService;
 
   public BudgetHandler(DataSource dataSource) {
-    this.service = new BudgetService(dataSource);
+    this.budgetService = new BudgetService(dataSource);
   }
 
   @Override
@@ -87,7 +87,7 @@ public class BudgetHandler extends SimpleChannelInboundHandler<FullHttpRequest> 
       FullHttpRequest fullHttpRequest)
       throws Exception {
     BudgetRequest request = ServerUtils.getRequestBody(fullHttpRequest, BudgetRequest.class);
-    BudgetResponse response = service.create(requestId, request);
+    BudgetResponse response = budgetService.create(requestId, request);
     ServerUtils.sendResponse(channelHandlerContext, HttpResponseStatus.CREATED, response);
   }
 
@@ -96,7 +96,7 @@ public class BudgetHandler extends SimpleChannelInboundHandler<FullHttpRequest> 
       String requestId, ChannelHandlerContext channelHandlerContext, QueryStringDecoder decoder)
       throws Exception {
     RequestParams.BudgetParams params = ServerUtils.getBudgetParams(decoder);
-    BudgetResponse response = service.read(requestId, List.of(), params);
+    BudgetResponse response = budgetService.read(requestId, List.of(), params);
     ServerUtils.sendResponse(channelHandlerContext, HttpResponseStatus.OK, response);
   }
 
@@ -104,7 +104,7 @@ public class BudgetHandler extends SimpleChannelInboundHandler<FullHttpRequest> 
   private void handleReadOne(String requestId, ChannelHandlerContext channelHandlerContext, UUID id)
       throws Exception {
     BudgetResponse response =
-        service.read(requestId, List.of(id), new RequestParams.BudgetParams(0, 0, List.of()));
+        budgetService.read(requestId, List.of(id), new RequestParams.BudgetParams(0, 0, List.of()));
     ServerUtils.sendResponse(channelHandlerContext, HttpResponseStatus.OK, response);
   }
 
@@ -116,14 +116,14 @@ public class BudgetHandler extends SimpleChannelInboundHandler<FullHttpRequest> 
       UUID id)
       throws Exception {
     BudgetRequest request = ServerUtils.getRequestBody(fullHttpRequest, BudgetRequest.class);
-    BudgetResponse response = service.update(requestId, id, request);
+    BudgetResponse response = budgetService.update(requestId, id, request);
     ServerUtils.sendResponse(channelHandlerContext, HttpResponseStatus.OK, response);
   }
 
   // DELETE
   private void handleDelete(String requestId, ChannelHandlerContext channelHandlerContext, UUID id)
       throws Exception {
-    BudgetResponse response = service.delete(requestId, List.of(id));
+    BudgetResponse response = budgetService.delete(requestId, List.of(id));
     ServerUtils.sendResponse(channelHandlerContext, HttpResponseStatus.OK, response);
   }
 }

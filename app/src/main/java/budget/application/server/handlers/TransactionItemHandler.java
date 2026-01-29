@@ -21,10 +21,10 @@ import org.slf4j.LoggerFactory;
 public class TransactionItemHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
   private static final Logger log = LoggerFactory.getLogger(TransactionItemHandler.class);
 
-  private final TransactionItemService service;
+  private final TransactionItemService transactionItemService;
 
   public TransactionItemHandler(DataSource dataSource) {
-    this.service = new TransactionItemService(dataSource);
+    this.transactionItemService = new TransactionItemService(dataSource);
   }
 
   @Override
@@ -94,21 +94,21 @@ public class TransactionItemHandler extends SimpleChannelInboundHandler<FullHttp
       throws Exception {
     TransactionItemRequest request =
         ServerUtils.getRequestBody(fullHttpRequest, TransactionItemRequest.class);
-    TransactionItemResponse response = service.create(requestId, request);
+    TransactionItemResponse response = transactionItemService.create(requestId, request);
     ServerUtils.sendResponse(channelHandlerContext, HttpResponseStatus.CREATED, response);
   }
 
   // READ ALL
   private void handleReadAll(String requestId, ChannelHandlerContext channelHandlerContext)
       throws Exception {
-    TransactionItemResponse response = service.read(requestId, List.of());
+    TransactionItemResponse response = transactionItemService.read(requestId, List.of());
     ServerUtils.sendResponse(channelHandlerContext, HttpResponseStatus.OK, response);
   }
 
   // READ ONE
   private void handleReadOne(String requestId, ChannelHandlerContext channelHandlerContext, UUID id)
       throws Exception {
-    TransactionItemResponse response = service.read(requestId, List.of(id));
+    TransactionItemResponse response = transactionItemService.read(requestId, List.of(id));
     ServerUtils.sendResponse(channelHandlerContext, HttpResponseStatus.OK, response);
   }
 
@@ -116,7 +116,7 @@ public class TransactionItemHandler extends SimpleChannelInboundHandler<FullHttp
   private void handleReadTags(String requestId, ChannelHandlerContext channelHandlerContext)
       throws Exception {
     TransactionItemResponse.TransactionItemTags response =
-        service.readTransactionItemTags(requestId);
+        transactionItemService.readTransactionItemTags(requestId);
     ServerUtils.sendResponse(channelHandlerContext, HttpResponseStatus.OK, response);
   }
 
@@ -129,14 +129,14 @@ public class TransactionItemHandler extends SimpleChannelInboundHandler<FullHttp
       throws Exception {
     TransactionItemRequest request =
         ServerUtils.getRequestBody(fullHttpRequest, TransactionItemRequest.class);
-    TransactionItemResponse response = service.update(requestId, id, request);
+    TransactionItemResponse response = transactionItemService.update(requestId, id, request);
     ServerUtils.sendResponse(channelHandlerContext, HttpResponseStatus.OK, response);
   }
 
   // DELETE
   private void handleDelete(String requestId, ChannelHandlerContext channelHandlerContext, UUID id)
       throws Exception {
-    TransactionItemResponse response = service.delete(requestId, List.of(id));
+    TransactionItemResponse response = transactionItemService.delete(requestId, List.of(id));
     ServerUtils.sendResponse(channelHandlerContext, HttpResponseStatus.OK, response);
   }
 }

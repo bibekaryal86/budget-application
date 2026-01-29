@@ -19,10 +19,10 @@ import org.slf4j.LoggerFactory;
 public class InsightsHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
   private static final Logger log = LoggerFactory.getLogger(InsightsHandler.class);
 
-  private final InsightsService service;
+  private final InsightsService insightsService;
 
   public InsightsHandler(DataSource dataSource) {
-    this.service = new InsightsService(dataSource);
+    this.insightsService = new InsightsService(dataSource);
   }
 
   @Override
@@ -64,7 +64,8 @@ public class InsightsHandler extends SimpleChannelInboundHandler<FullHttpRequest
       ChannelHandlerContext channelHandlerContext,
       RequestParams.CashFlowSummaryParams params)
       throws Exception {
-    InsightsResponse.CashFlowSummaries response = service.readCashFLowSummaries(requestId, params);
+    InsightsResponse.CashFlowSummaries response =
+        insightsService.readCashFLowSummaries(requestId, params);
     ServerUtils.sendResponse(channelHandlerContext, HttpResponseStatus.OK, response);
   }
 
@@ -74,7 +75,8 @@ public class InsightsHandler extends SimpleChannelInboundHandler<FullHttpRequest
       ChannelHandlerContext channelHandlerContext,
       RequestParams.CategorySummaryParams params)
       throws Exception {
-    InsightsResponse.CategorySummaries response = service.readCategoriesSummary(requestId, params);
+    InsightsResponse.CategorySummaries response =
+        insightsService.readCategoriesSummary(requestId, params);
     ServerUtils.sendResponse(channelHandlerContext, HttpResponseStatus.OK, response);
   }
 }

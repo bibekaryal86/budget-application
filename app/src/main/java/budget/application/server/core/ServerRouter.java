@@ -1,5 +1,6 @@
 package budget.application.server.core;
 
+import budget.application.cache.CacheContext;
 import budget.application.common.Constants;
 import budget.application.server.handlers.AccountHandler;
 import budget.application.server.handlers.AppTestsHandler;
@@ -30,12 +31,12 @@ public class ServerRouter extends SimpleChannelInboundHandler<FullHttpRequest> {
   private final TransactionItemHandler transactionItemHandler;
   private final TransactionHandler transactionHandler;
 
-  public ServerRouter(DataSource dataSource, Email email) {
+  public ServerRouter(DataSource dataSource, Email email, CacheContext cacheContext) {
     this.appTestsHandler = new AppTestsHandler();
     this.accountHandler = new AccountHandler(dataSource);
     this.budgetHandler = new BudgetHandler(dataSource);
-    this.categoryTypeHandler = new CategoryTypeHandler(dataSource);
-    this.categoryHandler = new CategoryHandler(dataSource);
+    this.categoryTypeHandler = new CategoryTypeHandler(dataSource, cacheContext);
+    this.categoryHandler = new CategoryHandler(dataSource, cacheContext);
     this.insightsHandler = new InsightsHandler(dataSource);
     this.transactionItemHandler = new TransactionItemHandler(dataSource);
     this.transactionHandler = new TransactionHandler(dataSource, email);

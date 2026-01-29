@@ -1,5 +1,6 @@
 package budget.application;
 
+import budget.application.cache.CacheContext;
 import budget.application.common.Constants;
 import budget.application.server.core.ServerNetty;
 import java.net.URI;
@@ -23,7 +24,7 @@ public abstract class IntegrationBaseTest {
   static void beforeAll() throws Exception {
     setSystemEnvPropertyTestData();
     TestDataSource.start();
-    server = new ServerNetty(TestDataSource.getDataSource(), null);
+    server = new ServerNetty(TestDataSource.getDataSource(), null, new CacheContext());
     server.start();
     port = server.getBoundPort();
     testDataHelper = new TestDataHelper(TestDataSource.getDataSource());

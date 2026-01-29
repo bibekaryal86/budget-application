@@ -1,5 +1,6 @@
 package budget.application.service.domain;
 
+import budget.application.cache.CategoryTypeCache;
 import budget.application.common.Exceptions;
 import budget.application.common.Validations;
 import budget.application.db.dao.CategoryTypeDao;
@@ -9,6 +10,7 @@ import budget.application.model.dto.CategoryTypeResponse;
 import budget.application.model.entity.CategoryType;
 import budget.application.service.util.ResponseMetadataUtils;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseMetadata;
+import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
@@ -21,9 +23,11 @@ public class CategoryTypeService {
   private static final Logger log = LoggerFactory.getLogger(CategoryTypeService.class);
 
   private final TransactionManager transactionManager;
+  private final CategoryTypeCache categoryTypeCache;
 
-  public CategoryTypeService(DataSource dataSource) {
+  public CategoryTypeService(DataSource dataSource, CategoryTypeCache categoryTypeCache) {
     this.transactionManager = new TransactionManager(dataSource);
+    this.categoryTypeCache = categoryTypeCache;
   }
 
   public CategoryTypeResponse create(String requestId, CategoryTypeRequest categoryTypeRequest)
@@ -41,6 +45,9 @@ public class CategoryTypeService {
           log.debug("[{}] Created category type: Id=[{}]", requestId, id);
           CategoryTypeResponse.CategoryType categoryType =
               new CategoryTypeResponse.CategoryType(id, categoryTypeIn.name().toUpperCase());
+
+          categoryTypeCache.put(categoryType);
+
           return new CategoryTypeResponse(
               List.of(categoryType), ResponseMetadataUtils.defaultInsertResponseMetadata());
         });
@@ -48,6 +55,13 @@ public class CategoryTypeService {
 
   public CategoryTypeResponse read(String requestId, List<UUID> ids) throws SQLException {
     log.debug("[{}] Read category types: Ids=[{}]", requestId, ids);
+
+    List<CategoryTypeResponse.CategoryType> categoryTypesCache = categoryTypeCache.get(ids);
+    if (!CommonUtilities.isEmpty(categoryTypesCache)) {
+      return new CategoryTypeResponse(categoryTypesCache, ResponseMetadata.emptyResponseMetadata());
+    }
+
+    log.debug("[{}] Read category types from DB", requestId);
     return transactionManager.execute(
         requestId,
         transactionContext -> {
@@ -64,6 +78,8 @@ public class CategoryTypeService {
               categoryTypeList.stream()
                   .map(ct -> new CategoryTypeResponse.CategoryType(ct.id(), ct.name()))
                   .toList();
+
+          categoryTypeCache.put(categoryTypes);
 
           return new CategoryTypeResponse(categoryTypes, ResponseMetadata.emptyResponseMetadata());
         });
@@ -89,10 +105,15 @@ public class CategoryTypeService {
             throw new Exceptions.NotFoundException(requestId, "CategoryType", id.toString());
           }
 
+          categoryTypeCache.clear(List.of(id));
+
           CategoryType categoryTypeIn = new CategoryType(id, categoryTypeRequest.name());
           categoryTypeDao.update(categoryTypeIn);
           CategoryTypeResponse.CategoryType categoryType =
               new CategoryTypeResponse.CategoryType(id, categoryTypeIn.name().toUpperCase());
+
+          categoryTypeCache.put(categoryType);
+
           return new CategoryTypeResponse(
               List.of(categoryType), ResponseMetadataUtils.defaultUpdateResponseMetadata());
         });
@@ -114,6 +135,9 @@ public class CategoryTypeService {
           }
 
           int deleteCount = categoryTypeDao.delete(ids);
+
+          categoryTypeCache.clear(ids);
+
           return new CategoryTypeResponse(
               List.of(), ResponseMetadataUtils.defaultDeleteResponseMetadata(deleteCount));
         });

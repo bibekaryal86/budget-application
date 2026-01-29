@@ -152,7 +152,9 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
             4, 1, Constants.DEFAULT_PAGE_NUMBER, Constants.DEFAULT_PER_PAGE),
         response.metadata().responsePageInfo());
 
-    resp = httpGet(ApiPaths.TRANSACTIONS_V1 + "?categoryTypeIds=" + TEST_ID + "," + ctId1, Boolean.TRUE);
+    resp =
+        httpGet(
+            ApiPaths.TRANSACTIONS_V1 + "?categoryTypeIds=" + TEST_ID + "," + ctId1, Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());
     response = JsonUtils.fromJson(resp.body(), TransactionResponse.class);
     Assertions.assertEquals(3, response.data().size());

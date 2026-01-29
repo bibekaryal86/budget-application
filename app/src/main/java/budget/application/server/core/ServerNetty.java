@@ -1,5 +1,6 @@
 package budget.application.server.core;
 
+import budget.application.cache.CacheContext;
 import budget.application.common.Constants;
 import budget.application.server.handlers.ExceptionHandler;
 import budget.application.server.handlers.NotFoundHandler;
@@ -27,14 +28,16 @@ public class ServerNetty {
 
   private final DataSource dataSource;
   private final Email email;
+  private final CacheContext cacheContext;
 
   private Channel channel;
   private EventLoopGroup bossGroup;
   private EventLoopGroup workerGroup;
 
-  public ServerNetty(DataSource dataSource, Email email) {
+  public ServerNetty(DataSource dataSource, Email email, CacheContext cacheContext) {
     this.dataSource = dataSource;
     this.email = email;
+    this.cacheContext = cacheContext;
   }
 
   public void start() throws Exception {
@@ -59,7 +62,7 @@ public class ServerNetty {
                       .addLast(new HttpObjectAggregator(Constants.MAX_CONTENT_LENGTH))
                       .addLast(new ServerLogging())
                       .addLast(new ServerSecurity())
-                      .addLast(new ServerRouter(dataSource, email))
+                      .addLast(new ServerRouter(dataSource, email, cacheContext))
                       .addLast(new ExceptionHandler())
                       .addLast(new NotFoundHandler());
                 }
