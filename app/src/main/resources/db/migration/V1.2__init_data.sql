@@ -101,7 +101,8 @@ INSERT INTO category (id, category_type_id, name) VALUES ('c1f9a7d3-6e2b-4a21-9e
 INSERT INTO category (id, category_type_id, name) VALUES ('f7a3c1d9-6e2b-4a21-9e4f-1b2d6c7a8059', '8a3f6d5e-7c9b-4a21-9e4f-1b2d6c7a8059', 'HEALTH INSURANCE');
 INSERT INTO category (id, category_type_id, name) VALUES ('d9f7a3c1-6e2b-4a21-9e4f-1b2d6c7a8059', '8a3f6d5e-7c9b-4a21-9e4f-1b2d6c7a8059', 'LIFE INSURANCE');
 INSERT INTO category (id, category_type_id, name) VALUES ('3c1d9f7a-6e2b-4a21-9e4f-1b2d6c7a8059', '8a3f6d5e-7c9b-4a21-9e4f-1b2d6c7a8059', 'MEDICATIONS');
-INSERT INTO category (id, category_type_id, name) VALUES ('3c1d9f7a-6e2b-4a21-9e4f-1b2d6c7a8059', '8a3f6d5e-7c9b-4a21-9e4f-1b2d6c7a8059', 'OTC MEDICATIONS');
+INSERT INTO category (id, category_type_id, name) VALUES ('c68f212b-1914-4b34-8375-a931b9dee4ec', '8a3f6d5e-7c9b-4a21-9e4f-1b2d6c7a8059', 'OTC MEDICATIONS');
+INSERT INTO category (id, category_type_id, name) VALUES ('50dfa7ba-f1e7-42f9-adb4-3809cf671a19', '8a3f6d5e-7c9b-4a21-9e4f-1b2d6c7a8059', 'TESTS AND PROCEDURES');
 INSERT INTO category (id, category_type_id, name) VALUES ('9a3c1d7f-6e2b-4a21-9e4f-1b2d6c7a8059', '8a3f6d5e-7c9b-4a21-9e4f-1b2d6c7a8059', 'SPORTS AND RECREATION');
 
 INSERT INTO category (id, category_type_id, name) VALUES ('7c3d9f1a-9c4b-4a8e-5f1d-bc7a2e396054', '6e2a7f3d-9c4b-4a8e-5f1d-bc7a2e396054', 'HOME IMPROVEMENTS');
