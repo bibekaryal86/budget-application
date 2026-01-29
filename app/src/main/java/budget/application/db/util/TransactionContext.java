@@ -2,6 +2,7 @@ package budget.application.db.util;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -9,9 +10,10 @@ public class TransactionContext implements AutoCloseable {
   private static final Logger log = LoggerFactory.getLogger(TransactionContext.class);
 
   private final Connection connection;
-  private final String requestId;
   private final long startTimeMs;
-  private TransactionState state = TransactionState.ACTIVE;
+  private final UUID txId;
+
+  private TransactionState txState = TransactionState.ACTIVE;
 
   private enum TransactionState {
     ACTIVE,
@@ -19,93 +21,92 @@ public class TransactionContext implements AutoCloseable {
     ROLLED_BACK
   }
 
-  public TransactionContext(final String requestId, final Connection connection)
-      throws SQLException {
+  public TransactionContext(final Connection connection) throws SQLException {
     this.connection = connection;
-    this.requestId = requestId;
     this.startTimeMs = System.currentTimeMillis();
     this.connection.setAutoCommit(false);
+    txId = UUID.randomUUID();
 
-    log.debug("[{}] Transaction started", requestId);
+    log.debug("[txId:{}] Transaction started,,,", txId);
   }
 
   public void commit() throws SQLException {
-    if (state == TransactionState.ACTIVE) {
+    if (txState == TransactionState.ACTIVE) {
       long startCommit = System.currentTimeMillis();
       try {
         connection.commit();
-        state = TransactionState.COMMITTED;
+        txState = TransactionState.COMMITTED;
         long commitDuration = System.currentTimeMillis() - startCommit;
         long totalDuration = System.currentTimeMillis() - startTimeMs;
         log.debug(
-            "[{}] Transaction committed successfully (commit={}ms, total={}ms)",
-            requestId,
+            "[txId:{}] Transaction committed successfully (commit={}ms, total={}ms)",
+            txId,
             commitDuration,
             totalDuration);
       } catch (SQLException e) {
-        log.error("[{}] Failed to commit transaction: {}", requestId, e.getMessage(), e);
+        log.error("[txId:{}] Failed to commit transaction: {}", txId, e.getMessage(), e);
         throw e;
       }
     } else {
-      String message = "Transaction already " + state;
-      log.warn("[{}] Attempted to commit but transaction is already {}", requestId, state);
+      String message = "Transaction already " + txState;
+      log.warn("[txId:{}] Attempted to commit but transaction is already {}", txId, txState);
       throw new IllegalStateException(message);
     }
   }
 
   public void rollback() throws SQLException {
-    if (state == TransactionState.ACTIVE) {
+    if (txState == TransactionState.ACTIVE) {
       long startRollback = System.currentTimeMillis();
       try {
         connection.rollback();
-        state = TransactionState.ROLLED_BACK;
+        txState = TransactionState.ROLLED_BACK;
         long rollbackDuration = System.currentTimeMillis() - startRollback;
         long totalDuration = System.currentTimeMillis() - startTimeMs;
         log.info(
-            "[{}] Transaction rolled back (rollback={}ms, total={}ms)",
-            requestId,
+            "[txId:{}]  Transaction rolled back (rollback={}ms, total={}ms)",
+            txId,
             rollbackDuration,
             totalDuration);
       } catch (SQLException e) {
-        log.error("[{}] Failed to rollback transaction: {}", requestId, e.getMessage(), e);
+        log.error("[txId:{}]  Failed to rollback transaction: {}", txId, e.getMessage(), e);
         throw e;
       }
     } else {
-      log.debug("[{}] Rollback called but transaction already {}", requestId, state);
+      log.debug("[txId:{}]  Rollback called but transaction already {}", txId, txState);
     }
   }
 
   @Override
   public void close() throws SQLException {
     try {
-      if (state == TransactionState.ACTIVE) {
+      if (txState == TransactionState.ACTIVE) {
         log.warn(
-            "[{}] Transaction not explicitly committed/rolled back, "
+            "[txId:{}]  Transaction not explicitly committed/rolled back, "
                 + "auto-rolling back in close()",
-            requestId);
+            txId);
         rollback();
       }
     } finally {
       try {
         connection.setAutoCommit(true);
-        log.trace("[{}] Auto-commit restored", requestId);
+        log.trace("[txId:{}] Auto-commit restored", txId);
       } catch (SQLException e) {
-        log.error("[{}] Failed to restore auto-commit: {}", requestId, e.getMessage(), e);
+        log.error("[txId:{}] Failed to restore auto-commit: {}", txId, e.getMessage(), e);
       } finally {
         try {
           connection.close();
-          log.debug("[{}] Connection closed", requestId);
+          log.debug("[txId:{}] Connection closed", txId);
         } catch (SQLException e) {
-          log.error("[{}] Failed to close connection: {}", requestId, e.getMessage(), e);
+          log.error("[txId:{}] Failed to close connection: {}", txId, e.getMessage(), e);
         }
       }
     }
   }
 
   public Connection connection() {
-    if (state != TransactionState.ACTIVE) {
-      log.error("[{}] Attempted to access connection after transaction {}", requestId, state);
-      throw new IllegalStateException("Cannot use connection after transaction " + state);
+    if (txState != TransactionState.ACTIVE) {
+      log.error("[txId:{}] Attempted to access connection after transaction {}", txId, txState);
+      throw new IllegalStateException("Cannot use connection after transaction " + txState);
     }
     return connection;
   }

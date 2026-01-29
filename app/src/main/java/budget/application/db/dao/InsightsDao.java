@@ -18,13 +18,11 @@ import org.slf4j.LoggerFactory;
 public class InsightsDao {
   protected static final Logger log = LoggerFactory.getLogger(InsightsDao.class);
 
-  private final String requestId;
   private final Connection connection;
   private final InsightsRowMappers.CashFlowSummaryRowMapper cashFlowSummaryRowMapper;
   private final InsightsRowMappers.CategorySummaryRowMapper categorySummaryRowMapper;
 
-  public InsightsDao(String requestId, Connection connection) {
-    this.requestId = requestId;
+  public InsightsDao(Connection connection) {
     this.connection = connection;
     this.cashFlowSummaryRowMapper = new InsightsRowMappers.CashFlowSummaryRowMapper();
     this.categorySummaryRowMapper = new InsightsRowMappers.CategorySummaryRowMapper();
@@ -32,8 +30,7 @@ public class InsightsDao {
 
   public InsightsResponse.CashFlowSummary readCashFlowSummary(
       LocalDate beginDate, LocalDate endDate) throws SQLException {
-    log.debug(
-        "[{}] Read cash flow summary: BeginDate=[{}], EndDate=[{}]", requestId, beginDate, endDate);
+    log.debug("Read cash flow summary: BeginDate=[{}], EndDate=[{}]", beginDate, endDate);
 
     List<InsightsResponse.CashFlowSummary> results = new ArrayList<>();
     String sql =
@@ -62,7 +59,7 @@ public class InsightsDao {
     params.add(beginDate);
     params.add(endDate);
 
-    log.debug("[{}] Read Transaction Summary SQL=[{}]", requestId, sql);
+    log.debug("Read Transaction Summary SQL=[{}]", sql);
 
     try (PreparedStatement stmt = connection.prepareStatement(sql)) {
       DaoUtils.bindParams(stmt, params, Boolean.TRUE);
@@ -79,8 +76,7 @@ public class InsightsDao {
       LocalDate beginDate, LocalDate endDate, List<UUID> categoryIds, List<UUID> categoryTypeIds)
       throws SQLException {
     log.debug(
-        "[{}] Read category summary: BeginDate=[{}], EndDate=[{}], CategoryIds=[{}], CategoryTypeIds=[{}]",
-        requestId,
+        "Read category summary: BeginDate=[{}], EndDate=[{}], CategoryIds=[{}], CategoryTypeIds=[{}]",
         beginDate,
         endDate,
         categoryIds,
@@ -123,7 +119,7 @@ public class InsightsDao {
     params.add(hasCatTypes);
     params.add(categoryTypeIds);
 
-    log.debug("[{}] Read Category Summary SQL=[{}]", requestId, sql);
+    log.debug("Read Category Summary SQL=[{}]", sql);
 
     try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
       DaoUtils.bindParams(preparedStatement, params, Boolean.TRUE);

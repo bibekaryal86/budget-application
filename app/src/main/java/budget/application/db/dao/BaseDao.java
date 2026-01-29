@@ -18,13 +18,10 @@ public abstract class BaseDao<T> {
 
   protected final Connection connection;
   protected final RowMapper<T> mapper;
-  protected final String requestId;
 
-  protected BaseDao(
-      final String requestId, final Connection connection, final RowMapper<T> mapper) {
+  protected BaseDao(final Connection connection, final RowMapper<T> mapper) {
     this.connection = connection;
     this.mapper = mapper;
-    this.requestId = requestId;
   }
 
   // ---- ABSTRACT CONTRACT ----
@@ -48,8 +45,7 @@ public abstract class BaseDao<T> {
   // 1) CREATE
   public T create(T entity) throws SQLException {
     log.debug(
-        "[{}] Creating [{}] with InsertColumns=[{}], InsertValues=[{}]",
-        requestId,
+        "Creating [{}] with InsertColumns=[{}], InsertValues=[{}]",
         tableName(),
         insertColumns(),
         insertValues(entity));
@@ -65,7 +61,7 @@ public abstract class BaseDao<T> {
             + placeholders
             + ") RETURNING *";
 
-    log.debug("[{}] Create SQL=[{}]", requestId, sql);
+    log.debug("Create SQL=[{}]", sql);
     try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
       DaoUtils.bindParams(preparedStatement, insertValues(entity), Boolean.FALSE);
       try (ResultSet resultSet = preparedStatement.executeQuery()) {
@@ -81,8 +77,7 @@ public abstract class BaseDao<T> {
   // 2) READ
   public List<T> read(List<UUID> ids) throws SQLException {
     log.debug(
-        "[{}] Reading [{}] with Ids=[{}]",
-        requestId,
+        "Reading [{}] with Ids=[{}]",
         tableName(),
         CommonUtilities.isEmpty(ids) ? "ALL" : ids.toString());
     if (CommonUtilities.isEmpty(ids)) {
@@ -95,7 +90,7 @@ public abstract class BaseDao<T> {
   private List<T> readAll() throws SQLException {
     String sql = "SELECT * FROM " + tableName() + " ORDER BY " + orderByClause();
 
-    log.debug("[{}] Read All SQL=[{}] ", requestId, sql);
+    log.debug("Read All SQL=[{}] ", sql);
     try (PreparedStatement preparedStatement = connection.prepareStatement(sql);
         ResultSet resultSet = preparedStatement.executeQuery()) {
 
@@ -109,7 +104,7 @@ public abstract class BaseDao<T> {
     String sql =
         "SELECT * FROM " + tableName() + " WHERE id IN (" + DaoUtils.placeholders(ids.size()) + ")";
 
-    log.debug("[{}] Read By Ids SQL=[{}] ", requestId, sql);
+    log.debug("Read By Ids SQL=[{}] ", sql);
     try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
       DaoUtils.bindParams(preparedStatement, ids, Boolean.TRUE);
 
@@ -127,15 +122,11 @@ public abstract class BaseDao<T> {
     List<Object> values = updateValues(entity);
 
     log.debug(
-        "[{}] Updating [{}] with UpdateColumns=[{}], UpdateValues=[{}]",
-        requestId,
-        tableName(),
-        columns,
-        values);
+        "Updating [{}] with UpdateColumns=[{}], UpdateValues=[{}]", tableName(), columns, values);
     String setClause = String.join(", ", columns.stream().map(c -> c + " = ?").toList());
 
     String sql = "UPDATE " + tableName() + " SET " + setClause + " WHERE id = ? RETURNING *";
-    log.debug("[{}] Update SQL=[{}]", requestId, sql);
+    log.debug("Update SQL=[{}]", sql);
     try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
       DaoUtils.bindParams(preparedStatement, values, Boolean.FALSE);
       preparedStatement.setObject(values.size() + 1, getId(entity));
@@ -152,11 +143,11 @@ public abstract class BaseDao<T> {
 
   // 4) DELETE
   public int delete(List<UUID> ids) throws SQLException {
-    log.debug("[{}] Deleting [{}] with Ids=[{}]", requestId, tableName(), ids);
+    log.debug("Deleting [{}] with Ids=[{}]", tableName(), ids);
     if (ids == null || ids.isEmpty()) return 0;
     String sql =
         "DELETE FROM " + tableName() + " WHERE id IN (" + DaoUtils.placeholders(ids.size()) + ")";
-    log.debug("[{}] Delete SQL=[{}]", requestId, sql);
+    log.debug("Delete SQL=[{}]", sql);
     try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
       DaoUtils.bindParams(preparedStatement, ids, Boolean.FALSE);
       return preparedStatement.executeUpdate();

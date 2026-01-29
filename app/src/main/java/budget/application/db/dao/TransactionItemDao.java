@@ -20,8 +20,8 @@ public class TransactionItemDao extends BaseDao<TransactionItem> {
   private final TransactionItemRowMappers.TransactionItemRowMapperResponse
       transactionItemRowMapperResponse;
 
-  public TransactionItemDao(String requestId, Connection connection) {
-    super(requestId, connection, new TransactionItemRowMappers.TransactionItemRowMapper());
+  public TransactionItemDao(Connection connection) {
+    super(connection, new TransactionItemRowMappers.TransactionItemRowMapper());
     this.transactionItemRowMapperResponse =
         new TransactionItemRowMappers.TransactionItemRowMapperResponse();
   }
@@ -88,7 +88,7 @@ public class TransactionItemDao extends BaseDao<TransactionItem> {
 
   public List<TransactionItemResponse.TransactionItem> readTransactionItems(
       List<UUID> transactionItemIds) throws SQLException {
-    log.debug("[{}] Read Transaction Items: TransactionItemIds={}", requestId, transactionItemIds);
+    log.debug("Read Transaction Items: TransactionItemIds={}", transactionItemIds);
 
     StringBuilder sql =
         new StringBuilder(
@@ -132,7 +132,7 @@ public class TransactionItemDao extends BaseDao<TransactionItem> {
 
     sql.append(" ORDER BY ti.transaction_id ASC, t.txn_date DESC ");
 
-    log.debug("[{}] Read Transaction Items SQL=[{}]", requestId, sql);
+    log.debug("Read Transaction Items SQL=[{}]", sql);
 
     try (PreparedStatement preparedStatement = connection.prepareStatement(sql.toString())) {
       if (!params.isEmpty()) {
@@ -149,7 +149,7 @@ public class TransactionItemDao extends BaseDao<TransactionItem> {
   }
 
   public List<TransactionItem> readByTransactionIds(List<UUID> transactionIds) throws SQLException {
-    log.debug("[{}] Reading transaction items for TransactionIds: {}", requestId, transactionIds);
+    log.debug("Reading transaction items for TransactionIds: {}", transactionIds);
     if (CommonUtilities.isEmpty(transactionIds)) {
       return List.of();
     }
@@ -160,7 +160,7 @@ public class TransactionItemDao extends BaseDao<TransactionItem> {
             + " WHERE transaction_id IN ("
             + DaoUtils.placeholders(transactionIds.size())
             + ")";
-    log.debug("[{}] Read By Transaction Ids SQL=[{}]", requestId, sql);
+    log.debug("Read By Transaction Ids SQL=[{}]", sql);
 
     try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
       DaoUtils.bindParams(preparedStatement, transactionIds, Boolean.TRUE);

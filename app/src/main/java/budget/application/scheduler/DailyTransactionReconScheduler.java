@@ -6,7 +6,6 @@ import java.sql.SQLException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.UUID;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import javax.sql.DataSource;
@@ -43,9 +42,8 @@ public class DailyTransactionReconScheduler {
   }
 
   private void run() throws SQLException {
-    String requestId = UUID.randomUUID().toString();
-    log.info("[{}] Running daily transaction reconciliation...", requestId);
-    transactionService.reconcileAll(requestId);
+    log.info("Running daily transaction reconciliation...");
+    transactionService.reconcileAll();
   }
 
   private long computeInitialDelayMillis(LocalTime runAt) {

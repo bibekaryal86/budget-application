@@ -8,8 +8,8 @@ public class Exceptions {
   }
 
   public static class NotFoundException extends RuntimeException {
-    public NotFoundException(String requestId, String entity, String column) {
-      super(String.format("[%s] [%s] Not found for [%s]...", requestId, entity, column));
+    public NotFoundException(String entity, String column) {
+      super(String.format("[%s] Not found for [%s]...", entity, column));
     }
   }
 }

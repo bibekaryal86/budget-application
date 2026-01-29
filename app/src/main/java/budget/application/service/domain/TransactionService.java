@@ -40,19 +40,16 @@ public class TransactionService {
     this.email = email;
   }
 
-  public TransactionResponse create(String requestId, TransactionRequest transactionRequest)
-      throws SQLException {
-    log.debug("[{}] Create transaction: TransactionRequest=[{}]", requestId, transactionRequest);
+  public TransactionResponse create(TransactionRequest transactionRequest) throws SQLException {
+    log.debug("Create transaction: TransactionRequest=[{}]", transactionRequest);
     return transactionManager.execute(
-        requestId,
         transactionContext -> {
-          TransactionDao transactionDao =
-              new TransactionDao(requestId, transactionContext.connection());
-          CategoryDao categoryDao = new CategoryDao(requestId, transactionContext.connection());
+          TransactionDao transactionDao = new TransactionDao(transactionContext.connection());
+          CategoryDao categoryDao = new CategoryDao(transactionContext.connection());
           TransactionItemDao transactionItemDao =
-              new TransactionItemDao(requestId, transactionContext.connection());
+              new TransactionItemDao(transactionContext.connection());
 
-          Validations.validateTransaction(requestId, transactionRequest, categoryDao);
+          Validations.validateTransaction(transactionRequest, categoryDao);
           Transaction transactionIn =
               new Transaction(
                   null,
@@ -64,7 +61,7 @@ public class TransactionService {
                   null);
 
           UUID transactionId = transactionDao.create(transactionIn).id();
-          log.debug("[{}] Created transaction: Id=[{}]", requestId, transactionId);
+          log.debug("Created transaction: Id=[{}]", transactionId);
 
           List<TransactionItem> transactionItemsIn =
               transactionRequest.items().stream()
@@ -82,10 +79,7 @@ public class TransactionService {
               transactionItemDao.createItems(transactionItemsIn).stream()
                   .map(TransactionItem::id)
                   .toList();
-          log.debug(
-              "[{}] Created transaction items: TransactionItems=[{}]",
-              requestId,
-              transactionItemIds);
+          log.debug("Created transaction items: TransactionItems=[{}]", transactionItemIds);
 
           List<TransactionResponse.Transaction> transactions =
               transactionDao.readTransactions(List.of(transactionId), null, null).items();
@@ -95,21 +89,17 @@ public class TransactionService {
   }
 
   public TransactionResponse read(
-      String requestId,
       List<UUID> transactionIds,
       RequestParams.TransactionParams requestParams,
       PaginationRequest paginationRequest)
       throws SQLException {
     log.debug(
-        "[{}] Read transactions: TransactionIds=[{}], RequestParams=[{}]",
-        requestId,
+        "Read transactions: TransactionIds=[{}], RequestParams=[{}]",
         transactionIds,
         requestParams);
     return transactionManager.execute(
-        requestId,
         transactionContext -> {
-          TransactionDao transactionDao =
-              new TransactionDao(requestId, transactionContext.connection());
+          TransactionDao transactionDao = new TransactionDao(transactionContext.connection());
 
           PaginationResponse<TransactionResponse.Transaction> transactionPaginationResponse =
               transactionDao.readTransactions(transactionIds, requestParams, paginationRequest);
@@ -118,7 +108,7 @@ public class TransactionService {
               && (transactionPaginationResponse == null
                   || CommonUtilities.isEmpty(transactionPaginationResponse.items()))) {
             throw new Exceptions.NotFoundException(
-                requestId, "Transaction", transactionIds.getFirst().toString());
+                "Transaction", transactionIds.getFirst().toString());
           }
 
           ResponseMetadata responseMetadata =
@@ -131,41 +121,33 @@ public class TransactionService {
         });
   }
 
-  public TransactionResponse.TransactionMerchants readTransactionMerchants(String requestId)
-      throws SQLException {
-    log.debug("[{}] Read transaction merchants", requestId);
+  public TransactionResponse.TransactionMerchants readTransactionMerchants() throws SQLException {
+    log.debug("Read transaction merchants");
     return transactionManager.execute(
-        requestId,
         transactionContext -> {
-          TransactionDao transactionDao =
-              new TransactionDao(requestId, transactionContext.connection());
+          TransactionDao transactionDao = new TransactionDao(transactionContext.connection());
           List<String> merchants = transactionDao.readAllMerchants();
           return new TransactionResponse.TransactionMerchants(
               merchants, ResponseMetadata.emptyResponseMetadata());
         });
   }
 
-  public TransactionResponse update(
-      String requestId, UUID id, TransactionRequest transactionRequest) throws SQLException {
-    log.debug(
-        "[{}] Update transaction: Id=[{}], TransactionRequest=[{}]",
-        requestId,
-        id,
-        transactionRequest);
-    return transactionManager.execute(
-        requestId,
-        transactionContext -> {
-          TransactionDao transactionDao =
-              new TransactionDao(requestId, transactionContext.connection());
-          TransactionItemDao transactionItemDao =
-              new TransactionItemDao(requestId, transactionContext.connection());
-          CategoryDao categoryDao = new CategoryDao(requestId, transactionContext.connection());
+  public TransactionResponse update(UUID id, TransactionRequest transactionRequest)
+      throws SQLException {
+    log.debug("Update transaction: Id=[{}], TransactionRequest=[{}]", id, transactionRequest);
 
-          Validations.validateTransaction(requestId, transactionRequest, categoryDao);
+    return transactionManager.execute(
+        transactionContext -> {
+          TransactionDao transactionDao = new TransactionDao(transactionContext.connection());
+          TransactionItemDao transactionItemDao =
+              new TransactionItemDao(transactionContext.connection());
+          CategoryDao categoryDao = new CategoryDao(transactionContext.connection());
+
+          Validations.validateTransaction(transactionRequest, categoryDao);
 
           List<Transaction> transactionList = transactionDao.read(List.of(id));
           if (transactionList.isEmpty()) {
-            throw new Exceptions.NotFoundException(requestId, "Transaction", id.toString());
+            throw new Exceptions.NotFoundException("Transaction", id.toString());
           }
 
           Transaction transactionIn =
@@ -180,12 +162,11 @@ public class TransactionService {
 
           // Update transaction
           Transaction transactionOut = transactionDao.update(transactionIn);
-          log.debug("[{}] Updated transaction: Transaction=[{}]", requestId, transactionOut);
+          log.debug("Updated transaction: Transaction=[{}]", transactionOut);
 
           int deleteCount = transactionItemDao.deleteByTransactionIds(List.of(id));
           log.debug(
-              "[{}] Deleted transaction items for transaction: TxnId=[{}], DeleteCount=[{}]",
-              requestId,
+              "Deleted transaction items for transaction: TxnId=[{}], DeleteCount=[{}]",
               id,
               deleteCount);
 
@@ -203,10 +184,7 @@ public class TransactionService {
                   .toList();
           List<TransactionItem> transactionItemList =
               transactionItemDao.createItems(transactionItemsList);
-          log.debug(
-              "[{}] Recreated transaction items: TransactionItems=[{}]",
-              requestId,
-              transactionItemList);
+          log.debug("Recreated transaction items: TransactionItems=[{}]", transactionItemList);
 
           List<TransactionResponse.Transaction> transactions =
               transactionDao.readTransactions(List.of(id), null, null).items();
@@ -215,32 +193,27 @@ public class TransactionService {
         });
   }
 
-  public TransactionResponse delete(String requestId, List<UUID> ids) throws SQLException {
-    log.info("[{}] Delete transactions: Ids=[{}]", requestId, ids);
+  public TransactionResponse delete(List<UUID> ids) throws SQLException {
+    log.info("Delete transactions: Ids=[{}]", ids);
     return transactionManager.execute(
-        requestId,
         transactionContext -> {
-          TransactionDao transactionDao =
-              new TransactionDao(requestId, transactionContext.connection());
+          TransactionDao transactionDao = new TransactionDao(transactionContext.connection());
           TransactionItemDao transactionItemDao =
-              new TransactionItemDao(requestId, transactionContext.connection());
+              new TransactionItemDao(transactionContext.connection());
 
           List<Transaction> transactionList = transactionDao.read(ids);
           if (ids.size() == 1 && transactionList.isEmpty()) {
-            throw new Exceptions.NotFoundException(
-                requestId, "Transaction", ids.getFirst().toString());
+            throw new Exceptions.NotFoundException("Transaction", ids.getFirst().toString());
           }
 
           int deleteCountTransactionItems = transactionItemDao.deleteByTransactionIds(ids);
           log.info(
-              "[{}] Deleted transaction items for transactions: Ids=[{}], DeleteCount=[{}]",
-              requestId,
+              "Deleted transaction items for transactions: Ids=[{}], DeleteCount=[{}]",
               ids,
               deleteCountTransactionItems);
 
           int deleteCount = transactionDao.delete(ids);
-          log.info(
-              "[{}] Deleted transactions: Ids=[{}], DeleteCount=[{}]", requestId, ids, deleteCount);
+          log.info("Deleted transactions: Ids=[{}], DeleteCount=[{}]", ids, deleteCount);
           return new TransactionResponse(
               List.of(), ResponseMetadataUtils.defaultDeleteResponseMetadata(deleteCount));
         });
@@ -250,12 +223,10 @@ public class TransactionService {
     log.debug("[{}] Reconciling all transactions...", requestId);
     List<TransactionResponse.Transaction> mismatchTransactions = new ArrayList<>();
     transactionManager.executeVoid(
-        requestId,
         transactionContext -> {
-          TransactionDao transactionDao =
-              new TransactionDao(requestId, transactionContext.connection());
+          TransactionDao transactionDao = new TransactionDao(transactionContext.connection());
           TransactionItemDao transactionItemDao =
-              new TransactionItemDao(requestId, transactionContext.connection());
+              new TransactionItemDao(transactionContext.connection());
           // Read all transactions
           int pageNumber = 1;
           int pageSize = 1000;
@@ -282,8 +253,7 @@ public class TransactionService {
               if (sumItems.compareTo(transaction.totalAmount()) != 0) {
                 mismatchTransactions.add(transaction);
                 log.debug(
-                    "[{}] MISMATCH for Txn=[{}] | Total=[{}] | SUM(Items)=[{}]",
-                    requestId,
+                    "MISMATCH for Txn=[{}] | Total=[{}] | SUM(Items)=[{}]",
                     id,
                     transaction.totalAmount(),
                     sumItems);
@@ -295,7 +265,7 @@ public class TransactionService {
     if (!mismatchTransactions.isEmpty()) {
       List<UUID> mismatchTransactionIds =
           mismatchTransactions.stream().map(TransactionResponse.Transaction::id).toList();
-      log.info("[{}] Mismatched transactions found: TxnIds={}", requestId, mismatchTransactionIds);
+      log.info("Mismatched transactions found: TxnIds={}", mismatchTransactionIds);
       sendReconciliationEmail(mismatchTransactions);
     }
   }

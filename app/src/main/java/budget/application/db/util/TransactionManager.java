@@ -13,8 +13,8 @@ public class TransactionManager {
   }
 
   /** Execute a function inside a transaction. Allows throwing SQLException inside the lambda. */
-  public <T> T execute(String requestId, SqlWork<T> work) throws SQLException {
-    try (TransactionContext txnCxt = new TransactionContext(requestId, getConnection())) {
+  public <T> T execute(SqlWork<T> work) throws SQLException {
+    try (TransactionContext txnCxt = new TransactionContext(getConnection())) {
       T result = work.apply(txnCxt);
       txnCxt.commit();
       return result;
@@ -22,8 +22,8 @@ public class TransactionManager {
   }
 
   /** Execute a void operation inside a transaction. */
-  public void executeVoid(String requestId, SqlVoidWork work) throws SQLException {
-    try (TransactionContext txnCxt = new TransactionContext(requestId, getConnection())) {
+  public void executeVoid(SqlVoidWork work) throws SQLException {
+    try (TransactionContext txnCxt = new TransactionContext(getConnection())) {
       work.apply(txnCxt);
       txnCxt.commit();
     }

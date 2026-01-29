@@ -26,19 +26,15 @@ public class CategoryTypeService {
     this.transactionManager = new TransactionManager(dataSource);
   }
 
-  public CategoryTypeResponse create(String requestId, CategoryTypeRequest categoryTypeRequest)
-      throws SQLException {
-    log.debug(
-        "[{}] Create category type: CategoryTypeRequest=[{}]", requestId, categoryTypeRequest);
+  public CategoryTypeResponse create(CategoryTypeRequest categoryTypeRequest) throws SQLException {
+    log.debug("Create category type: CategoryTypeRequest=[{}]", categoryTypeRequest);
     return transactionManager.execute(
-        requestId,
         transactionContext -> {
-          CategoryTypeDao categoryTypeDao =
-              new CategoryTypeDao(requestId, transactionContext.connection());
-          Validations.validateCategoryType(requestId, categoryTypeRequest);
+          CategoryTypeDao categoryTypeDao = new CategoryTypeDao(transactionContext.connection());
+          Validations.validateCategoryType(categoryTypeRequest);
           CategoryType categoryTypeIn = new CategoryType(null, categoryTypeRequest.name());
           UUID id = categoryTypeDao.create(categoryTypeIn).id();
-          log.debug("[{}] Created category type: Id=[{}]", requestId, id);
+          log.debug("Created category type: Id=[{}]", id);
           CategoryTypeResponse.CategoryType categoryType =
               new CategoryTypeResponse.CategoryType(id, categoryTypeIn.name().toUpperCase());
 
@@ -47,19 +43,16 @@ public class CategoryTypeService {
         });
   }
 
-  public CategoryTypeResponse read(String requestId, List<UUID> ids) throws SQLException {
-    log.debug("[{}] Read category types: Ids=[{}]", requestId, ids);
+  public CategoryTypeResponse read(List<UUID> ids) throws SQLException {
+    log.debug("Read category types: Ids=[{}]", ids);
 
     return transactionManager.execute(
-        requestId,
         transactionContext -> {
-          CategoryTypeDao categoryTypeDao =
-              new CategoryTypeDao(requestId, transactionContext.connection());
+          CategoryTypeDao categoryTypeDao = new CategoryTypeDao(transactionContext.connection());
           List<CategoryType> categoryTypeList = categoryTypeDao.read(ids);
 
           if (ids.size() == 1 && categoryTypeList.isEmpty()) {
-            throw new Exceptions.NotFoundException(
-                requestId, "CategoryType", ids.getFirst().toString());
+            throw new Exceptions.NotFoundException("CategoryType", ids.getFirst().toString());
           }
 
           List<CategoryTypeResponse.CategoryType> categoryTypes =
@@ -71,24 +64,19 @@ public class CategoryTypeService {
         });
   }
 
-  public CategoryTypeResponse update(
-      String requestId, UUID id, CategoryTypeRequest categoryTypeRequest) throws SQLException {
-    log.debug(
-        "[{}] Update category type: Id=[{}], CategoryTypeRequest=[{}]",
-        requestId,
-        id,
-        categoryTypeRequest);
+  public CategoryTypeResponse update(UUID id, CategoryTypeRequest categoryTypeRequest)
+      throws SQLException {
+    log.debug("Update category type: Id=[{}], CategoryTypeRequest=[{}]", id, categoryTypeRequest);
+
     return transactionManager.execute(
-        requestId,
         transactionContext -> {
-          CategoryTypeDao categoryTypeDao =
-              new CategoryTypeDao(requestId, transactionContext.connection());
-          Validations.validateCategoryType(requestId, categoryTypeRequest);
+          CategoryTypeDao categoryTypeDao = new CategoryTypeDao(transactionContext.connection());
+          Validations.validateCategoryType(categoryTypeRequest);
 
           List<CategoryType> categoryTypeList = categoryTypeDao.read(List.of(id));
 
           if (categoryTypeList.isEmpty()) {
-            throw new Exceptions.NotFoundException(requestId, "CategoryType", id.toString());
+            throw new Exceptions.NotFoundException("CategoryType", id.toString());
           }
 
           CategoryType categoryTypeIn = new CategoryType(id, categoryTypeRequest.name());
@@ -101,19 +89,16 @@ public class CategoryTypeService {
         });
   }
 
-  public CategoryTypeResponse delete(String requestId, List<UUID> ids) throws SQLException {
-    log.info("[{}] Delete category types: Ids=[{}]", requestId, ids);
+  public CategoryTypeResponse delete(List<UUID> ids) throws SQLException {
+    log.info("Delete category types: Ids=[{}]", ids);
     return transactionManager.execute(
-        requestId,
         transactionContext -> {
-          CategoryTypeDao categoryTypeDao =
-              new CategoryTypeDao(requestId, transactionContext.connection());
+          CategoryTypeDao categoryTypeDao = new CategoryTypeDao(transactionContext.connection());
 
           List<CategoryType> categoryTypeList = categoryTypeDao.read(ids);
 
           if (ids.size() == 1 && categoryTypeList.isEmpty()) {
-            throw new Exceptions.NotFoundException(
-                requestId, "CategoryType", ids.getFirst().toString());
+            throw new Exceptions.NotFoundException("CategoryType", ids.getFirst().toString());
           }
 
           int deleteCount = categoryTypeDao.delete(ids);

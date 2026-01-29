@@ -8,8 +8,8 @@ import java.util.UUID;
 
 public class AccountDao extends BaseDao<Account> {
 
-  public AccountDao(String requestId, Connection connection) {
-    super(requestId, connection, new AccountRowMappers.AccountRowMapper());
+  public AccountDao(Connection connection) {
+    super(connection, new AccountRowMappers.AccountRowMapper());
   }
 
   @Override

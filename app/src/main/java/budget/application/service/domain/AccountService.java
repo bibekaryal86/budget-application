@@ -25,15 +25,13 @@ public class AccountService {
     this.transactionManager = new TransactionManager(dataSource);
   }
 
-  public AccountResponse create(String requestId, AccountRequest accountRequest)
-      throws SQLException {
-    log.debug("[{}] Create account: AccountRequest=[{}]", requestId, accountRequest);
+  public AccountResponse create(AccountRequest accountRequest) throws SQLException {
+    log.debug("Create account: AccountRequest=[{}]", accountRequest);
     return transactionManager.execute(
-        requestId,
         transactionContext -> {
-          AccountDao accountDao = new AccountDao(requestId, transactionContext.connection());
+          AccountDao accountDao = new AccountDao(transactionContext.connection());
 
-          Validations.validateAccount(requestId, accountRequest);
+          Validations.validateAccount(accountRequest);
 
           Account accountIn =
               new Account(
@@ -46,7 +44,7 @@ public class AccountService {
                   null,
                   null);
           Account accountOut = accountDao.create(accountIn);
-          log.debug("[{}] Created account: Id=[{}]", requestId, accountOut.id());
+          log.debug("Created account: Id=[{}]", accountOut.id());
           AccountResponse.Account account =
               new AccountResponse.Account(
                   accountOut.id(),
@@ -61,15 +59,14 @@ public class AccountService {
         });
   }
 
-  public AccountResponse read(String requestId, List<UUID> ids) throws SQLException {
-    log.debug("[{}] Read accounts: Ids={}", requestId, ids);
+  public AccountResponse read(List<UUID> ids) throws SQLException {
+    log.debug("Read accounts: Ids={}", ids);
     return transactionManager.execute(
-        requestId,
         transactionContext -> {
-          AccountDao accountDao = new AccountDao(requestId, transactionContext.connection());
+          AccountDao accountDao = new AccountDao(transactionContext.connection());
           List<Account> accountList = accountDao.read(ids);
           if (ids.size() == 1 && accountList.isEmpty()) {
-            throw new Exceptions.NotFoundException(requestId, "Account", ids.getFirst().toString());
+            throw new Exceptions.NotFoundException("Account", ids.getFirst().toString());
           }
 
           List<AccountResponse.Account> accounts =
@@ -89,18 +86,16 @@ public class AccountService {
         });
   }
 
-  public AccountResponse update(String requestId, UUID id, AccountRequest accountRequest)
-      throws SQLException {
-    log.debug("[{}] Update account: Id=[{}], AccountRequest=[{}]", requestId, id, accountRequest);
+  public AccountResponse update(UUID id, AccountRequest accountRequest) throws SQLException {
+    log.debug("Update account: Id=[{}], AccountRequest=[{}]", id, accountRequest);
     return transactionManager.execute(
-        requestId,
         transactionContext -> {
-          AccountDao accountDao = new AccountDao(requestId, transactionContext.connection());
-          Validations.validateAccount(requestId, accountRequest);
+          AccountDao accountDao = new AccountDao(transactionContext.connection());
+          Validations.validateAccount(accountRequest);
 
           List<Account> accountList = accountDao.read(List.of(id));
           if (accountList.isEmpty()) {
-            throw new Exceptions.NotFoundException(requestId, "Account", id.toString());
+            throw new Exceptions.NotFoundException("Account", id.toString());
           }
 
           Account accountIn =
@@ -127,16 +122,15 @@ public class AccountService {
         });
   }
 
-  public AccountResponse delete(String requestId, List<UUID> ids) throws SQLException {
-    log.info("[{}] Delete accounts: Ids=[{}]", requestId, ids);
+  public AccountResponse delete(List<UUID> ids) throws SQLException {
+    log.info("Delete accounts: Ids=[{}]", ids);
     return transactionManager.execute(
-        requestId,
         transactionContext -> {
-          AccountDao accountDao = new AccountDao(requestId, transactionContext.connection());
+          AccountDao accountDao = new AccountDao(transactionContext.connection());
 
           List<Account> accountList = accountDao.read(ids);
           if (ids.size() == 1 && accountList.isEmpty()) {
-            throw new Exceptions.NotFoundException(requestId, "Account", ids.getFirst().toString());
+            throw new Exceptions.NotFoundException("Account", ids.getFirst().toString());
           }
 
           int deleteCount = accountDao.delete(ids);

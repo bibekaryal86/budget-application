@@ -19,8 +19,8 @@ public class BudgetDao extends BaseDao<Budget> {
 
   private final BudgetRowMappers.BudgetRowMapperResponse budgetRowMapperResponse;
 
-  public BudgetDao(String requestId, Connection connection) {
-    super(requestId, connection, new BudgetRowMappers.BudgetRowMapper());
+  public BudgetDao(Connection connection) {
+    super(connection, new BudgetRowMappers.BudgetRowMapper());
     this.budgetRowMapperResponse = new BudgetRowMappers.BudgetRowMapperResponse();
   }
 
@@ -73,8 +73,7 @@ public class BudgetDao extends BaseDao<Budget> {
   public List<BudgetResponse.Budget> readBudgets(
       List<UUID> ids, int budgetMonth, int budgetYear, List<UUID> categoryIds) throws SQLException {
     log.debug(
-        "[{}] Read Budgets: Ids={}, Month=[{}], Year=[{}], CategoryIds={}",
-        requestId,
+        "Read Budgets: Ids={}, Month=[{}], Year=[{}], CategoryIds={}",
         ids,
         budgetMonth,
         budgetYear,
@@ -124,7 +123,7 @@ public class BudgetDao extends BaseDao<Budget> {
     }
     sql.append(" ORDER BY ct.name, c.name ASC");
 
-    log.debug("[{}] Read Budgets SQL=[{}]", requestId, sql);
+    log.debug("Read Budgets SQL=[{}]", sql);
 
     try (PreparedStatement preparedStatement = connection.prepareStatement(sql.toString())) {
       if (!params.isEmpty()) {

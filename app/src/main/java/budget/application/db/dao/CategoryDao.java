@@ -19,8 +19,8 @@ public class CategoryDao extends BaseDao<Category> {
 
   private final CategoryRowMappers.CategoryRowMapperResponse categoryRowMapperResponse;
 
-  public CategoryDao(String requestId, Connection connection) {
-    super(requestId, connection, new CategoryRowMappers.CategoryRowMapper());
+  public CategoryDao(Connection connection) {
+    super(connection, new CategoryRowMappers.CategoryRowMapper());
     this.categoryRowMapperResponse = new CategoryRowMappers.CategoryRowMapperResponse();
   }
 
@@ -78,10 +78,7 @@ public class CategoryDao extends BaseDao<Category> {
   public List<CategoryResponse.Category> readCategories(
       List<UUID> categoryIds, List<UUID> categoryTypeIds) throws SQLException {
     log.debug(
-        "[{}] Read Categories: CategoryIds=[{}], CategoryTypeIds=[{}]",
-        requestId,
-        categoryIds,
-        categoryTypeIds);
+        "Read Categories: CategoryIds=[{}], CategoryTypeIds=[{}]", categoryIds, categoryTypeIds);
     StringBuilder sql =
         new StringBuilder(
             """
@@ -116,7 +113,7 @@ public class CategoryDao extends BaseDao<Category> {
     }
     sql.append(" ORDER BY ct.name, c.name ASC ");
 
-    log.debug("[{}] Read Categories SQL=[{}]", requestId, sql);
+    log.debug("Read Categories SQL=[{}]", sql);
 
     try (PreparedStatement preparedStatement = connection.prepareStatement(sql.toString())) {
       if (!params.isEmpty()) {

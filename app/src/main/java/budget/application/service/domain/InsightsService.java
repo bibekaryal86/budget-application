@@ -25,13 +25,12 @@ public class InsightsService {
   }
 
   public InsightsResponse.CashFlowSummaries readCashFLowSummaries(
-      String requestId, RequestParams.CashFlowSummaryParams requestParams) throws SQLException {
-    log.debug("[{}] Read cash flow summary: RequestParams=[{}]", requestId, requestParams);
+      RequestParams.CashFlowSummaryParams requestParams) throws SQLException {
+    log.debug("Read cash flow summary: RequestParams=[{}]", requestParams);
 
     return transactionManager.execute(
-        requestId,
         transactionContext -> {
-          InsightsDao insightsDao = new InsightsDao(requestId, transactionContext.connection());
+          InsightsDao insightsDao = new InsightsDao(transactionContext.connection());
 
           LocalDate beginDate = requestParams.beginDate();
           LocalDate endDate = requestParams.endDate();
@@ -50,13 +49,12 @@ public class InsightsService {
   }
 
   public InsightsResponse.CategorySummaries readCategoriesSummary(
-      String requestId, RequestParams.CategorySummaryParams requestParams) throws SQLException {
-    log.debug("[{}] Read categories summary: RequestParams=[{}]", requestId, requestParams);
+      RequestParams.CategorySummaryParams requestParams) throws SQLException {
+    log.debug("Read categories summary: RequestParams=[{}]", requestParams);
 
     return transactionManager.execute(
-        requestId,
         transactionContext -> {
-          InsightsDao insightsDao = new InsightsDao(requestId, transactionContext.connection());
+          InsightsDao insightsDao = new InsightsDao(transactionContext.connection());
 
           LocalDate beginDate = requestParams.beginDate();
           LocalDate endDate = requestParams.endDate();

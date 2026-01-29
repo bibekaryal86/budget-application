@@ -19,127 +19,101 @@ import java.util.stream.Collectors;
 public class Validations {
   private Validations() {}
 
-  public static void validateAccount(String requestId, AccountRequest accountRequest) {
+  public static void validateAccount(AccountRequest accountRequest) {
     if (accountRequest == null) {
-      throw new Exceptions.BadRequestException(
-          String.format("[%s] Account request cannot be null...", requestId));
+      throw new Exceptions.BadRequestException("Account request cannot be null...");
     }
     if (CommonUtilities.isEmpty(accountRequest.name())) {
-      throw new Exceptions.BadRequestException(
-          String.format("[%s] Account name cannot be empty...", requestId));
+      throw new Exceptions.BadRequestException("Account name cannot be empty...");
     }
     if (CommonUtilities.isEmpty(accountRequest.accountType())) {
-      throw new Exceptions.BadRequestException(
-          String.format("[%s] Account type cannot be empty...", requestId));
+      throw new Exceptions.BadRequestException("Account type cannot be empty...");
     }
     if (!Constants.ACCOUNT_TYPES.contains(accountRequest.accountType())) {
-      throw new Exceptions.BadRequestException(
-          String.format("[%s] Account type is invalid...", requestId));
+      throw new Exceptions.BadRequestException("Account type is invalid...");
     }
     if (CommonUtilities.isEmpty(accountRequest.bankName())) {
-      throw new Exceptions.BadRequestException(
-          String.format("[%s] Bank name cannot be empty...", requestId));
+      throw new Exceptions.BadRequestException("Bank name cannot be empty...");
     }
     if (accountRequest.openingBalance() == null || accountRequest.openingBalance().intValue() < 0) {
-      throw new Exceptions.BadRequestException(
-          String.format("[%s] Opening balance cannot be null or negative...", requestId));
+      throw new Exceptions.BadRequestException("Opening balance cannot be null or negative...");
     }
     if (CommonUtilities.isEmpty(accountRequest.status())) {
-      throw new Exceptions.BadRequestException(
-          String.format("[%s] Account status cannot be empty...", requestId));
+      throw new Exceptions.BadRequestException("Account status cannot be empty...");
     }
     if (!Constants.ACCOUNT_STATUSES.contains(accountRequest.status())) {
-      throw new Exceptions.BadRequestException(
-          String.format("[%s] Account status is invalid...", requestId));
+      throw new Exceptions.BadRequestException("Account status is invalid...");
     }
   }
 
-  public static void validateBudget(
-      String requestId, BudgetRequest budgetRequest, CategoryDao categoryDao) {
+  public static void validateBudget(BudgetRequest budgetRequest, CategoryDao categoryDao) {
     if (budgetRequest == null) {
-      throw new Exceptions.BadRequestException(
-          String.format("[%s] Budget request cannot be null...", requestId));
+      throw new Exceptions.BadRequestException("Budget request cannot be null...");
     }
     if (budgetRequest.categoryId() == null) {
-      throw new Exceptions.BadRequestException(
-          String.format("[%s] Budget category cannot be null...", requestId));
+      throw new Exceptions.BadRequestException("Budget category cannot be null...");
     }
     if (budgetRequest.budgetMonth() < 1 || budgetRequest.budgetMonth() > 12) {
-      throw new Exceptions.BadRequestException(
-          String.format("[%s] Budget month should be between 1 and 12...", requestId));
+      throw new Exceptions.BadRequestException("Budget month should be between 1 and 12...");
     }
     if (budgetRequest.budgetYear() < 2025 || budgetRequest.budgetYear() > 2100) {
-      throw new Exceptions.BadRequestException(
-          String.format("[%s] Budget year should be between 2025 and 2100...", requestId));
+      throw new Exceptions.BadRequestException("Budget year should be between 2025 and 2100...");
     }
 
     if (budgetRequest.amount() == null || budgetRequest.amount().intValue() < 1) {
-      throw new Exceptions.BadRequestException(
-          String.format("[%s] Budget amount cannot be zero or negative...", requestId));
+      throw new Exceptions.BadRequestException("Budget amount cannot be zero or negative...");
     }
 
     CategoryResponse.Category category =
         categoryDao.readByIdNoEx(budgetRequest.categoryId()).orElse(null);
     if (category == null) {
-      throw new Exceptions.BadRequestException(
-          String.format("[%s] Category does not exist...", requestId));
+      throw new Exceptions.BadRequestException("Category does not exist...");
     }
   }
 
   public static void validateCategory(
-      String requestId, CategoryRequest categoryRequest, CategoryTypeDao categoryTypeDao) {
+      CategoryRequest categoryRequest, CategoryTypeDao categoryTypeDao) {
     if (categoryRequest == null) {
-      throw new Exceptions.BadRequestException(
-          String.format("[%s] Category request cannot be null...", requestId));
+      throw new Exceptions.BadRequestException("Category request cannot be null...");
     }
     if (categoryRequest.categoryTypeId() == null) {
-      throw new Exceptions.BadRequestException(
-          String.format("[%s] Category type cannot be null...", requestId));
+      throw new Exceptions.BadRequestException("Category type cannot be null...");
     }
     if (CommonUtilities.isEmpty(categoryRequest.name())) {
-      throw new Exceptions.BadRequestException(
-          String.format("[%s] Category name cannot be empty...", requestId));
+      throw new Exceptions.BadRequestException("Category name cannot be empty...");
     }
     if (categoryTypeDao.readByIdNoEx(categoryRequest.categoryTypeId()).isEmpty()) {
-      throw new Exceptions.BadRequestException(
-          String.format("[%s] Category type does not exist...", requestId));
+      throw new Exceptions.BadRequestException("Category type does not exist...");
     }
   }
 
-  public static void validateCategoryType(
-      String requestId, CategoryTypeRequest categoryTypeRequest) {
+  public static void validateCategoryType(CategoryTypeRequest categoryTypeRequest) {
     if (categoryTypeRequest == null) {
-      throw new Exceptions.BadRequestException(
-          String.format("[%s] Category type request cannot be null...", requestId));
+      throw new Exceptions.BadRequestException("Category type request cannot be null...");
     }
     if (CommonUtilities.isEmpty(categoryTypeRequest.name())) {
-      throw new Exceptions.BadRequestException(
-          String.format("[%s] Category type name cannot be empty...", requestId));
+      throw new Exceptions.BadRequestException("Category type name cannot be empty...");
     }
   }
 
   public static void validateTransactionItem(
-      String requestId,
       TransactionItemRequest transactionItemRequest,
       CategoryDao categoryDao,
       Boolean isCreateTransaction,
       List<CategoryResponse.Category> categories) {
     if (transactionItemRequest == null) {
-      throw new Exceptions.BadRequestException(
-          String.format("[%s] Transaction item request cannot be null...", requestId));
+      throw new Exceptions.BadRequestException("Transaction item request cannot be null...");
     }
     if (!isCreateTransaction && transactionItemRequest.transactionId() == null) {
-      throw new Exceptions.BadRequestException(
-          String.format("[%s] Transaction item transaction cannot be null...", requestId));
+      throw new Exceptions.BadRequestException("Transaction item transaction cannot be null...");
     }
     if (transactionItemRequest.categoryId() == null) {
-      throw new Exceptions.BadRequestException(
-          String.format("[%s] Transaction item category cannot be null...", requestId));
+      throw new Exceptions.BadRequestException("Transaction item category cannot be null...");
     }
     if (transactionItemRequest.amount() == null
         || transactionItemRequest.amount().compareTo(BigDecimal.ZERO) <= 0) {
       throw new Exceptions.BadRequestException(
-          String.format("[%s] Transaction item amount cannot be null or negative...", requestId));
+          "Transaction item amount cannot be null or negative...");
     }
 
     CategoryResponse.Category category =
@@ -150,49 +124,41 @@ public class Validations {
                 .findFirst()
                 .orElse(null);
     if (category == null) {
-      throw new Exceptions.BadRequestException(
-          String.format("[%s] Category does not exist...", requestId));
+      throw new Exceptions.BadRequestException("Category does not exist...");
     }
   }
 
   public static void validateTransaction(
-      String requestId, TransactionRequest transactionRequest, CategoryDao categoryDao) {
+      TransactionRequest transactionRequest, CategoryDao categoryDao) {
     if (transactionRequest == null) {
-      throw new Exceptions.BadRequestException(
-          String.format("[%s] Transaction request cannot be null...", requestId));
+      throw new Exceptions.BadRequestException("Transaction request cannot be null...");
     }
     if (CommonUtilities.isEmpty(transactionRequest.merchant())) {
-      throw new Exceptions.BadRequestException(
-          String.format("[%s] Transaction merchant cannot be empty...", requestId));
+      throw new Exceptions.BadRequestException("Transaction merchant cannot be empty...");
     }
     if (transactionRequest.accountId() == null) {
-      throw new Exceptions.BadRequestException(
-          String.format("[%s] Transaction account cannot be null...", requestId));
+      throw new Exceptions.BadRequestException("Transaction account cannot be null...");
     }
     if (transactionRequest.totalAmount() == null
         || transactionRequest.totalAmount().compareTo(BigDecimal.ZERO) <= 0) {
-      throw new Exceptions.BadRequestException(
-          String.format("[%s] Transaction total cannot be null or negative...", requestId));
+      throw new Exceptions.BadRequestException("Transaction total cannot be null or negative...");
     }
     if (CommonUtilities.isEmpty(transactionRequest.items())) {
-      throw new Exceptions.BadRequestException(
-          String.format("[%s] Transaction must have at least one item...", requestId));
+      throw new Exceptions.BadRequestException("Transaction must have at least one item...");
     }
     BigDecimal sumItems =
         transactionRequest.items().stream()
             .map(TransactionItemRequest::amount)
             .reduce(BigDecimal.ZERO, BigDecimal::add);
     if (sumItems.compareTo(transactionRequest.totalAmount()) != 0) {
-      throw new Exceptions.BadRequestException(
-          String.format("[%s] Total amount does not match sum of items...", requestId));
+      throw new Exceptions.BadRequestException("Total amount does not match sum of items...");
     }
 
     List<UUID> categoryIds =
         transactionRequest.items().stream().map(TransactionItemRequest::categoryId).toList();
     List<CategoryResponse.Category> categories = categoryDao.readCategoriesByIdsNoEx(categoryIds);
     if (CommonUtilities.isEmpty(categories)) {
-      throw new Exceptions.BadRequestException(
-          String.format("[%s] Category does not exist...", requestId));
+      throw new Exceptions.BadRequestException("Category does not exist...");
     }
     Set<String> categoryTypeNames =
         categories.stream().map(c -> c.categoryType().name()).collect(Collectors.toSet());
@@ -200,14 +166,13 @@ public class Validations {
       if (categoryTypeNames.contains(categoryTypeName) && categoryTypeNames.size() > 1) {
         throw new Exceptions.BadRequestException(
             String.format(
-                "[%s] Category type [%s] cannot be mixed with other category types...",
-                requestId, categoryTypeName));
+                "Category type [%s] cannot be mixed with other category types...",
+                categoryTypeName));
       }
     }
 
     for (TransactionItemRequest transactionItemRequest : transactionRequest.items()) {
-      validateTransactionItem(
-          requestId, transactionItemRequest, categoryDao, Boolean.TRUE, categories);
+      validateTransactionItem(transactionItemRequest, categoryDao, Boolean.TRUE, categories);
     }
   }
 }

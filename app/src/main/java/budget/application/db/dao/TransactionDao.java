@@ -31,8 +31,8 @@ import java.util.function.Consumer;
 
 public class TransactionDao extends BaseDao<Transaction> {
 
-  public TransactionDao(String requestId, Connection connection) {
-    super(requestId, connection, new TransactionRowMappers.TransactionRowMapper());
+  public TransactionDao(Connection connection) {
+    super(connection, new TransactionRowMappers.TransactionRowMapper());
   }
 
   @Override
@@ -84,11 +84,7 @@ public class TransactionDao extends BaseDao<Transaction> {
       RequestParams.TransactionParams requestParams,
       PaginationRequest paginationRequest)
       throws SQLException {
-    log.debug(
-        "[{}] Read Transactions: TransactionIds=[{}], Params=[{}]",
-        requestId,
-        transactionIds,
-        requestParams);
+    log.debug("Read Transactions: TransactionIds=[{}], Params=[{}]", transactionIds, requestParams);
 
     if (requestParams == null) {
       requestParams =
@@ -190,7 +186,7 @@ public class TransactionDao extends BaseDao<Transaction> {
     int limit = perPage;
     int offset = (pageNumber - 1) * perPage;
 
-    log.debug("[{}] Read Transactions SQL=[{}]", requestId, sql);
+    log.debug("Read Transactions SQL=[{}]", sql);
 
     List<TransactionResponse.Transaction> transactions;
 
