@@ -4,6 +4,8 @@
 package budget.application;
 
 import budget.application.common.Constants;
+import budget.application.scheduler.ScheduleManager;
+import budget.application.server.core.ServerNetty;
 import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,8 +21,11 @@ public class Main {
     Main.checkEnvProperties();
     AppContext appContext = new AppContext();
 
-    appContext.scheduleManager.start();
-    appContext.serverNetty.start();
+    ScheduleManager scheduleManager = appContext.getScheduleManager();
+    scheduleManager.start();
+
+    ServerNetty serverNetty = new ServerNetty(appContext.getServerManager());
+    serverNetty.start();
 
     Runtime.getRuntime()
         .addShutdownHook(
@@ -28,12 +33,12 @@ public class Main {
                 () -> {
                   log.info("Shutdown initiated...");
                   try {
-                    appContext.scheduleManager.shutdown();
+                    scheduleManager.shutdown();
                   } catch (Exception e) {
                     log.error("Error shutting down scheduler... ", e);
                   }
                   try {
-                    appContext.serverNetty.stop();
+                    serverNetty.stop();
                   } catch (Exception e) {
                     log.error("Error shutting down server... ", e);
                   }

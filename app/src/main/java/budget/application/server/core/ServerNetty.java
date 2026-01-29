@@ -2,7 +2,6 @@ package budget.application.server.core;
 
 import budget.application.common.Constants;
 import budget.application.server.handlers.NotFoundHandler;
-import io.github.bibekaryal86.shdsvc.Email;
 import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
@@ -17,24 +16,19 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 import java.net.InetSocketAddress;
-import javax.sql.DataSource;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ServerNetty {
   private static final Logger log = LoggerFactory.getLogger(ServerNetty.class);
 
-  private final DataSource dataSource;
-  private final Email email;
-
+  private final ServerManager serverManager;
   private Channel channel;
   private EventLoopGroup bossGroup;
   private EventLoopGroup workerGroup;
 
-  public ServerNetty(DataSource dataSource, Email email) {
-    this.dataSource = dataSource;
-    this.email = email;
+  public ServerNetty(ServerManager serverManager) {
+    this.serverManager = serverManager;
   }
 
   public void start() throws Exception {
@@ -59,7 +53,7 @@ public class ServerNetty {
                       .addLast(new HttpObjectAggregator(Constants.MAX_CONTENT_LENGTH))
                       .addLast(new ServerLogging())
                       .addLast(new ServerSecurity())
-                      .addLast(new ServerRouter(dataSource, email))
+                      .addLast(new ServerRouter(serverManager))
                       .addLast(new NotFoundHandler());
                 }
               });

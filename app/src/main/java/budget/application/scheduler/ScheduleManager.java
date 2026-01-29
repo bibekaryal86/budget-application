@@ -1,7 +1,6 @@
 package budget.application.scheduler;
 
 import io.github.bibekaryal86.shdsvc.Email;
-import java.time.LocalTime;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import javax.sql.DataSource;
@@ -26,7 +25,8 @@ public class ScheduleManager {
 
     this.dailyTransactionReconScheduler =
         new DailyTransactionReconScheduler(dataSource, scheduledExecutorService, email);
-    this.databaseHealthCheckScheduler = new DatabaseHealthCheckScheduler(dataSource, scheduledExecutorService);
+    this.databaseHealthCheckScheduler =
+        new DatabaseHealthCheckScheduler(dataSource, scheduledExecutorService);
   }
 
   public void start() {

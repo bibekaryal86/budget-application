@@ -51,9 +51,7 @@ public class ServerLogging extends ChannelDuplexHandler {
         final HttpResponseStatus responseStatus = fullHttpResponse.status();
 
         log.info(
-            "Response OUT: Status=[{}], ContentLength=[{}]",
-            responseStatus,
-            responseContentLength);
+            "Response OUT: Status=[{}], ContentLength=[{}]", responseStatus, responseContentLength);
       }
     } finally {
       MDC.clear();
@@ -69,8 +67,7 @@ public class ServerLogging extends ChannelDuplexHandler {
 
       log.error("Exception caught...", cause);
       ResponseWithMetadata response =
-          ServerUtils.getResponseWithMetadata(
-              String.format("[%s]--[%s]", className, message));
+          ServerUtils.getResponseWithMetadata(String.format("[%s]--[%s]", className, message));
       ServerUtils.sendResponse(ctx, getHttpStatus(cause), response);
     } finally {
       MDC.clear();

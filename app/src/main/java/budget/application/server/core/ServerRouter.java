@@ -9,11 +9,9 @@ import budget.application.server.handlers.InsightsHandler;
 import budget.application.server.handlers.TransactionHandler;
 import budget.application.server.handlers.TransactionItemHandler;
 import budget.application.server.util.ApiPaths;
-import io.github.bibekaryal86.shdsvc.Email;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.FullHttpRequest;
-import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,15 +27,15 @@ public class ServerRouter extends SimpleChannelInboundHandler<FullHttpRequest> {
   private final TransactionItemHandler transactionItemHandler;
   private final TransactionHandler transactionHandler;
 
-  public ServerRouter(DataSource dataSource, Email email) {
-    this.appTestsHandler = new AppTestsHandler();
-    this.accountHandler = new AccountHandler(dataSource);
-    this.budgetHandler = new BudgetHandler(dataSource);
-    this.categoryTypeHandler = new CategoryTypeHandler(dataSource);
-    this.categoryHandler = new CategoryHandler(dataSource);
-    this.insightsHandler = new InsightsHandler(dataSource);
-    this.transactionItemHandler = new TransactionItemHandler(dataSource);
-    this.transactionHandler = new TransactionHandler(dataSource, email);
+  public ServerRouter(ServerManager serverManager) {
+    this.appTestsHandler = serverManager.getAppTestsHandler();
+    this.accountHandler = serverManager.getAccountHandler();
+    this.budgetHandler = serverManager.getBudgetHandler();
+    this.categoryTypeHandler = serverManager.getCategoryTypeHandler();
+    this.categoryHandler = serverManager.getCategoryHandler();
+    this.insightsHandler = serverManager.getInsightsHandler();
+    this.transactionItemHandler = serverManager.getTransactionItemHandler();
+    this.transactionHandler = serverManager.getTransactionHandler();
   }
 
   @Override
