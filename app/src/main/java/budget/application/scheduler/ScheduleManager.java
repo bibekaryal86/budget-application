@@ -13,6 +13,7 @@ public class ScheduleManager {
 
   private final ScheduledExecutorService scheduledExecutorService;
   private final DailyTransactionReconScheduler dailyTransactionReconScheduler;
+  private final DatabaseHealthCheckScheduler databaseHealthCheckScheduler;
 
   public ScheduleManager(DataSource dataSource, Email email) {
     this.scheduledExecutorService =
@@ -25,12 +26,12 @@ public class ScheduleManager {
 
     this.dailyTransactionReconScheduler =
         new DailyTransactionReconScheduler(dataSource, scheduledExecutorService, email);
+    this.databaseHealthCheckScheduler = new DatabaseHealthCheckScheduler(dataSource, scheduledExecutorService);
   }
 
   public void start() {
-    LocalTime startTime = LocalTime.of(2, 0);
-    dailyTransactionReconScheduler.start(startTime);
-    log.info("DailyTxnReconScheduler scheduled for [{}]", startTime);
+    dailyTransactionReconScheduler.start();
+    databaseHealthCheckScheduler.start();
   }
 
   public void shutdown() {

@@ -24,7 +24,8 @@ public class DailyTransactionReconScheduler {
     this.scheduledExecutorService = scheduledExecutorService;
   }
 
-  public void start(LocalTime runAt) {
+  public void start() {
+    LocalTime runAt = LocalTime.of(2, 0);
     log.info("Starting daily txn recon scheduler at [{}]", runAt);
     long initialDelayMillis = computeInitialDelayMillis(runAt);
     long periodMillis = Duration.ofDays(1).toMillis();

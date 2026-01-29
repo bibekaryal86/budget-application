@@ -4,37 +4,23 @@
 package budget.application;
 
 import budget.application.common.Constants;
-import budget.application.db.util.DataSourceFactory;
-import budget.application.db.util.DatabaseHealthCheck;
-import budget.application.scheduler.ScheduleManager;
-import budget.application.server.core.ServerNetty;
-import io.github.bibekaryal86.shdsvc.Email;
 import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class Main {
   private static final Logger log = LoggerFactory.getLogger(Main.class);
 
-  public static void main(String[] args) throws Exception {
+  static void main(String[] args) throws Exception {
     log.info("Starting Budget Service...");
     Main.checkEnvProperties();
+    AppContext appContext = new AppContext();
 
-    Email email = new Email();
-    DataSource dataSource = DataSourceFactory.create();
-
-    var dbHealth = new DatabaseHealthCheck(dataSource).check();
-    log.info("{}", dbHealth);
-
-    ServerNetty serverNetty = new ServerNetty(dataSource, email);
-    serverNetty.start();
-
-    ScheduleManager schedulerManager = new ScheduleManager(dataSource, email);
-    schedulerManager.start();
+    appContext.scheduleManager.start();
+    appContext.serverNetty.start();
 
     Runtime.getRuntime()
         .addShutdownHook(
@@ -42,12 +28,12 @@ public class Main {
                 () -> {
                   log.info("Shutdown initiated...");
                   try {
-                    schedulerManager.shutdown();
+                    appContext.scheduleManager.shutdown();
                   } catch (Exception e) {
                     log.error("Error shutting down scheduler... ", e);
                   }
                   try {
-                    serverNetty.stop();
+                    appContext.serverNetty.stop();
                   } catch (Exception e) {
                     log.error("Error shutting down server... ", e);
                   }
