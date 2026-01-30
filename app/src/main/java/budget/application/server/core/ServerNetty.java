@@ -55,7 +55,7 @@ public class ServerNetty {
                       .addLast(new ServerLogging())
                       .addLast(new ServerSecurity())
                       .addLast(new ServerRouter(serverContext))
-                          .addLast(new ExceptionHandler())
+                      .addLast(new ExceptionHandler())
                       .addLast(new NotFoundHandler());
                 }
               });

@@ -10,7 +10,6 @@ import budget.application.db.dao.CategoryTypeDao;
 import budget.application.db.dao.InsightsDao;
 import budget.application.db.dao.TransactionDao;
 import budget.application.db.dao.TransactionItemDao;
-import budget.application.scheduler.ScheduleManager;
 import budget.application.server.core.ServerContext;
 import budget.application.server.handlers.AccountHandler;
 import budget.application.server.handlers.AppTestsHandler;
