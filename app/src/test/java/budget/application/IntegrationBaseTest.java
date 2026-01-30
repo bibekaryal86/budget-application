@@ -2,6 +2,7 @@ package budget.application;
 
 import budget.application.common.Constants;
 import budget.application.server.core.ServerNetty;
+import io.github.bibekaryal86.shdsvc.Email;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -12,6 +13,7 @@ import java.util.UUID;
 import javax.sql.DataSource;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.mockito.Mock;
 
 public abstract class IntegrationBaseTest {
 
@@ -21,7 +23,9 @@ public abstract class IntegrationBaseTest {
 
   protected static DataSource testDataSource;
   protected static TestDataHelper testDataHelper;
-  protected static TestAppContext testAppContext;
+  protected static AppContext testAppContext;
+
+  @Mock protected static Email testEmail;
 
   @BeforeAll
   static void beforeAll() throws Exception {
@@ -31,8 +35,8 @@ public abstract class IntegrationBaseTest {
     testDataSource = TestDataSource.getDataSource();
     testDataHelper = new TestDataHelper(testDataSource);
 
-    testAppContext = new TestAppContext(testDataSource);
-    server = new ServerNetty(testAppContext.getTestServerContext());
+    testAppContext = new AppContext(testDataSource, testEmail);
+    server = new ServerNetty(testAppContext.getServerContext());
     server.start();
     port = server.getBoundPort();
   }

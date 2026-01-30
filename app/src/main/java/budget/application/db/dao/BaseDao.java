@@ -113,6 +113,12 @@ public abstract class BaseDao<T> {
 
       List<T> results = new ArrayList<>();
       while (resultSet.next()) results.add(mapper.map(resultSet));
+
+      if (cache != null) {
+          cache.clear();
+          cache.put(results);
+      }
+
       return results;
     }
   }

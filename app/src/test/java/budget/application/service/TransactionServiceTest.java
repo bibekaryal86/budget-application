@@ -22,13 +22,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 public class TransactionServiceTest extends IntegrationBaseTest {
 
-    private Email email;
   private TransactionService service;
 
   @BeforeEach
   void setup() {
-    service = testAppContext.getTransactionService();
-    email = testAppContext.getTestEmail();
+    service = null; // TODO
   }
 
   @AfterEach
@@ -41,7 +39,7 @@ public class TransactionServiceTest extends IntegrationBaseTest {
     testDataHelper.insertBulkTransactions(1500, 100.00, 100.00, false, 0.0, 1, 3);
 
     service.reconcileAll();
-    Mockito.verify(email, Mockito.never()).sendEmail(ArgumentMatchers.any());
+    Mockito.verify(testEmail, Mockito.never()).sendEmail(ArgumentMatchers.any());
   }
 
   @Test
@@ -52,7 +50,7 @@ public class TransactionServiceTest extends IntegrationBaseTest {
 
     service.reconcileAll();
     ArgumentCaptor<EmailRequest> captor = ArgumentCaptor.forClass(EmailRequest.class);
-    Mockito.verify(email, Mockito.times(1)).sendEmail(captor.capture());
+    Mockito.verify(testEmail, Mockito.times(1)).sendEmail(captor.capture());
 
     EmailRequest emailRequest = captor.getValue();
     Assertions.assertTrue(emailRequest.emailContent().html().contains(txnId.toString()));
@@ -78,7 +76,7 @@ public class TransactionServiceTest extends IntegrationBaseTest {
 
     service.reconcileAll();
     ArgumentCaptor<EmailRequest> captor = ArgumentCaptor.forClass(EmailRequest.class);
-    Mockito.verify(email, Mockito.times(1)).sendEmail(captor.capture());
+    Mockito.verify(testEmail, Mockito.times(1)).sendEmail(captor.capture());
 
     EmailRequest emailRequest = captor.getValue();
     Assertions.assertTrue(emailRequest.emailContent().html().contains(txnId1.toString()));
@@ -92,6 +90,6 @@ public class TransactionServiceTest extends IntegrationBaseTest {
     testDataHelper.insertBulkTransactions(500, 200.00, 50.00, false, 1.0, 1, 1);
 
     service.reconcileAll();
-    Mockito.verify(email, Mockito.times(1)).sendEmail(ArgumentMatchers.any(EmailRequest.class));
+    Mockito.verify(testEmail, Mockito.times(1)).sendEmail(ArgumentMatchers.any(EmailRequest.class));
   }
 }

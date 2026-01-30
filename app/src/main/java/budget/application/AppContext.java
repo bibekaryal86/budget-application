@@ -11,7 +11,6 @@ import budget.application.db.dao.DaoFactory;
 import budget.application.db.dao.InsightsDao;
 import budget.application.db.dao.TransactionDao;
 import budget.application.db.dao.TransactionItemDao;
-import budget.application.db.util.DataSourceFactory;
 import budget.application.scheduler.ScheduleManager;
 import budget.application.server.core.ServerContext;
 import budget.application.server.handlers.AccountHandler;
@@ -31,16 +30,14 @@ import budget.application.service.domain.TransactionItemService;
 import budget.application.service.domain.TransactionService;
 import io.github.bibekaryal86.shdsvc.Email;
 import java.sql.SQLException;
+import java.util.List;
 import javax.sql.DataSource;
 
 public final class AppContext {
   private final ScheduleManager scheduleManager;
   private final ServerContext serverContext;
 
-  public AppContext() throws SQLException {
-    DataSource dataSource = DataSourceFactory.create();
-    Email email = new Email();
-
+  public AppContext(DataSource dataSource, Email email) throws SQLException {
     AccountCache accountCache = new AccountCache();
     CategoryTypeCache categoryTypeCache = new CategoryTypeCache();
     CategoryCache categoryCache = new CategoryCache();
@@ -96,6 +93,11 @@ public final class AppContext {
             insightsHandler,
             transactionItemHandler,
             transactionHandler);
+
+    // seed caches
+    accountDaoFactory.create(dataSource.getConnection()).read(List.of());
+    categoryDaoFactory.create(dataSource.getConnection()).read(List.of());
+    categoryTypeDaoFactory.create(dataSource.getConnection()).read(List.of());
   }
 
   public ScheduleManager getScheduleManager() {

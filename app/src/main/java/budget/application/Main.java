@@ -4,8 +4,10 @@
 package budget.application;
 
 import budget.application.common.Constants;
+import budget.application.db.util.DataSourceFactory;
 import budget.application.scheduler.ScheduleManager;
 import budget.application.server.core.ServerNetty;
+import io.github.bibekaryal86.shdsvc.Email;
 import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +21,7 @@ public class Main {
   static void main(String[] args) throws Exception {
     log.info("Starting Budget Service...");
     Main.checkEnvProperties();
-    AppContext appContext = new AppContext();
+    AppContext appContext = new AppContext(DataSourceFactory.create(), new Email());
 
     ScheduleManager scheduleManager = appContext.getScheduleManager();
     scheduleManager.start();
