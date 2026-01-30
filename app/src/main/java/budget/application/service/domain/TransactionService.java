@@ -4,6 +4,7 @@ import budget.application.common.Constants;
 import budget.application.common.Exceptions;
 import budget.application.common.Validations;
 import budget.application.db.dao.CategoryDao;
+import budget.application.db.dao.CategoryTypeDao;
 import budget.application.db.dao.TransactionDao;
 import budget.application.db.dao.TransactionItemDao;
 import budget.application.db.util.TransactionManager;
@@ -46,10 +47,11 @@ public class TransactionService {
         transactionContext -> {
           TransactionDao transactionDao = new TransactionDao(transactionContext.connection());
           CategoryDao categoryDao = new CategoryDao(transactionContext.connection());
+          CategoryTypeDao categoryTypeDao = new CategoryTypeDao(transactionContext.connection());
           TransactionItemDao transactionItemDao =
               new TransactionItemDao(transactionContext.connection());
 
-          Validations.validateTransaction(transactionRequest, categoryDao);
+          Validations.validateTransaction(transactionRequest, categoryDao, categoryTypeDao);
           Transaction transactionIn =
               new Transaction(
                   null,
@@ -142,8 +144,9 @@ public class TransactionService {
           TransactionItemDao transactionItemDao =
               new TransactionItemDao(transactionContext.connection());
           CategoryDao categoryDao = new CategoryDao(transactionContext.connection());
+          CategoryTypeDao categoryTypeDao = new CategoryTypeDao(transactionContext.connection());
 
-          Validations.validateTransaction(transactionRequest, categoryDao);
+          Validations.validateTransaction(transactionRequest, categoryDao, categoryTypeDao);
 
           List<Transaction> transactionList = transactionDao.read(List.of(id));
           if (transactionList.isEmpty()) {

@@ -11,7 +11,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
 
@@ -20,7 +19,7 @@ public class CategoryDao extends BaseDao<Category> {
   private final CategoryRowMappers.CategoryRowMapperResponse categoryRowMapperResponse;
 
   public CategoryDao(Connection connection) {
-    super(connection, new CategoryRowMappers.CategoryRowMapper());
+    super(connection, new CategoryRowMappers.CategoryRowMapper(), null);
     this.categoryRowMapperResponse = new CategoryRowMappers.CategoryRowMapperResponse();
   }
 
@@ -59,17 +58,9 @@ public class CategoryDao extends BaseDao<Category> {
     return "name ASC";
   }
 
-  public Optional<CategoryResponse.Category> readByIdNoEx(UUID uuid) {
+  public List<Category> readNoEx(List<UUID> ids) {
     try {
-      return readCategories(List.of(uuid), List.of()).stream().findFirst();
-    } catch (Exception e) {
-      return Optional.empty();
-    }
-  }
-
-  public List<CategoryResponse.Category> readCategoriesByIdsNoEx(List<UUID> categoryIds) {
-    try {
-      return readCategories(categoryIds, List.of());
+      return read(ids);
     } catch (Exception e) {
       return List.of();
     }

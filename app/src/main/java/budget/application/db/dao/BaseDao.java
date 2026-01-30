@@ -1,5 +1,6 @@
 package budget.application.db.dao;
 
+import budget.application.cache.InMemoryCache;
 import budget.application.db.mapper.RowMapper;
 import budget.application.db.util.DaoUtils;
 import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
@@ -18,10 +19,13 @@ public abstract class BaseDao<T> {
 
   protected final Connection connection;
   protected final RowMapper<T> mapper;
+  protected final InMemoryCache<T> cache;
 
-  protected BaseDao(final Connection connection, final RowMapper<T> mapper) {
+  protected BaseDao(
+      final Connection connection, final RowMapper<T> mapper, final InMemoryCache<T> cache) {
     this.connection = connection;
     this.mapper = mapper;
+    this.cache = cache;
   }
 
   // ---- ABSTRACT CONTRACT ----
@@ -66,7 +70,13 @@ public abstract class BaseDao<T> {
       DaoUtils.bindParams(preparedStatement, insertValues(entity), Boolean.FALSE);
       try (ResultSet resultSet = preparedStatement.executeQuery()) {
         if (resultSet.next()) {
-          return mapper.map(resultSet);
+          T result = mapper.map(resultSet);
+
+          if (cache != null) {
+            cache.put(result);
+          }
+
+          return result;
         }
       }
     }
@@ -88,6 +98,13 @@ public abstract class BaseDao<T> {
   }
 
   private List<T> readAll() throws SQLException {
+    if (cache != null) {
+      List<T> cacheResults = cache.get();
+      if (!CommonUtilities.isEmpty(cacheResults)) {
+        return cacheResults;
+      }
+    }
+
     String sql = "SELECT * FROM " + tableName() + " ORDER BY " + orderByClause();
 
     log.debug("Read All SQL=[{}] ", sql);
@@ -101,6 +118,12 @@ public abstract class BaseDao<T> {
   }
 
   private List<T> readByIds(List<UUID> ids) throws SQLException {
+    if (cache != null) {
+      List<T> cacheResults = cache.get(ids);
+      if (!CommonUtilities.isEmpty(cacheResults)) {
+        return cacheResults;
+      }
+    }
     String sql =
         "SELECT * FROM " + tableName() + " WHERE id IN (" + DaoUtils.placeholders(ids.size()) + ")";
 
@@ -118,6 +141,9 @@ public abstract class BaseDao<T> {
 
   // 3) UPDATE
   public T update(T entity) throws SQLException {
+    if (cache != null) {
+      cache.clear(List.of(getId(entity)));
+    }
     List<String> columns = updateColumns();
     List<Object> values = updateValues(entity);
 
@@ -133,7 +159,13 @@ public abstract class BaseDao<T> {
 
       try (ResultSet resultSet = preparedStatement.executeQuery()) {
         if (resultSet.next()) {
-          return mapper.map(resultSet);
+          T result = mapper.map(resultSet);
+
+          if (cache != null) {
+            cache.put(result);
+          }
+
+          return result;
         }
       }
     }
@@ -144,6 +176,11 @@ public abstract class BaseDao<T> {
   // 4) DELETE
   public int delete(List<UUID> ids) throws SQLException {
     log.debug("Deleting [{}] with Ids=[{}]", tableName(), ids);
+
+    if (cache != null) {
+      cache.clear(ids);
+    }
+
     if (ids == null || ids.isEmpty()) return 0;
     String sql =
         "DELETE FROM " + tableName() + " WHERE id IN (" + DaoUtils.placeholders(ids.size()) + ")";

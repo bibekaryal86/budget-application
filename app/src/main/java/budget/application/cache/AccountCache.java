@@ -1,23 +1,23 @@
 package budget.application.cache;
 
-import budget.application.model.entity.Category;
+import budget.application.model.entity.Account;
 import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class CategoryCache implements InMemoryCache<Category> {
+public class AccountCache implements InMemoryCache<Account> {
 
-  private final ConcurrentHashMap<UUID, Category> store = new ConcurrentHashMap<>();
+  private final ConcurrentHashMap<UUID, Account> store = new ConcurrentHashMap<>();
 
   @Override
-  public List<Category> get() {
+  public List<Account> get() {
     return new ArrayList<>(store.values());
   }
 
   @Override
-  public List<Category> get(List<UUID> ids) {
+  public List<Account> get(List<UUID> ids) {
     if (CommonUtilities.isEmpty(ids)) {
       return new ArrayList<>(store.values());
     }
@@ -25,12 +25,12 @@ public class CategoryCache implements InMemoryCache<Category> {
   }
 
   @Override
-  public void put(List<Category> items) {
+  public void put(List<Account> items) {
     items.forEach(item -> store.put(item.id(), item));
   }
 
   @Override
-  public void put(Category item) {
+  public void put(Account item) {
     store.put(item.id(), item);
   }
 

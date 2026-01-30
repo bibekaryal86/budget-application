@@ -20,7 +20,7 @@ public class BudgetDao extends BaseDao<Budget> {
   private final BudgetRowMappers.BudgetRowMapperResponse budgetRowMapperResponse;
 
   public BudgetDao(Connection connection) {
-    super(connection, new BudgetRowMappers.BudgetRowMapper());
+    super(connection, new BudgetRowMappers.BudgetRowMapper(), null);
     this.budgetRowMapperResponse = new BudgetRowMappers.BudgetRowMapperResponse();
   }
 

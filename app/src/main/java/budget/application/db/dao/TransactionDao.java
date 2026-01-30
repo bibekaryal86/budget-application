@@ -32,7 +32,7 @@ import java.util.function.Consumer;
 public class TransactionDao extends BaseDao<Transaction> {
 
   public TransactionDao(Connection connection) {
-    super(connection, new TransactionRowMappers.TransactionRowMapper());
+    super(connection, new TransactionRowMappers.TransactionRowMapper(), null);
   }
 
   @Override

@@ -1,5 +1,6 @@
 package budget.application;
 
+import budget.application.cache.AccountCache;
 import budget.application.cache.CategoryCache;
 import budget.application.cache.CategoryTypeCache;
 import budget.application.db.dao.AccountDao;
@@ -39,6 +40,7 @@ public final class AppContext {
     DataSource dataSource = DataSourceFactory.create();
     Email email = new Email();
 
+    AccountCache accountCache = new AccountCache();
     CategoryTypeCache categoryTypeCache = new CategoryTypeCache();
     CategoryCache categoryCache = new CategoryCache();
 
@@ -84,7 +86,7 @@ public final class AppContext {
     return scheduleManager;
   }
 
-  public ServerContext getServerManager() {
+  public ServerContext getServerContext() {
     return serverContext;
   }
 }

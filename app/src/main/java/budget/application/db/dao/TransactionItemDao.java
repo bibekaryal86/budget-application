@@ -21,7 +21,7 @@ public class TransactionItemDao extends BaseDao<TransactionItem> {
       transactionItemRowMapperResponse;
 
   public TransactionItemDao(Connection connection) {
-    super(connection, new TransactionItemRowMappers.TransactionItemRowMapper());
+    super(connection, new TransactionItemRowMappers.TransactionItemRowMapper(), null);
     this.transactionItemRowMapperResponse =
         new TransactionItemRowMappers.TransactionItemRowMapperResponse();
   }

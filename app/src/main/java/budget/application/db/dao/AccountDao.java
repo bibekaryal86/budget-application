@@ -9,7 +9,7 @@ import java.util.UUID;
 public class AccountDao extends BaseDao<Account> {
 
   public AccountDao(Connection connection) {
-    super(connection, new AccountRowMappers.AccountRowMapper());
+    super(connection, new AccountRowMappers.AccountRowMapper(), null);
   }
 
   @Override

@@ -12,6 +12,8 @@ import java.util.UUID;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 
+import javax.sql.DataSource;
+
 public abstract class IntegrationBaseTest {
 
   protected static ServerNetty server;
@@ -23,10 +25,11 @@ public abstract class IntegrationBaseTest {
   static void beforeAll() throws Exception {
     setSystemEnvPropertyTestData();
     TestDataSource.start();
-    server = new ServerNetty(TestDataSource.getDataSource(), null);
+    DataSource testDatasource = TestDataSource.getDataSource();
+    server = new ServerNetty(new TestAppContext(testDatasource).getTestServletContext());
     server.start();
     port = server.getBoundPort();
-    testDataHelper = new TestDataHelper(TestDataSource.getDataSource());
+    testDataHelper = new TestDataHelper(testDatasource);
   }
 
   @AfterAll

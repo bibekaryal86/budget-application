@@ -4,13 +4,12 @@ import budget.application.db.mapper.CategoryTypeRowMapper;
 import budget.application.model.entity.CategoryType;
 import java.sql.Connection;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 public class CategoryTypeDao extends BaseDao<CategoryType> {
 
   public CategoryTypeDao(Connection connection) {
-    super(connection, new CategoryTypeRowMapper());
+    super(connection, new CategoryTypeRowMapper(), null);
   }
 
   @Override
@@ -48,11 +47,11 @@ public class CategoryTypeDao extends BaseDao<CategoryType> {
     return "name ASC";
   }
 
-  public Optional<CategoryType> readByIdNoEx(UUID id) {
+  public List<CategoryType> readNoEx(List<UUID> ids) {
     try {
-      return read(List.of(id)).stream().findFirst();
+      return read(ids);
     } catch (Exception e) {
-      return Optional.empty();
+      return List.of();
     }
   }
 }

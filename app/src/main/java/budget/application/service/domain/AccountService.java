@@ -25,6 +25,10 @@ public class AccountService {
     this.transactionManager = new TransactionManager(dataSource);
   }
 
+  public AccountService(TransactionManager transactionManager) {
+    this.transactionManager = transactionManager;
+  }
+
   public AccountResponse create(AccountRequest accountRequest) throws SQLException {
     log.debug("Create account: AccountRequest=[{}]", accountRequest);
     return transactionManager.execute(

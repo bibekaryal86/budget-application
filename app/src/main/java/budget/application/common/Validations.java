@@ -5,10 +5,11 @@ import budget.application.db.dao.CategoryTypeDao;
 import budget.application.model.dto.AccountRequest;
 import budget.application.model.dto.BudgetRequest;
 import budget.application.model.dto.CategoryRequest;
-import budget.application.model.dto.CategoryResponse;
 import budget.application.model.dto.CategoryTypeRequest;
 import budget.application.model.dto.TransactionItemRequest;
 import budget.application.model.dto.TransactionRequest;
+import budget.application.model.entity.Category;
+import budget.application.model.entity.CategoryType;
 import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 import java.math.BigDecimal;
 import java.util.List;
@@ -64,9 +65,8 @@ public class Validations {
       throw new Exceptions.BadRequestException("Budget amount cannot be zero or negative...");
     }
 
-    CategoryResponse.Category category =
-        categoryDao.readByIdNoEx(budgetRequest.categoryId()).orElse(null);
-    if (category == null) {
+    List<Category> categories = categoryDao.readNoEx(List.of(budgetRequest.categoryId()));
+    if (CommonUtilities.isEmpty(categories)) {
       throw new Exceptions.BadRequestException("Category does not exist...");
     }
   }
@@ -82,7 +82,9 @@ public class Validations {
     if (CommonUtilities.isEmpty(categoryRequest.name())) {
       throw new Exceptions.BadRequestException("Category name cannot be empty...");
     }
-    if (categoryTypeDao.readByIdNoEx(categoryRequest.categoryTypeId()).isEmpty()) {
+    List<CategoryType> categoryTypes =
+        categoryTypeDao.readNoEx(List.of(categoryRequest.categoryTypeId()));
+    if (CommonUtilities.isEmpty(categoryTypes)) {
       throw new Exceptions.BadRequestException("Category type does not exist...");
     }
   }
@@ -100,7 +102,7 @@ public class Validations {
       TransactionItemRequest transactionItemRequest,
       CategoryDao categoryDao,
       Boolean isCreateTransaction,
-      List<CategoryResponse.Category> categories) {
+      List<Category> categories) {
     if (transactionItemRequest == null) {
       throw new Exceptions.BadRequestException("Transaction item request cannot be null...");
     }
@@ -116,20 +118,25 @@ public class Validations {
           "Transaction item amount cannot be null or negative...");
     }
 
-    CategoryResponse.Category category =
-        CommonUtilities.isEmpty(categories)
-            ? categoryDao.readByIdNoEx(transactionItemRequest.categoryId()).orElse(null)
-            : categories.stream()
-                .filter(cat -> cat.id().equals(transactionItemRequest.categoryId()))
-                .findFirst()
-                .orElse(null);
+    if (CommonUtilities.isEmpty(categories)) {
+      categories = categoryDao.readNoEx(List.of(transactionItemRequest.categoryId()));
+    }
+
+    Category category =
+        categories.stream()
+            .filter(cat -> cat.id().equals(transactionItemRequest.categoryId()))
+            .findFirst()
+            .orElse(null);
+
     if (category == null) {
       throw new Exceptions.BadRequestException("Category does not exist...");
     }
   }
 
   public static void validateTransaction(
-      TransactionRequest transactionRequest, CategoryDao categoryDao) {
+      TransactionRequest transactionRequest,
+      CategoryDao categoryDao,
+      CategoryTypeDao categoryTypeDao) {
     if (transactionRequest == null) {
       throw new Exceptions.BadRequestException("Transaction request cannot be null...");
     }
@@ -156,12 +163,22 @@ public class Validations {
 
     List<UUID> categoryIds =
         transactionRequest.items().stream().map(TransactionItemRequest::categoryId).toList();
-    List<CategoryResponse.Category> categories = categoryDao.readCategoriesByIdsNoEx(categoryIds);
-    if (CommonUtilities.isEmpty(categories)) {
+    List<Category> categories = categoryDao.readNoEx(categoryIds);
+    if (CommonUtilities.isEmpty(categories) || (categories.size() != categoryIds.size())) {
       throw new Exceptions.BadRequestException("Category does not exist...");
     }
+
+    List<UUID> categoryTypeIds =
+        categories.stream().map(Category::categoryTypeId).collect(Collectors.toSet()).stream()
+            .toList();
+    List<CategoryType> categoryTypes = categoryTypeDao.readNoEx(categoryTypeIds);
+    if (CommonUtilities.isEmpty(categoryTypes)
+        || (categoryTypes.size() != categoryTypeIds.size())) {
+      throw new Exceptions.BadRequestException("Category type does not exist...");
+    }
+
     Set<String> categoryTypeNames =
-        categories.stream().map(c -> c.categoryType().name()).collect(Collectors.toSet());
+        categoryTypes.stream().map(CategoryType::name).collect(Collectors.toSet());
     for (String categoryTypeName : Constants.NO_EXPENSE_CATEGORY_TYPES) {
       if (categoryTypeNames.contains(categoryTypeName) && categoryTypeNames.size() > 1) {
         throw new Exceptions.BadRequestException(

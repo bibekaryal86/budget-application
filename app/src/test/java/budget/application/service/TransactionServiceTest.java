@@ -43,7 +43,7 @@ public class TransactionServiceTest extends IntegrationBaseTest {
   void testReconcileAll_NoMismatches_NoEmailSent() throws Exception {
     testDataHelper.insertBulkTransactions(1500, 100.00, 100.00, false, 0.0, 1, 3);
 
-    service.reconcileAll("req-no-mismatch");
+    service.reconcileAll();
     Mockito.verify(email, Mockito.never()).sendEmail(ArgumentMatchers.any());
   }
 
@@ -53,7 +53,7 @@ public class TransactionServiceTest extends IntegrationBaseTest {
     testDataHelper.insertTransactionItem(
         UUID.randomUUID(), txnId, TEST_ID, 50.00, Collections.emptyList());
 
-    service.reconcileAll("req-one");
+    service.reconcileAll();
     ArgumentCaptor<EmailRequest> captor = ArgumentCaptor.forClass(EmailRequest.class);
     Mockito.verify(email, Mockito.times(1)).sendEmail(captor.capture());
 
@@ -79,7 +79,7 @@ public class TransactionServiceTest extends IntegrationBaseTest {
         UUID.randomUUID(), txnId2, TEST_ID, 50, Collections.emptyList());
     UUID txnId3 = testDataHelper.insertTransaction(UUID.randomUUID(), LocalDateTime.now(), 100.00);
 
-    service.reconcileAll("req-multi");
+    service.reconcileAll();
     ArgumentCaptor<EmailRequest> captor = ArgumentCaptor.forClass(EmailRequest.class);
     Mockito.verify(email, Mockito.times(1)).sendEmail(captor.capture());
 
@@ -94,7 +94,7 @@ public class TransactionServiceTest extends IntegrationBaseTest {
     testDataHelper.insertBulkTransactions(1000, 100.00, 100.00, false, 0.0, 1, 1);
     testDataHelper.insertBulkTransactions(500, 200.00, 50.00, false, 1.0, 1, 1);
 
-    service.reconcileAll("req-pagination");
+    service.reconcileAll();
     Mockito.verify(email, Mockito.times(1)).sendEmail(ArgumentMatchers.any(EmailRequest.class));
   }
 }

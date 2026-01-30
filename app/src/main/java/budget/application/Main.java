@@ -24,7 +24,7 @@ public class Main {
     ScheduleManager scheduleManager = appContext.getScheduleManager();
     scheduleManager.start();
 
-    ServerNetty serverNetty = new ServerNetty(appContext.getServerManager());
+    ServerNetty serverNetty = new ServerNetty(appContext.getServerContext());
     serverNetty.start();
 
     Runtime.getRuntime()
