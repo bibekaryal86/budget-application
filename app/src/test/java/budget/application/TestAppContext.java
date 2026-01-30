@@ -7,6 +7,7 @@ import budget.application.db.dao.AccountDao;
 import budget.application.db.dao.BudgetDao;
 import budget.application.db.dao.CategoryDao;
 import budget.application.db.dao.CategoryTypeDao;
+import budget.application.db.dao.DaoFactory;
 import budget.application.db.dao.InsightsDao;
 import budget.application.db.dao.TransactionDao;
 import budget.application.db.dao.TransactionItemDao;
@@ -27,47 +28,59 @@ import budget.application.service.domain.InsightsService;
 import budget.application.service.domain.TransactionItemService;
 import budget.application.service.domain.TransactionService;
 import io.github.bibekaryal86.shdsvc.Email;
-import java.io.IOException;
-import java.sql.SQLException;
 import javax.sql.DataSource;
 import org.mockito.Mock;
 
 public final class TestAppContext {
   private final ServerContext testServerContext;
+  private final TransactionService transactionService;
 
   @Mock private Email testEmail;
 
-  public TestAppContext(DataSource testDatasource) throws SQLException, IOException {
-    TestDataSource.start();
-
+  public TestAppContext(DataSource dataSource) {
     AccountCache accountCache = new AccountCache();
     CategoryTypeCache categoryTypeCache = new CategoryTypeCache();
     CategoryCache categoryCache = new CategoryCache();
 
-    AccountDao accountDao = new AccountDao(testDatasource.getConnection());
-    BudgetDao budgetDao = new BudgetDao(testDatasource.getConnection());
-    CategoryDao categoryDao = new CategoryDao(testDatasource.getConnection());
-    CategoryTypeDao categoryTypeDao = new CategoryTypeDao(testDatasource.getConnection());
-    InsightsDao insightsDao = new InsightsDao(testDatasource.getConnection());
-    TransactionDao transactionDao = new TransactionDao(testDatasource.getConnection());
-    TransactionItemDao transactionItemDao = new TransactionItemDao(testDatasource.getConnection());
+    DaoFactory<AccountDao> accountDaoFactory =
+        connection -> new AccountDao(connection, accountCache);
+    DaoFactory<BudgetDao> budgetDaoFactory = BudgetDao::new;
+    DaoFactory<CategoryDao> categoryDaoFactory =
+        connection -> new CategoryDao(connection, categoryCache);
+    DaoFactory<CategoryTypeDao> categoryTypeDaoFactory =
+        connection -> new CategoryTypeDao(connection, categoryTypeCache);
+    DaoFactory<InsightsDao> insightsDaoFactory = InsightsDao::new;
+    DaoFactory<TransactionDao> transactionDaoFactory = TransactionDao::new;
+    DaoFactory<TransactionItemDao> transactionItemDaoFactory = TransactionItemDao::new;
 
-    AccountService accountService = new AccountService(testDatasource);
-    BudgetService budgetService = new BudgetService(testDatasource);
-    InsightsService insightsService = new InsightsService(testDatasource);
-    CategoryTypeService categoryTypeService = new CategoryTypeService(testDatasource);
-    CategoryService categoryService = new CategoryService(testDatasource);
-    TransactionItemService transactionItemService = new TransactionItemService(testDatasource);
-    TransactionService transactionService = new TransactionService(testDatasource, testEmail);
+    AccountService accountService = new AccountService(dataSource, accountDaoFactory);
+    BudgetService budgetService =
+        new BudgetService(dataSource, budgetDaoFactory, categoryDaoFactory);
+    InsightsService insightsService = new InsightsService(dataSource, insightsDaoFactory);
+    CategoryTypeService categoryTypeService =
+        new CategoryTypeService(dataSource, categoryTypeDaoFactory);
+    CategoryService categoryService =
+        new CategoryService(dataSource, categoryDaoFactory, categoryTypeDaoFactory);
+    TransactionItemService transactionItemService =
+        new TransactionItemService(dataSource, transactionItemDaoFactory, categoryDaoFactory);
+    transactionService =
+        new TransactionService(
+            dataSource,
+            testEmail,
+            transactionDaoFactory,
+            transactionItemDaoFactory,
+            categoryDaoFactory,
+            categoryTypeDaoFactory);
 
-    AccountHandler accountHandler = new AccountHandler(testDatasource);
+    AccountHandler accountHandler = new AccountHandler(accountService);
     AppTestsHandler appTestsHandler = new AppTestsHandler();
-    BudgetHandler budgetHandler = new BudgetHandler(testDatasource);
-    CategoryHandler categoryHandler = new CategoryHandler(testDatasource);
-    CategoryTypeHandler categoryTypeHandler = new CategoryTypeHandler(testDatasource);
-    InsightsHandler insightsHandler = new InsightsHandler(testDatasource);
-    TransactionHandler transactionHandler = new TransactionHandler(testDatasource, testEmail);
-    TransactionItemHandler transactionItemHandler = new TransactionItemHandler(testDatasource);
+    BudgetHandler budgetHandler = new BudgetHandler(budgetService);
+    CategoryHandler categoryHandler = new CategoryHandler(categoryService);
+    CategoryTypeHandler categoryTypeHandler = new CategoryTypeHandler(categoryTypeService);
+    InsightsHandler insightsHandler = new InsightsHandler(insightsService);
+    TransactionHandler transactionHandler = new TransactionHandler(transactionService);
+    TransactionItemHandler transactionItemHandler =
+        new TransactionItemHandler(transactionItemService);
 
     testServerContext =
         new ServerContext(
@@ -81,7 +94,15 @@ public final class TestAppContext {
             transactionHandler);
   }
 
-  public ServerContext getTestServletContext() {
+  public ServerContext getTestServerContext() {
     return testServerContext;
+  }
+
+  public TransactionService getTransactionService() {
+    return transactionService;
+  }
+
+  public Email getTestEmail() {
+      return testEmail;
   }
 }

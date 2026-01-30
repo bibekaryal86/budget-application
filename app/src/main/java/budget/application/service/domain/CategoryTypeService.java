@@ -3,6 +3,7 @@ package budget.application.service.domain;
 import budget.application.common.Exceptions;
 import budget.application.common.Validations;
 import budget.application.db.dao.CategoryTypeDao;
+import budget.application.db.dao.DaoFactory;
 import budget.application.db.util.TransactionManager;
 import budget.application.model.dto.CategoryTypeRequest;
 import budget.application.model.dto.CategoryTypeResponse;
@@ -21,16 +22,20 @@ public class CategoryTypeService {
   private static final Logger log = LoggerFactory.getLogger(CategoryTypeService.class);
 
   private final TransactionManager transactionManager;
+  private final DaoFactory<CategoryTypeDao> categoryTypeDaoFactory;
 
-  public CategoryTypeService(DataSource dataSource) {
+  public CategoryTypeService(
+      DataSource dataSource, DaoFactory<CategoryTypeDao> categoryTypeDaoFactory) {
     this.transactionManager = new TransactionManager(dataSource);
+    this.categoryTypeDaoFactory = categoryTypeDaoFactory;
   }
 
   public CategoryTypeResponse create(CategoryTypeRequest categoryTypeRequest) throws SQLException {
     log.debug("Create category type: CategoryTypeRequest=[{}]", categoryTypeRequest);
     return transactionManager.execute(
         transactionContext -> {
-          CategoryTypeDao categoryTypeDao = new CategoryTypeDao(transactionContext.connection());
+          CategoryTypeDao categoryTypeDao =
+              categoryTypeDaoFactory.create(transactionContext.connection());
           Validations.validateCategoryType(categoryTypeRequest);
           CategoryType categoryTypeIn = new CategoryType(null, categoryTypeRequest.name());
           UUID id = categoryTypeDao.create(categoryTypeIn).id();
@@ -48,7 +53,8 @@ public class CategoryTypeService {
 
     return transactionManager.execute(
         transactionContext -> {
-          CategoryTypeDao categoryTypeDao = new CategoryTypeDao(transactionContext.connection());
+          CategoryTypeDao categoryTypeDao =
+              categoryTypeDaoFactory.create(transactionContext.connection());
           List<CategoryType> categoryTypeList = categoryTypeDao.read(ids);
 
           if (ids.size() == 1 && categoryTypeList.isEmpty()) {
@@ -70,7 +76,8 @@ public class CategoryTypeService {
 
     return transactionManager.execute(
         transactionContext -> {
-          CategoryTypeDao categoryTypeDao = new CategoryTypeDao(transactionContext.connection());
+          CategoryTypeDao categoryTypeDao =
+              categoryTypeDaoFactory.create(transactionContext.connection());
           Validations.validateCategoryType(categoryTypeRequest);
 
           List<CategoryType> categoryTypeList = categoryTypeDao.read(List.of(id));
@@ -93,7 +100,8 @@ public class CategoryTypeService {
     log.info("Delete category types: Ids=[{}]", ids);
     return transactionManager.execute(
         transactionContext -> {
-          CategoryTypeDao categoryTypeDao = new CategoryTypeDao(transactionContext.connection());
+          CategoryTypeDao categoryTypeDao =
+              categoryTypeDaoFactory.create(transactionContext.connection());
 
           List<CategoryType> categoryTypeList = categoryTypeDao.read(ids);
 

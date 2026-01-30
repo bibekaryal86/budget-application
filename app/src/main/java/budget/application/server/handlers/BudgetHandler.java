@@ -14,7 +14,6 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import java.util.List;
 import java.util.UUID;
-import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,8 +22,8 @@ public class BudgetHandler extends SimpleChannelInboundHandler<FullHttpRequest> 
 
   private final BudgetService budgetService;
 
-  public BudgetHandler(DataSource dataSource) {
-    this.budgetService = new BudgetService(dataSource);
+  public BudgetHandler(BudgetService budgetService) {
+    this.budgetService = budgetService;
   }
 
   @Override

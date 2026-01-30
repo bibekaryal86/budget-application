@@ -1,6 +1,6 @@
 package budget.application.scheduler;
 
-import io.github.bibekaryal86.shdsvc.Email;
+import budget.application.service.domain.TransactionService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import javax.sql.DataSource;
@@ -14,7 +14,7 @@ public class ScheduleManager {
   private final DailyTransactionReconScheduler dailyTransactionReconScheduler;
   private final DatabaseHealthCheckScheduler databaseHealthCheckScheduler;
 
-  public ScheduleManager(DataSource dataSource, Email email) {
+  public ScheduleManager(DataSource dataSource, TransactionService transactionService) {
     this.scheduledExecutorService =
         Executors.newSingleThreadScheduledExecutor(
             r -> {
@@ -24,7 +24,7 @@ public class ScheduleManager {
             });
 
     this.dailyTransactionReconScheduler =
-        new DailyTransactionReconScheduler(dataSource, scheduledExecutorService, email);
+        new DailyTransactionReconScheduler(transactionService, scheduledExecutorService);
     this.databaseHealthCheckScheduler =
         new DatabaseHealthCheckScheduler(dataSource, scheduledExecutorService);
   }

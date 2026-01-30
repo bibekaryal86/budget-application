@@ -4,6 +4,7 @@ import budget.application.common.Exceptions;
 import budget.application.common.Validations;
 import budget.application.db.dao.BudgetDao;
 import budget.application.db.dao.CategoryDao;
+import budget.application.db.dao.DaoFactory;
 import budget.application.db.util.TransactionManager;
 import budget.application.model.dto.BudgetRequest;
 import budget.application.model.dto.BudgetResponse;
@@ -22,17 +23,24 @@ public class BudgetService {
   private static final Logger log = LoggerFactory.getLogger(BudgetService.class);
 
   private final TransactionManager transactionManager;
+  private final DaoFactory<BudgetDao> budgetDaoFactory;
+  private final DaoFactory<CategoryDao> categoryDaoFactory;
 
-  public BudgetService(DataSource dataSource) {
+  public BudgetService(
+      DataSource dataSource,
+      DaoFactory<BudgetDao> budgetDaoFactory,
+      DaoFactory<CategoryDao> categoryDaoFactory) {
     this.transactionManager = new TransactionManager(dataSource);
+    this.budgetDaoFactory = budgetDaoFactory;
+    this.categoryDaoFactory = categoryDaoFactory;
   }
 
   public BudgetResponse create(BudgetRequest budgetRequest) throws SQLException {
     log.debug("Create budget: BudgetRequest=[{}]", budgetRequest);
     return transactionManager.execute(
         transactionContext -> {
-          BudgetDao budgetDao = new BudgetDao(transactionContext.connection());
-          CategoryDao categoryDao = new CategoryDao(transactionContext.connection());
+          BudgetDao budgetDao = budgetDaoFactory.create(transactionContext.connection());
+          CategoryDao categoryDao = categoryDaoFactory.create(transactionContext.connection());
 
           Validations.validateBudget(budgetRequest, categoryDao);
 
@@ -61,7 +69,7 @@ public class BudgetService {
     log.debug("Read budgets:Ids: {}, BudgetParams=[{}]", ids, budgetParams);
     return transactionManager.execute(
         transactionContext -> {
-          BudgetDao budgetDao = new BudgetDao(transactionContext.connection());
+          BudgetDao budgetDao = budgetDaoFactory.create(transactionContext.connection());
           List<BudgetResponse.Budget> budgets =
               budgetDao.readBudgets(
                   ids,
@@ -81,8 +89,8 @@ public class BudgetService {
     log.debug("Update budget: Id=[{}], BudgetRequest=[{}]", id, budgetRequest);
     return transactionManager.execute(
         transactionContext -> {
-          BudgetDao budgetDao = new BudgetDao(transactionContext.connection());
-          CategoryDao categoryDao = new CategoryDao(transactionContext.connection());
+          BudgetDao budgetDao = budgetDaoFactory.create(transactionContext.connection());
+          CategoryDao categoryDao = categoryDaoFactory.create(transactionContext.connection());
           Validations.validateBudget(budgetRequest, categoryDao);
 
           List<Budget> budgets = budgetDao.read(List.of(id));
@@ -112,7 +120,7 @@ public class BudgetService {
     log.info("Delete budgets: Ids=[{}]", ids);
     return transactionManager.execute(
         transactionContext -> {
-          BudgetDao budgetDao = new BudgetDao(transactionContext.connection());
+          BudgetDao budgetDao = budgetDaoFactory.create(transactionContext.connection());
 
           List<Budget> budgets = budgetDao.read(ids);
           if (ids.size() == 1 && budgets.isEmpty()) {

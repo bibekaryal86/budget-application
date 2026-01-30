@@ -13,7 +13,6 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import java.util.List;
 import java.util.UUID;
-import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,8 +21,8 @@ public class CategoryHandler extends SimpleChannelInboundHandler<FullHttpRequest
 
   private final CategoryService categoryService;
 
-  public CategoryHandler(DataSource dataSource) {
-    this.categoryService = new CategoryService(dataSource);
+  public CategoryHandler(CategoryService categoryService) {
+    this.categoryService = categoryService;
   }
 
   @Override

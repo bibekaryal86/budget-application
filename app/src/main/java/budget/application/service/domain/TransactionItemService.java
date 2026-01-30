@@ -3,6 +3,7 @@ package budget.application.service.domain;
 import budget.application.common.Exceptions;
 import budget.application.common.Validations;
 import budget.application.db.dao.CategoryDao;
+import budget.application.db.dao.DaoFactory;
 import budget.application.db.dao.TransactionItemDao;
 import budget.application.db.util.TransactionManager;
 import budget.application.model.dto.TransactionItemRequest;
@@ -21,9 +22,16 @@ public class TransactionItemService {
   private static final Logger log = LoggerFactory.getLogger(TransactionItemService.class);
 
   private final TransactionManager transactionManager;
+  private final DaoFactory<TransactionItemDao> transactionItemDaoFactory;
+  private final DaoFactory<CategoryDao> categoryDaoFactory;
 
-  public TransactionItemService(DataSource dataSource) {
+  public TransactionItemService(
+      DataSource dataSource,
+      DaoFactory<TransactionItemDao> transactionItemDaoFactory,
+      DaoFactory<CategoryDao> categoryDaoFactory) {
     this.transactionManager = new TransactionManager(dataSource);
+    this.transactionItemDaoFactory = transactionItemDaoFactory;
+    this.categoryDaoFactory = categoryDaoFactory;
   }
 
   public TransactionItemResponse create(TransactionItemRequest transactionItemRequest)
@@ -32,8 +40,8 @@ public class TransactionItemService {
     return transactionManager.execute(
         transactionContext -> {
           TransactionItemDao transactionItemDao =
-              new TransactionItemDao(transactionContext.connection());
-          CategoryDao categoryDao = new CategoryDao(transactionContext.connection());
+              transactionItemDaoFactory.create(transactionContext.connection());
+          CategoryDao categoryDao = categoryDaoFactory.create(transactionContext.connection());
 
           Validations.validateTransactionItem(
               transactionItemRequest, categoryDao, Boolean.FALSE, List.of());
@@ -61,7 +69,7 @@ public class TransactionItemService {
     return transactionManager.execute(
         transactionContext -> {
           TransactionItemDao transactionItemDao =
-              new TransactionItemDao(transactionContext.connection());
+              transactionItemDaoFactory.create(transactionContext.connection());
           List<TransactionItemResponse.TransactionItem> transactionItems =
               transactionItemDao.readTransactionItems(transactionItemIds);
 
@@ -80,7 +88,7 @@ public class TransactionItemService {
     return transactionManager.execute(
         transactionContext -> {
           TransactionItemDao transactionItemDao =
-              new TransactionItemDao(transactionContext.connection());
+              transactionItemDaoFactory.create(transactionContext.connection());
           List<String> transactionItemTags = transactionItemDao.readAllTags();
           return new TransactionItemResponse.TransactionItemTags(
               transactionItemTags, ResponseMetadata.emptyResponseMetadata());
@@ -96,8 +104,8 @@ public class TransactionItemService {
     return transactionManager.execute(
         transactionContext -> {
           TransactionItemDao transactionItemDao =
-              new TransactionItemDao(transactionContext.connection());
-          CategoryDao categoryDao = new CategoryDao(transactionContext.connection());
+              transactionItemDaoFactory.create(transactionContext.connection());
+          CategoryDao categoryDao = categoryDaoFactory.create(transactionContext.connection());
           Validations.validateTransactionItem(
               transactionItemRequest, categoryDao, Boolean.FALSE, List.of());
 
@@ -127,7 +135,7 @@ public class TransactionItemService {
     return transactionManager.execute(
         transactionContext -> {
           TransactionItemDao transactionItemDao =
-              new TransactionItemDao(transactionContext.connection());
+              transactionItemDaoFactory.create(transactionContext.connection());
 
           List<TransactionItem> transactionItemList = transactionItemDao.read(ids);
           if (ids.size() == 1 && transactionItemList.isEmpty()) {

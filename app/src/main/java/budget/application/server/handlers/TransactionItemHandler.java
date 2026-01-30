@@ -13,7 +13,6 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import java.util.List;
 import java.util.UUID;
-import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,8 +21,8 @@ public class TransactionItemHandler extends SimpleChannelInboundHandler<FullHttp
 
   private final TransactionItemService transactionItemService;
 
-  public TransactionItemHandler(DataSource dataSource) {
-    this.transactionItemService = new TransactionItemService(dataSource);
+  public TransactionItemHandler(TransactionItemService transactionItemService) {
+    this.transactionItemService = transactionItemService;
   }
 
   @Override

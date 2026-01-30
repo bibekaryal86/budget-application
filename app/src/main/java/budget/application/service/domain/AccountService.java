@@ -3,6 +3,7 @@ package budget.application.service.domain;
 import budget.application.common.Exceptions;
 import budget.application.common.Validations;
 import budget.application.db.dao.AccountDao;
+import budget.application.db.dao.DaoFactory;
 import budget.application.db.util.TransactionManager;
 import budget.application.model.dto.AccountRequest;
 import budget.application.model.dto.AccountResponse;
@@ -20,20 +21,18 @@ public class AccountService {
   private static final Logger log = LoggerFactory.getLogger(AccountService.class);
 
   private final TransactionManager transactionManager;
+  private final DaoFactory<AccountDao> accountDaoFactory;
 
-  public AccountService(DataSource dataSource) {
+  public AccountService(DataSource dataSource, DaoFactory<AccountDao> accountDaoFactory) {
     this.transactionManager = new TransactionManager(dataSource);
-  }
-
-  public AccountService(TransactionManager transactionManager) {
-    this.transactionManager = transactionManager;
+    this.accountDaoFactory = accountDaoFactory;
   }
 
   public AccountResponse create(AccountRequest accountRequest) throws SQLException {
     log.debug("Create account: AccountRequest=[{}]", accountRequest);
     return transactionManager.execute(
         transactionContext -> {
-          AccountDao accountDao = new AccountDao(transactionContext.connection());
+          AccountDao accountDao = accountDaoFactory.create(transactionContext.connection());
 
           Validations.validateAccount(accountRequest);
 
@@ -67,7 +66,7 @@ public class AccountService {
     log.debug("Read accounts: Ids={}", ids);
     return transactionManager.execute(
         transactionContext -> {
-          AccountDao accountDao = new AccountDao(transactionContext.connection());
+          AccountDao accountDao = accountDaoFactory.create(transactionContext.connection());
           List<Account> accountList = accountDao.read(ids);
           if (ids.size() == 1 && accountList.isEmpty()) {
             throw new Exceptions.NotFoundException("Account", ids.getFirst().toString());
@@ -94,7 +93,7 @@ public class AccountService {
     log.debug("Update account: Id=[{}], AccountRequest=[{}]", id, accountRequest);
     return transactionManager.execute(
         transactionContext -> {
-          AccountDao accountDao = new AccountDao(transactionContext.connection());
+          AccountDao accountDao = accountDaoFactory.create(transactionContext.connection());
           Validations.validateAccount(accountRequest);
 
           List<Account> accountList = accountDao.read(List.of(id));
@@ -130,7 +129,7 @@ public class AccountService {
     log.info("Delete accounts: Ids=[{}]", ids);
     return transactionManager.execute(
         transactionContext -> {
-          AccountDao accountDao = new AccountDao(transactionContext.connection());
+          AccountDao accountDao = accountDaoFactory.create(transactionContext.connection());
 
           List<Account> accountList = accountDao.read(ids);
           if (ids.size() == 1 && accountList.isEmpty()) {

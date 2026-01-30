@@ -4,6 +4,7 @@ import budget.application.common.Exceptions;
 import budget.application.common.Validations;
 import budget.application.db.dao.CategoryDao;
 import budget.application.db.dao.CategoryTypeDao;
+import budget.application.db.dao.DaoFactory;
 import budget.application.db.util.TransactionManager;
 import budget.application.model.dto.CategoryRequest;
 import budget.application.model.dto.CategoryResponse;
@@ -21,17 +22,25 @@ public class CategoryService {
   private static final Logger log = LoggerFactory.getLogger(CategoryService.class);
 
   private final TransactionManager transactionManager;
+  private final DaoFactory<CategoryDao> categoryDaoFactory;
+  private final DaoFactory<CategoryTypeDao> categoryTypeDaoFactory;
 
-  public CategoryService(DataSource dataSource) {
+  public CategoryService(
+      DataSource dataSource,
+      DaoFactory<CategoryDao> categoryDaoFactory,
+      DaoFactory<CategoryTypeDao> categoryTypeDaoFactory) {
     this.transactionManager = new TransactionManager(dataSource);
+    this.categoryDaoFactory = categoryDaoFactory;
+    this.categoryTypeDaoFactory = categoryTypeDaoFactory;
   }
 
   public CategoryResponse create(CategoryRequest categoryRequest) throws SQLException {
     log.debug("Create category: CategoryRequest=[{}]", categoryRequest);
     return transactionManager.execute(
         transactionContext -> {
-          CategoryDao categoryDao = new CategoryDao(transactionContext.connection());
-          CategoryTypeDao categoryTypeDao = new CategoryTypeDao(transactionContext.connection());
+          CategoryDao categoryDao = categoryDaoFactory.create(transactionContext.connection());
+          CategoryTypeDao categoryTypeDao =
+              categoryTypeDaoFactory.create(transactionContext.connection());
 
           Validations.validateCategory(categoryRequest, categoryTypeDao);
 
@@ -54,7 +63,7 @@ public class CategoryService {
 
     return transactionManager.execute(
         transactionContext -> {
-          CategoryDao categoryDao = new CategoryDao(transactionContext.connection());
+          CategoryDao categoryDao = categoryDaoFactory.create(transactionContext.connection());
           List<CategoryResponse.Category> categories =
               categoryDao.readCategories(categoryIds, categoryTypeIds);
 
@@ -70,8 +79,9 @@ public class CategoryService {
     log.debug("Update category: Id=[{}], CategoryRequest=[{}]", id, categoryRequest);
     return transactionManager.execute(
         transactionContext -> {
-          CategoryDao categoryDao = new CategoryDao(transactionContext.connection());
-          CategoryTypeDao categoryTypeDao = new CategoryTypeDao(transactionContext.connection());
+          CategoryDao categoryDao = categoryDaoFactory.create(transactionContext.connection());
+          CategoryTypeDao categoryTypeDao =
+              categoryTypeDaoFactory.create(transactionContext.connection());
           Validations.validateCategory(categoryRequest, categoryTypeDao);
 
           List<Category> categoryList = categoryDao.read(List.of(id));
@@ -93,7 +103,7 @@ public class CategoryService {
     log.info("Delete categories: Ids=[{}]", ids);
     return transactionManager.execute(
         transactionContext -> {
-          CategoryDao categoryDao = new CategoryDao(transactionContext.connection());
+          CategoryDao categoryDao = categoryDaoFactory.create(transactionContext.connection());
 
           List<Category> categoryList = categoryDao.read(ids);
           if (ids.size() == 1 && categoryList.isEmpty()) {

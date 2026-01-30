@@ -162,7 +162,11 @@ public class Validations {
     }
 
     List<UUID> categoryIds =
-        transactionRequest.items().stream().map(TransactionItemRequest::categoryId).collect(Collectors.toSet()).stream().toList();
+        transactionRequest.items().stream()
+            .map(TransactionItemRequest::categoryId)
+            .collect(Collectors.toSet())
+            .stream()
+            .toList();
     List<Category> categories = categoryDao.readNoEx(categoryIds);
     if (CommonUtilities.isEmpty(categories) || (categories.size() != categoryIds.size())) {
       throw new Exceptions.BadRequestException("Category does not exist...");

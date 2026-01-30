@@ -5,6 +5,7 @@ import budget.application.common.Exceptions;
 import budget.application.common.Validations;
 import budget.application.db.dao.CategoryDao;
 import budget.application.db.dao.CategoryTypeDao;
+import budget.application.db.dao.DaoFactory;
 import budget.application.db.dao.TransactionDao;
 import budget.application.db.dao.TransactionItemDao;
 import budget.application.db.util.TransactionManager;
@@ -35,21 +36,37 @@ public class TransactionService {
 
   private final TransactionManager transactionManager;
   private final Email email;
+  private final DaoFactory<TransactionDao> transactionDaoFactory;
+  private final DaoFactory<TransactionItemDao> transactionItemDaoFactory;
+  private final DaoFactory<CategoryDao> categoryDaoFactory;
+  private final DaoFactory<CategoryTypeDao> categoryTypeDaoFactory;
 
-  public TransactionService(DataSource dataSource, Email email) {
+  public TransactionService(
+      DataSource dataSource,
+      Email email,
+      DaoFactory<TransactionDao> transactionDaoFactory,
+      DaoFactory<TransactionItemDao> transactionItemDaoFactory,
+      DaoFactory<CategoryDao> categoryDaoFactory,
+      DaoFactory<CategoryTypeDao> categoryTypeDaoFactory) {
     this.transactionManager = new TransactionManager(dataSource);
     this.email = email;
+    this.transactionDaoFactory = transactionDaoFactory;
+    this.transactionItemDaoFactory = transactionItemDaoFactory;
+    this.categoryDaoFactory = categoryDaoFactory;
+    this.categoryTypeDaoFactory = categoryTypeDaoFactory;
   }
 
   public TransactionResponse create(TransactionRequest transactionRequest) throws SQLException {
     log.debug("Create transaction: TransactionRequest=[{}]", transactionRequest);
     return transactionManager.execute(
         transactionContext -> {
-          TransactionDao transactionDao = new TransactionDao(transactionContext.connection());
-          CategoryDao categoryDao = new CategoryDao(transactionContext.connection());
-          CategoryTypeDao categoryTypeDao = new CategoryTypeDao(transactionContext.connection());
+          TransactionDao transactionDao =
+              transactionDaoFactory.create(transactionContext.connection());
+          CategoryDao categoryDao = categoryDaoFactory.create(transactionContext.connection());
+          CategoryTypeDao categoryTypeDao =
+              categoryTypeDaoFactory.create(transactionContext.connection());
           TransactionItemDao transactionItemDao =
-              new TransactionItemDao(transactionContext.connection());
+              transactionItemDaoFactory.create(transactionContext.connection());
 
           Validations.validateTransaction(transactionRequest, categoryDao, categoryTypeDao);
           Transaction transactionIn =
@@ -101,7 +118,8 @@ public class TransactionService {
         requestParams);
     return transactionManager.execute(
         transactionContext -> {
-          TransactionDao transactionDao = new TransactionDao(transactionContext.connection());
+          TransactionDao transactionDao =
+              transactionDaoFactory.create(transactionContext.connection());
 
           PaginationResponse<TransactionResponse.Transaction> transactionPaginationResponse =
               transactionDao.readTransactions(transactionIds, requestParams, paginationRequest);
@@ -127,7 +145,9 @@ public class TransactionService {
     log.debug("Read transaction merchants");
     return transactionManager.execute(
         transactionContext -> {
-          TransactionDao transactionDao = new TransactionDao(transactionContext.connection());
+          TransactionDao transactionDao =
+              transactionDaoFactory.create(transactionContext.connection());
+
           List<String> merchants = transactionDao.readAllMerchants();
           return new TransactionResponse.TransactionMerchants(
               merchants, ResponseMetadata.emptyResponseMetadata());
@@ -140,11 +160,13 @@ public class TransactionService {
 
     return transactionManager.execute(
         transactionContext -> {
-          TransactionDao transactionDao = new TransactionDao(transactionContext.connection());
+          TransactionDao transactionDao =
+              transactionDaoFactory.create(transactionContext.connection());
+          CategoryDao categoryDao = categoryDaoFactory.create(transactionContext.connection());
+          CategoryTypeDao categoryTypeDao =
+              categoryTypeDaoFactory.create(transactionContext.connection());
           TransactionItemDao transactionItemDao =
-              new TransactionItemDao(transactionContext.connection());
-          CategoryDao categoryDao = new CategoryDao(transactionContext.connection());
-          CategoryTypeDao categoryTypeDao = new CategoryTypeDao(transactionContext.connection());
+              transactionItemDaoFactory.create(transactionContext.connection());
 
           Validations.validateTransaction(transactionRequest, categoryDao, categoryTypeDao);
 
@@ -200,9 +222,10 @@ public class TransactionService {
     log.info("Delete transactions: Ids=[{}]", ids);
     return transactionManager.execute(
         transactionContext -> {
-          TransactionDao transactionDao = new TransactionDao(transactionContext.connection());
+          TransactionDao transactionDao =
+              transactionDaoFactory.create(transactionContext.connection());
           TransactionItemDao transactionItemDao =
-              new TransactionItemDao(transactionContext.connection());
+              transactionItemDaoFactory.create(transactionContext.connection());
 
           List<Transaction> transactionList = transactionDao.read(ids);
           if (ids.size() == 1 && transactionList.isEmpty()) {
@@ -227,9 +250,10 @@ public class TransactionService {
     List<TransactionResponse.Transaction> mismatchTransactions = new ArrayList<>();
     transactionManager.executeVoid(
         transactionContext -> {
-          TransactionDao transactionDao = new TransactionDao(transactionContext.connection());
+          TransactionDao transactionDao =
+              transactionDaoFactory.create(transactionContext.connection());
           TransactionItemDao transactionItemDao =
-              new TransactionItemDao(transactionContext.connection());
+              transactionItemDaoFactory.create(transactionContext.connection());
           // Read all transactions
           int pageNumber = 1;
           int pageSize = 1000;

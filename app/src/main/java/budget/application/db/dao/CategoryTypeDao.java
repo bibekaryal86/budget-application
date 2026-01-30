@@ -1,5 +1,6 @@
 package budget.application.db.dao;
 
+import budget.application.cache.CategoryTypeCache;
 import budget.application.db.mapper.CategoryTypeRowMapper;
 import budget.application.model.entity.CategoryType;
 import java.sql.Connection;
@@ -8,8 +9,8 @@ import java.util.UUID;
 
 public class CategoryTypeDao extends BaseDao<CategoryType> {
 
-  public CategoryTypeDao(Connection connection) {
-    super(connection, new CategoryTypeRowMapper(), null);
+  public CategoryTypeDao(Connection connection, CategoryTypeCache categoryTypeCache) {
+    super(connection, new CategoryTypeRowMapper(), categoryTypeCache);
   }
 
   @Override

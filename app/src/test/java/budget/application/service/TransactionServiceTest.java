@@ -1,7 +1,6 @@
 package budget.application.service;
 
 import budget.application.IntegrationBaseTest;
-import budget.application.TestDataSource;
 import budget.application.service.domain.TransactionService;
 import io.github.bibekaryal86.shdsvc.Email;
 import io.github.bibekaryal86.shdsvc.dtos.EmailRequest;
@@ -9,7 +8,6 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
-import javax.sql.DataSource;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,7 +15,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -25,13 +22,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 public class TransactionServiceTest extends IntegrationBaseTest {
 
-  @Mock private Email email;
+    private Email email;
   private TransactionService service;
 
   @BeforeEach
   void setup() {
-    DataSource dataSource = TestDataSource.getDataSource();
-    service = new TransactionService(dataSource, email);
+    service = testAppContext.getTransactionService();
+    email = testAppContext.getTestEmail();
   }
 
   @AfterEach

@@ -1,6 +1,7 @@
 package budget.application.service.domain;
 
 import budget.application.common.Constants;
+import budget.application.db.dao.DaoFactory;
 import budget.application.db.dao.InsightsDao;
 import budget.application.db.util.TransactionManager;
 import budget.application.model.dto.InsightsResponse;
@@ -19,9 +20,11 @@ public class InsightsService {
   private static final Logger log = LoggerFactory.getLogger(InsightsService.class);
 
   private final TransactionManager transactionManager;
+  private final DaoFactory<InsightsDao> insightsDaoFactory;
 
-  public InsightsService(DataSource dataSource) {
+  public InsightsService(DataSource dataSource, DaoFactory<InsightsDao> insightsDaoFactory) {
     this.transactionManager = new TransactionManager(dataSource);
+    this.insightsDaoFactory = insightsDaoFactory;
   }
 
   public InsightsResponse.CashFlowSummaries readCashFLowSummaries(
@@ -30,7 +33,7 @@ public class InsightsService {
 
     return transactionManager.execute(
         transactionContext -> {
-          InsightsDao insightsDao = new InsightsDao(transactionContext.connection());
+          InsightsDao insightsDao = insightsDaoFactory.create(transactionContext.connection());
 
           LocalDate beginDate = requestParams.beginDate();
           LocalDate endDate = requestParams.endDate();
@@ -54,7 +57,7 @@ public class InsightsService {
 
     return transactionManager.execute(
         transactionContext -> {
-          InsightsDao insightsDao = new InsightsDao(transactionContext.connection());
+          InsightsDao insightsDao = insightsDaoFactory.create(transactionContext.connection());
 
           LocalDate beginDate = requestParams.beginDate();
           LocalDate endDate = requestParams.endDate();

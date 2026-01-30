@@ -18,17 +18,23 @@ public abstract class IntegrationBaseTest {
   protected static ServerNetty server;
   protected static int port;
   protected static final UUID TEST_ID = UUID.fromString("5b15fdaf-758b-4c4f-97d1-2405b716867a");
+
+  protected static DataSource testDataSource;
   protected static TestDataHelper testDataHelper;
+  protected static TestAppContext testAppContext;
 
   @BeforeAll
   static void beforeAll() throws Exception {
     setSystemEnvPropertyTestData();
+
     TestDataSource.start();
-    DataSource testDatasource = TestDataSource.getDataSource();
-    server = new ServerNetty(new TestAppContext(testDatasource).getTestServletContext());
+    testDataSource = TestDataSource.getDataSource();
+    testDataHelper = new TestDataHelper(testDataSource);
+
+    testAppContext = new TestAppContext(testDataSource);
+    server = new ServerNetty(testAppContext.getTestServerContext());
     server.start();
     port = server.getBoundPort();
-    testDataHelper = new TestDataHelper(testDatasource);
   }
 
   @AfterAll

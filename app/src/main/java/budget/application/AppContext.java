@@ -7,6 +7,7 @@ import budget.application.db.dao.AccountDao;
 import budget.application.db.dao.BudgetDao;
 import budget.application.db.dao.CategoryDao;
 import budget.application.db.dao.CategoryTypeDao;
+import budget.application.db.dao.DaoFactory;
 import budget.application.db.dao.InsightsDao;
 import budget.application.db.dao.TransactionDao;
 import budget.application.db.dao.TransactionItemDao;
@@ -44,32 +45,47 @@ public final class AppContext {
     CategoryTypeCache categoryTypeCache = new CategoryTypeCache();
     CategoryCache categoryCache = new CategoryCache();
 
-    AccountDao accountDao = new AccountDao(dataSource.getConnection());
-    BudgetDao budgetDao = new BudgetDao(dataSource.getConnection());
-    CategoryDao categoryDao = new CategoryDao(dataSource.getConnection());
-    CategoryTypeDao categoryTypeDao = new CategoryTypeDao(dataSource.getConnection());
-    InsightsDao insightsDao = new InsightsDao(dataSource.getConnection());
-    TransactionDao transactionDao = new TransactionDao(dataSource.getConnection());
-    TransactionItemDao transactionItemDao = new TransactionItemDao(dataSource.getConnection());
+    DaoFactory<AccountDao> accountDaoFactory =
+        connection -> new AccountDao(connection, accountCache);
+    DaoFactory<BudgetDao> budgetDaoFactory = BudgetDao::new;
+    DaoFactory<CategoryDao> categoryDaoFactory =
+        connection -> new CategoryDao(connection, categoryCache);
+    DaoFactory<CategoryTypeDao> categoryTypeDaoFactory =
+        connection -> new CategoryTypeDao(connection, categoryTypeCache);
+    DaoFactory<InsightsDao> insightsDaoFactory = InsightsDao::new;
+    DaoFactory<TransactionDao> transactionDaoFactory = TransactionDao::new;
+    DaoFactory<TransactionItemDao> transactionItemDaoFactory = TransactionItemDao::new;
 
-    AccountService accountService = new AccountService(dataSource);
-    BudgetService budgetService = new BudgetService(dataSource);
-    InsightsService insightsService = new InsightsService(dataSource);
-    CategoryTypeService categoryTypeService = new CategoryTypeService(dataSource);
-    CategoryService categoryService = new CategoryService(dataSource);
-    TransactionItemService transactionItemService = new TransactionItemService(dataSource);
-    TransactionService transactionService = new TransactionService(dataSource, email);
+    AccountService accountService = new AccountService(dataSource, accountDaoFactory);
+    BudgetService budgetService =
+        new BudgetService(dataSource, budgetDaoFactory, categoryDaoFactory);
+    InsightsService insightsService = new InsightsService(dataSource, insightsDaoFactory);
+    CategoryTypeService categoryTypeService =
+        new CategoryTypeService(dataSource, categoryTypeDaoFactory);
+    CategoryService categoryService =
+        new CategoryService(dataSource, categoryDaoFactory, categoryTypeDaoFactory);
+    TransactionItemService transactionItemService =
+        new TransactionItemService(dataSource, transactionItemDaoFactory, categoryDaoFactory);
+    TransactionService transactionService =
+        new TransactionService(
+            dataSource,
+            email,
+            transactionDaoFactory,
+            transactionItemDaoFactory,
+            categoryDaoFactory,
+            categoryTypeDaoFactory);
 
-    AccountHandler accountHandler = new AccountHandler(dataSource);
+    AccountHandler accountHandler = new AccountHandler(accountService);
     AppTestsHandler appTestsHandler = new AppTestsHandler();
-    BudgetHandler budgetHandler = new BudgetHandler(dataSource);
-    CategoryHandler categoryHandler = new CategoryHandler(dataSource);
-    CategoryTypeHandler categoryTypeHandler = new CategoryTypeHandler(dataSource);
-    InsightsHandler insightsHandler = new InsightsHandler(dataSource);
-    TransactionHandler transactionHandler = new TransactionHandler(dataSource, email);
-    TransactionItemHandler transactionItemHandler = new TransactionItemHandler(dataSource);
+    BudgetHandler budgetHandler = new BudgetHandler(budgetService);
+    CategoryHandler categoryHandler = new CategoryHandler(categoryService);
+    CategoryTypeHandler categoryTypeHandler = new CategoryTypeHandler(categoryTypeService);
+    InsightsHandler insightsHandler = new InsightsHandler(insightsService);
+    TransactionHandler transactionHandler = new TransactionHandler(transactionService);
+    TransactionItemHandler transactionItemHandler =
+        new TransactionItemHandler(transactionItemService);
 
-    scheduleManager = new ScheduleManager(dataSource, email);
+    scheduleManager = new ScheduleManager(dataSource, transactionService);
     serverContext =
         new ServerContext(
             appTestsHandler,

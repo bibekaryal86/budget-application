@@ -7,7 +7,6 @@ import budget.application.model.dto.TransactionResponse;
 import budget.application.server.util.ApiPaths;
 import budget.application.server.util.ServerUtils;
 import budget.application.service.domain.TransactionService;
-import io.github.bibekaryal86.shdsvc.Email;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.FullHttpRequest;
@@ -16,7 +15,6 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import java.util.List;
 import java.util.UUID;
-import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,8 +23,8 @@ public class TransactionHandler extends SimpleChannelInboundHandler<FullHttpRequ
 
   private final TransactionService transactionService;
 
-  public TransactionHandler(DataSource dataSource, Email email) {
-    this.transactionService = new TransactionService(dataSource, email);
+  public TransactionHandler(TransactionService transactionService) {
+    this.transactionService = transactionService;
   }
 
   @Override

@@ -1,14 +1,12 @@
 package budget.application.scheduler;
 
 import budget.application.service.domain.TransactionService;
-import io.github.bibekaryal86.shdsvc.Email;
 import java.sql.SQLException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,8 +17,8 @@ public class DailyTransactionReconScheduler {
   private final TransactionService transactionService;
 
   public DailyTransactionReconScheduler(
-      DataSource dataSource, ScheduledExecutorService scheduledExecutorService, Email email) {
-    this.transactionService = new TransactionService(dataSource, email);
+      TransactionService transactionService, ScheduledExecutorService scheduledExecutorService) {
+    this.transactionService = transactionService;
     this.scheduledExecutorService = scheduledExecutorService;
   }
 

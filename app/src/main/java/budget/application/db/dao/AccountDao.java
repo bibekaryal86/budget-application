@@ -1,5 +1,6 @@
 package budget.application.db.dao;
 
+import budget.application.cache.AccountCache;
 import budget.application.db.mapper.AccountRowMappers;
 import budget.application.model.entity.Account;
 import java.sql.Connection;
@@ -8,8 +9,8 @@ import java.util.UUID;
 
 public class AccountDao extends BaseDao<Account> {
 
-  public AccountDao(Connection connection) {
-    super(connection, new AccountRowMappers.AccountRowMapper(), null);
+  public AccountDao(Connection connection, AccountCache accountCache) {
+    super(connection, new AccountRowMappers.AccountRowMapper(), accountCache);
   }
 
   @Override

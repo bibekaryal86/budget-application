@@ -1,5 +1,6 @@
 package budget.application.db.dao;
 
+import budget.application.cache.CategoryCache;
 import budget.application.db.mapper.CategoryRowMappers;
 import budget.application.db.util.DaoUtils;
 import budget.application.model.dto.CategoryResponse;
@@ -18,8 +19,8 @@ public class CategoryDao extends BaseDao<Category> {
 
   private final CategoryRowMappers.CategoryRowMapperResponse categoryRowMapperResponse;
 
-  public CategoryDao(Connection connection) {
-    super(connection, new CategoryRowMappers.CategoryRowMapper(), null);
+  public CategoryDao(Connection connection, CategoryCache categoryCache) {
+    super(connection, new CategoryRowMappers.CategoryRowMapper(), categoryCache);
     this.categoryRowMapperResponse = new CategoryRowMappers.CategoryRowMapperResponse();
   }
 

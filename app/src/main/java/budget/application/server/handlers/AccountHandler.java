@@ -12,7 +12,6 @@ import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import java.util.List;
 import java.util.UUID;
-import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,8 +20,8 @@ public class AccountHandler extends SimpleChannelInboundHandler<FullHttpRequest>
 
   private final AccountService accountService;
 
-  public AccountHandler(DataSource dataSource) {
-    this.accountService = new AccountService(dataSource);
+  public AccountHandler(AccountService accountService) {
+    this.accountService = accountService;
   }
 
   @Override
