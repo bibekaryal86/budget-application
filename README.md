@@ -3,6 +3,8 @@
 A streamlined, lightweight personal finance tracker built with a focus on high performance and zero framework overhead.
 This application provides a robust backend for managing expenses and income through a structured category system.
 
+This is the backend for Budget Application [https://github.com/bibekaryal86/budget-application-spa]
+
 ## Technical Stack
 This project is built from the ground up without heavy frameworks like Spring or Micronaut to ensure a small footprint
 and deep understanding of the underlying protocols.
