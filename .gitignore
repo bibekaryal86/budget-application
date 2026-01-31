@@ -1,21 +1,17 @@
+# Ignore Gradle project-specific cache directory
 .gradle
-**/build/
-!**/src/**/build/
 
-# Ignore Gradle GUI config
-gradle-app.setting
+# Ignore Gradle build output directory
+build
 
-# Avoid ignoring Gradle wrapper jar file (.jar files are usually ignored)
-!gradle-wrapper.jar
+# Ignore IntelliJ config directory
+.idea
 
-# Avoid ignore Gradle wrappper properties
-!gradle-wrapper.properties
+# Ignore Jar Files in gcp folder
+gcp/*.jar
 
-# Cache of project
-.gradletasknamecache
+# Ignore credentials to be committed
+gcp/app-credentials.yaml
 
-# Eclipse Gradle plugin generated files
-# Eclipse Core
-.project
-# JDT-specific (Eclipse Java Development Tools)
-.classpath
+# Ignore data
+app/src/main/resources/db/migration/V1.3__accounts_data.sql

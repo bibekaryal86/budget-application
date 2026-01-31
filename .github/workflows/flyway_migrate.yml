@@ -1,0 +1,47 @@
+name: Flyway Migrate
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Test Database Connection Push
+        if: github.event_name == 'push'
+        run: |
+          pg_isready -h ${{ secrets.DB_HOST }} -p 5432 -U ${{ secrets.DB_USERNAME }} -d ${{ secrets.DB_DBNAME }}
+
+      - name: Test Database Connection Pull
+        if: github.event_name == 'pull_request'
+        run: |
+          pg_isready -h ${{ secrets.DB_HOST_SANDBOX }} -p 5432 -U ${{ secrets.DB_USERNAME_SANDBOX }} -d ${{ secrets.DB_DBNAME_SANDBOX }}
+
+      - name: Run Flyway Migrations (Production)
+        if: github.event_name == 'push'
+        run: |
+          docker run --rm \
+          -v ${{ github.workspace }}/app/src/main/resources/db/migration:/flyway/sql \
+          flyway/flyway:11.9.1 \
+          -url=jdbc:postgresql://${{ secrets.DB_HOST }}:5432/${{ secrets.DB_DBNAME }} \
+          -user=${{ secrets.DB_USERNAME }} \
+          -password=${{ secrets.DB_PASSWORD }} \
+          migrate
+
+      - name: Run Flyway Migrations (Sandbox)
+        if: github.event_name == 'pull_request'
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}/app/src/main/resources/db/migration:/flyway/sql \
+            flyway/flyway:11.9.1 \
+            -url=jdbc:postgresql://${{ secrets.DB_HOST_SANDBOX }}:5432/${{ secrets.DB_DBNAME_SANDBOX }} \
+            -user=${{ secrets.DB_USERNAME_SANDBOX }} \
+            -password=${{ secrets.DB_PASSWORD_SANDBOX }} \
+            migrate
