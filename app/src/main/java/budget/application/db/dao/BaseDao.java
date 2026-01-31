@@ -115,8 +115,8 @@ public abstract class BaseDao<T> {
       while (resultSet.next()) results.add(mapper.map(resultSet));
 
       if (cache != null) {
-          cache.clear();
-          cache.put(results);
+        cache.clear();
+        cache.put(results);
       }
 
       return results;

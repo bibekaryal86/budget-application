@@ -2,7 +2,6 @@ package budget.application.service;
 
 import budget.application.IntegrationBaseTest;
 import budget.application.service.domain.TransactionService;
-import io.github.bibekaryal86.shdsvc.Email;
 import io.github.bibekaryal86.shdsvc.dtos.EmailRequest;
 import java.time.LocalDateTime;
 import java.util.Collections;
