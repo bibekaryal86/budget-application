@@ -14,7 +14,8 @@ public record InsightsResponse() {
       LocalDate endDate,
       BigDecimal incomes,
       BigDecimal expenses,
-      BigDecimal savings) {}
+      BigDecimal savings,
+      BigDecimal balance) {}
 
   public record CategorySummaries(
       List<CategorySummary> currentMonth,

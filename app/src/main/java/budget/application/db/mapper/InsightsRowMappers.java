@@ -3,6 +3,7 @@ package budget.application.db.mapper;
 import budget.application.model.dto.CategoryResponse;
 import budget.application.model.dto.CategoryTypeResponse;
 import budget.application.model.dto.InsightsResponse;
+import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
@@ -14,12 +15,17 @@ public class InsightsRowMappers {
       implements RowMapper<InsightsResponse.CashFlowSummary> {
     @Override
     public InsightsResponse.CashFlowSummary map(ResultSet resultSet) throws SQLException {
+      BigDecimal incomes = resultSet.getBigDecimal("incomes");
+      BigDecimal expenses = resultSet.getBigDecimal("expenses");
+      BigDecimal savings = resultSet.getBigDecimal("savings");
+      BigDecimal balance = incomes.subtract(expenses).subtract(savings);
       return new InsightsResponse.CashFlowSummary(
           resultSet.getObject("begin_date", LocalDate.class),
           resultSet.getObject("end_date", LocalDate.class),
-          resultSet.getBigDecimal("incomes"),
-          resultSet.getBigDecimal("expenses"),
-          resultSet.getBigDecimal("savings"));
+          incomes,
+          expenses,
+          savings,
+          balance);
     }
   }
 
