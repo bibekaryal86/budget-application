@@ -34,20 +34,11 @@ public class InsightsService {
     return transactionManager.execute(
         transactionContext -> {
           InsightsDao insightsDao = insightsDaoFactory.create(transactionContext.connection());
-
-          LocalDate beginDate = requestParams.beginDate();
-          LocalDate endDate = requestParams.endDate();
-
-          LocalDate previousMonthBeginDate = beginDate.minusMonths(1);
-          LocalDate previousMonthEndDate = endDate.minusMonths(1);
-
-          InsightsResponse.CashFlowSummary currentMonth =
-              insightsDao.readCashFlowSummary(beginDate, endDate);
-          InsightsResponse.CashFlowSummary prevMonth =
-              insightsDao.readCashFlowSummary(previousMonthBeginDate, previousMonthEndDate);
-
+          List<InsightsResponse.CashFlowSummary> cashFlowSummaries =
+              insightsDao.readCashFlowSummary(
+                  requestParams.beginDate(), requestParams.endDate(), requestParams.monthsAgo());
           return new InsightsResponse.CashFlowSummaries(
-              currentMonth, prevMonth, ResponseMetadata.emptyResponseMetadata());
+              cashFlowSummaries, ResponseMetadata.emptyResponseMetadata());
         });
   }
 
@@ -63,35 +54,38 @@ public class InsightsService {
           LocalDate endDate = requestParams.endDate();
           List<UUID> categoryIds = requestParams.categoryIds();
           List<UUID> categoryTypeIds = requestParams.categoryTypeIds();
+          int monthsAgo = requestParams.monthsAgo();
 
-          List<InsightsResponse.CategorySummary> currentMonth =
-              insightsDao.readCategorySummary(beginDate, endDate, categoryIds, categoryTypeIds);
+          List<InsightsResponse.CategorySummary> categorySummaries =
+              insightsDao.readCategorySummary(
+                  beginDate, endDate, categoryIds, categoryTypeIds, monthsAgo);
 
-          List<InsightsResponse.CategorySummary> filteredCurrentMonth = currentMonth;
-          if (requestParams.topExpenses()) {
-            filteredCurrentMonth =
-                currentMonth.stream()
+          List<InsightsResponse.CategorySummary> filteredCategorySummaries = categorySummaries;
+          if (requestParams.topExpenses() > 0 && !categorySummaries.isEmpty()) {
+            InsightsResponse.CategorySummary mostRecentMonth = categorySummaries.getFirst();
+
+            List<InsightsResponse.CategoryAmounts> allCategoryAmounts =
+                mostRecentMonth.categoryAmounts();
+
+            List<InsightsResponse.CategoryAmounts> topExpenseCategories =
+                allCategoryAmounts.stream()
                     .filter(
-                        cs ->
+                        ca ->
                             !Constants.NO_EXPENSE_CATEGORY_TYPES.contains(
-                                cs.category().categoryType().name()))
+                                ca.category().categoryType().name()))
                     .sorted(
-                        Comparator.comparing(InsightsResponse.CategorySummary::amount).reversed())
-                    .limit(7)
+                        Comparator.comparing(InsightsResponse.CategoryAmounts::amount).reversed())
+                    .limit(requestParams.topExpenses())
                     .toList();
+
+            filteredCategorySummaries =
+                List.of(
+                    new InsightsResponse.CategorySummary(
+                        mostRecentMonth.yearMonth(), topExpenseCategories));
           }
 
-          LocalDate previousMonthBeginDate = beginDate.minusMonths(1);
-          LocalDate previousMonthEndDate = endDate.minusMonths(1);
-          List<UUID> relevantCatIds =
-              filteredCurrentMonth.stream().map(cs -> cs.category().id()).toList();
-
-          List<InsightsResponse.CategorySummary> previousMonth =
-              insightsDao.readCategorySummary(
-                  previousMonthBeginDate, previousMonthEndDate, relevantCatIds, List.of());
-
           return new InsightsResponse.CategorySummaries(
-              filteredCurrentMonth, previousMonth, ResponseMetadata.emptyResponseMetadata());
+              filteredCategorySummaries, ResponseMetadata.emptyResponseMetadata());
         });
   }
 }

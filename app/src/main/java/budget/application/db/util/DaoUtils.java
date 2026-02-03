@@ -4,6 +4,7 @@ import java.sql.Array;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -68,5 +69,9 @@ public class DaoUtils {
 
   public static String placeholders(int count) {
     return String.join(",", Collections.nCopies(count, "?"));
+  }
+
+  public static String getYearMonth(LocalDate date) {
+    return String.format("%02d / %02d", date.getYear() % 100, date.getMonthValue());
   }
 }

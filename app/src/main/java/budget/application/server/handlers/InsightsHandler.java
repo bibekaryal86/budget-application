@@ -39,7 +39,7 @@ public class InsightsHandler extends SimpleChannelInboundHandler<FullHttpRequest
 
     // READ: GET /petssvc/api/v1/insights/cf-summaries
     if (path.equals(ApiPaths.INSIGHTS_V1_CF_SUMMARIES) && method.equals(HttpMethod.GET)) {
-      RequestParams.CashFlowSummaryParams params = ServerUtils.getTransactionSummaryParams(decoder);
+      RequestParams.CashFlowSummaryParams params = ServerUtils.getCashFlowSummaryParams(decoder);
       handleCashFlowSummaries(channelHandlerContext, params);
       return;
     }

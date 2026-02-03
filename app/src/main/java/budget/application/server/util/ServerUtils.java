@@ -108,29 +108,34 @@ public class ServerUtils {
     return new RequestParams.BudgetParams(budgetMonth, budgetYear, categoryIds);
   }
 
-  public static RequestParams.CashFlowSummaryParams getTransactionSummaryParams(
+  public static RequestParams.CashFlowSummaryParams getCashFlowSummaryParams(
       QueryStringDecoder decoder) {
     LocalDate beginDate = parseDate(decoder, "beginDate");
     LocalDate endDate = parseDate(decoder, "endDate");
+    int monthsAgo = parseInt(decoder, "monthsAgo");
+
+    if (monthsAgo == 0) {
+      monthsAgo = 2;
+    }
 
     if (beginDate == null && endDate == null) {
       LocalDate now = LocalDate.now();
       beginDate = now.withDayOfMonth(1);
       endDate = now.withDayOfMonth(now.lengthOfMonth());
-      return new RequestParams.CashFlowSummaryParams(beginDate, endDate);
+      return new RequestParams.CashFlowSummaryParams(beginDate, endDate, monthsAgo);
     }
 
     if (beginDate != null && endDate == null) {
       endDate = beginDate.withDayOfMonth(beginDate.lengthOfMonth());
-      return new RequestParams.CashFlowSummaryParams(beginDate, endDate);
+      return new RequestParams.CashFlowSummaryParams(beginDate, endDate, monthsAgo);
     }
 
     if (beginDate == null && endDate != null) {
       beginDate = endDate.withDayOfMonth(1);
-      return new RequestParams.CashFlowSummaryParams(beginDate, endDate);
+      return new RequestParams.CashFlowSummaryParams(beginDate, endDate, monthsAgo);
     }
 
-    return new RequestParams.CashFlowSummaryParams(beginDate, endDate);
+    return new RequestParams.CashFlowSummaryParams(beginDate, endDate, monthsAgo);
   }
 
   public static RequestParams.CategorySummaryParams getCategorySummaryParams(
@@ -151,10 +156,11 @@ public class ServerUtils {
 
     List<UUID> categoryIds = parseUUIDs(decoder, "categoryIds");
     List<UUID> categoryTypeIds = parseUUIDs(decoder, "categoryTypeIds");
-    boolean topExpenses = parseBoolean(decoder, "topExpenses");
+    int topExpenses = parseInt(decoder, "topExpenses");
+    int monthsAgo = parseInt(decoder, "monthsAgo");
 
     return new RequestParams.CategorySummaryParams(
-        beginDate, endDate, categoryIds, categoryTypeIds, topExpenses);
+        beginDate, endDate, categoryIds, categoryTypeIds, topExpenses, monthsAgo);
   }
 
   private static List<String> getParameterValues(QueryStringDecoder decoder, String paramName) {
