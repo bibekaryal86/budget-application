@@ -19,7 +19,7 @@ public record RequestParams(TransactionParams transactionParams, CategoryParams 
 
   public record BudgetParams(int budgetMonth, int budgetYear, List<UUID> categoryIds) {}
 
-  public record CashFlowSummaryParams(LocalDate beginDate, LocalDate endDate, int monthsAgo) {}
+  public record CashFlowSummaryParams(LocalDate beginDate, LocalDate endDate, int totalMonths) {}
 
   public record CategorySummaryParams(
       LocalDate beginDate,
@@ -27,5 +27,5 @@ public record RequestParams(TransactionParams transactionParams, CategoryParams 
       List<UUID> categoryIds,
       List<UUID> categoryTypeIds,
       int topExpenses,
-      int monthsAgo) {}
+      int totalMonths) {}
 }

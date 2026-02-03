@@ -72,6 +72,6 @@ public class DaoUtils {
   }
 
   public static String getYearMonth(LocalDate date) {
-    return String.format("%02d / %02d", date.getYear() % 100, date.getMonthValue());
+    return String.format("%02d/%02d", date.getYear() % 100, date.getMonthValue());
   }
 }

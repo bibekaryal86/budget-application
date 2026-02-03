@@ -28,10 +28,10 @@ public class InsightsRowMappers {
   }
 
   public static class CategoryAmountRowMapper
-      implements RowMapper<InsightsResponse.CategoryAmounts> {
+      implements RowMapper<InsightsResponse.CategoryAmount> {
     @Override
-    public InsightsResponse.CategoryAmounts map(ResultSet resultSet) throws SQLException {
-      return new InsightsResponse.CategoryAmounts(
+    public InsightsResponse.CategoryAmount map(ResultSet resultSet) throws SQLException {
+      return new InsightsResponse.CategoryAmount(
           new CategoryResponse.Category(
               resultSet.getObject("category_id", UUID.class),
               new CategoryTypeResponse.CategoryType(

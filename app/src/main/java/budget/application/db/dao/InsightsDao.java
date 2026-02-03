@@ -31,12 +31,12 @@ public class InsightsDao {
   }
 
   public List<InsightsResponse.CashFlowSummary> readCashFlowSummary(
-      LocalDate beginDate, LocalDate endDate, int monthsAgo) throws SQLException {
+      LocalDate beginDate, LocalDate endDate, int totalMonths) throws SQLException {
     log.debug(
-        "Read cash flow summary: BeginDate=[{}], EndDate=[{}], NumberOfMonthsAgo=[{}]",
+        "Read cash flow summary: BeginDate=[{}], EndDate=[{}], TotalMonths=[{}]",
         beginDate,
         endDate,
-        monthsAgo);
+        totalMonths);
 
     List<InsightsResponse.CashFlowSummary> results = new ArrayList<>();
     String sql =
@@ -46,7 +46,7 @@ public class InsightsDao {
                 SELECT
                   DATE_TRUNC('month', ?::date)::date AS interval_start,
                   (DATE_TRUNC('month', ?::date) + INTERVAL '1 month' - INTERVAL '1 day')::date AS interval_end,
-                  0 AS month_offset
+                  1 AS month_offset
                 UNION ALL
                 SELECT
                   (DATE_TRUNC('month', interval_start) - INTERVAL '1 month')::date,
@@ -54,7 +54,6 @@ public class InsightsDao {
                   month_offset + 1
                 FROM date_intervals
                 WHERE month_offset < ?
-                   OR (DATE_TRUNC('month', interval_start) - INTERVAL '1 month') >= DATE_TRUNC('month', ?::date)
               )
               SELECT
                   di.interval_start AS begin_date,
@@ -72,7 +71,6 @@ public class InsightsDao {
                   ON ti.category_id = c.id
               LEFT JOIN category_type ct
                   ON c.category_type_id = ct.id
-              WHERE di.interval_end >= ?
               GROUP BY di.interval_start, di.interval_end
               ORDER BY di.interval_start DESC;
           """;
@@ -80,9 +78,7 @@ public class InsightsDao {
     List<Object> params = new ArrayList<>();
     params.add(endDate);
     params.add(endDate);
-    params.add(monthsAgo);
-    params.add(beginDate);
-    params.add(beginDate);
+    params.add(totalMonths);
 
     log.debug("Read Transaction Summary SQL=[{}]", sql);
 
@@ -103,33 +99,33 @@ public class InsightsDao {
       LocalDate endDate,
       List<UUID> categoryIds,
       List<UUID> categoryTypeIds,
-      int monthsAgo)
+      int totalMonths)
       throws SQLException {
 
     log.debug(
-        "Read category summary: BeginDate=[{}], EndDate=[{}], CategoryIds=[{}], CategoryTypeIds=[{}], NumberOfMonthsAgo=[{}]",
+        "Read category summary: BeginDate=[{}], EndDate=[{}], CategoryIds=[{}], CategoryTypeIds=[{}], TotalMonths=[{}]",
         beginDate,
         endDate,
         categoryIds,
         categoryTypeIds,
-        monthsAgo);
+        totalMonths);
 
     String sql =
         """
         WITH RECURSIVE date_intervals AS (
+            -- Start with the end date's month as the first interval
             SELECT
-                DATE_TRUNC('month', ?::date)::date AS interval_start,
-                (DATE_TRUNC('month', ?::date) + INTERVAL '1 month' - INTERVAL '1 day')::date AS interval_end,
-                0 AS month_offset
+              DATE_TRUNC('month', ?::date)::date AS interval_start,
+              (DATE_TRUNC('month', ?::date) + INTERVAL '1 month' - INTERVAL '1 day')::date AS interval_end,
+              1 AS month_offset
             UNION ALL
             SELECT
-                (DATE_TRUNC('month', interval_start) - INTERVAL '1 month')::date,
-                (DATE_TRUNC('month', interval_start) - INTERVAL '1 day')::date,
-                month_offset + 1
+              (DATE_TRUNC('month', interval_start) - INTERVAL '1 month')::date,
+              (DATE_TRUNC('month', interval_start) - INTERVAL '1 day')::date,
+              month_offset + 1
             FROM date_intervals
             WHERE month_offset < ?
-                OR (DATE_TRUNC('month', interval_start) - INTERVAL '1 month') >= DATE_TRUNC('month', ?::date)
-        )
+          )
         SELECT
             di.interval_start AS begin_date,
             di.interval_end AS end_date,
@@ -147,8 +143,7 @@ public class InsightsDao {
         LEFT JOIN transaction_item ti
             ON ti.transaction_id = t.id
             AND ti.category_id = c.id
-        WHERE di.interval_end >= ?
-            AND ( ? = FALSE OR c.id = ANY(?) )
+            WHERE ( ? = FALSE OR c.id = ANY(?) )
             AND ( ? = FALSE OR ct.id = ANY(?) )
         GROUP BY di.interval_start, di.interval_end, c.id, c.name, ct.id, ct.name
         ORDER BY di.interval_start DESC, c.name
@@ -157,9 +152,7 @@ public class InsightsDao {
     List<Object> params = new ArrayList<>();
     params.add(endDate);
     params.add(endDate);
-    params.add(monthsAgo);
-    params.add(beginDate);
-    params.add(beginDate);
+    params.add(totalMonths);
 
     boolean hasCat = !CommonUtilities.isEmpty(categoryIds);
     boolean hasCatTypes = !CommonUtilities.isEmpty(categoryTypeIds);
@@ -179,7 +172,7 @@ public class InsightsDao {
           LocalDate beginDateRes = resultSet.getObject("begin_date", LocalDate.class);
           String yearMonth = DaoUtils.getYearMonth(beginDateRes);
 
-          InsightsResponse.CategoryAmounts categoryAmount = categoryAmountRowMapper.map(resultSet);
+          InsightsResponse.CategoryAmount categoryAmount = categoryAmountRowMapper.map(resultSet);
 
           categorySummaryMap
               .computeIfAbsent(
