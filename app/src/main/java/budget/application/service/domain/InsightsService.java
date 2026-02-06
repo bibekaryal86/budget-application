@@ -90,7 +90,11 @@ public class InsightsService {
                                 summary.categoryAmounts().stream()
                                     .filter(
                                         ca -> topExpenseCategoryIds.contains(ca.category().id()))
-                                    .filter(ca -> topExpenses == Constants.MAX_CONTENT_LENGTH ? Boolean.TRUE : ca.amount().compareTo(BigDecimal.ZERO) > 0)
+                                    .filter(
+                                        ca ->
+                                            topExpenses == Constants.MAX_CONTENT_LENGTH
+                                                ? Boolean.TRUE
+                                                : ca.amount().compareTo(BigDecimal.ZERO) > 0)
                                     .sorted(
                                         Comparator.comparing(
                                                 InsightsResponse.CategoryAmount::amount)
