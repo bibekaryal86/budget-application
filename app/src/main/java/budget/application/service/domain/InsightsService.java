@@ -58,6 +58,7 @@ public class InsightsService {
           List<UUID> categoryIds = requestParams.categoryIds();
           List<UUID> categoryTypeIds = requestParams.categoryTypeIds();
           int totalMonths = requestParams.totalMonths();
+          int topExpenses = requestParams.topExpenses();
 
           List<InsightsResponse.CategorySummary> categorySummaries =
               insightsDao.readCategorySummary(
@@ -76,7 +77,7 @@ public class InsightsService {
                                 ca.category().categoryType().name()))
                     .sorted(
                         Comparator.comparing(InsightsResponse.CategoryAmount::amount).reversed())
-                    .limit(requestParams.topExpenses())
+                    .limit(topExpenses)
                     .map(ca -> ca.category().id())
                     .collect(Collectors.toSet());
 
@@ -89,7 +90,7 @@ public class InsightsService {
                                 summary.categoryAmounts().stream()
                                     .filter(
                                         ca -> topExpenseCategoryIds.contains(ca.category().id()))
-                                    .filter(ca -> ca.amount().compareTo(BigDecimal.ZERO) > 0)
+                                    .filter(ca -> topExpenses == Constants.MAX_CONTENT_LENGTH ? Boolean.TRUE : ca.amount().compareTo(BigDecimal.ZERO) > 0)
                                     .sorted(
                                         Comparator.comparing(
                                                 InsightsResponse.CategoryAmount::amount)
