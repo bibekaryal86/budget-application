@@ -117,7 +117,7 @@ public class Validations {
       throw new Exceptions.BadRequestException("Transaction item category cannot be null...");
     }
     if (transactionItemRequest.accountId() == null) {
-      throw new Exceptions.BadRequestException("Transaction account cannot be null...");
+      throw new Exceptions.BadRequestException("Transaction item account cannot be null...");
     }
     if (transactionItemRequest.amount() == null
         || transactionItemRequest.amount().compareTo(BigDecimal.ZERO) <= 0) {

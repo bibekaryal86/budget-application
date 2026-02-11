@@ -107,7 +107,13 @@ public class TransactionItemDao extends BaseDao<TransactionItem> {
                     c.id AS category_id,
                     c.name AS category_name,
                     ct.id AS category_type_id,
-                    ct.name AS category_type_name
+                    ct.name AS category_type_name,
+                    a.id           AS account_id,
+                    a.name         AS account_name,
+                    a.account_type AS account_type,
+                    a.bank_name    AS account_bank_name,
+                    a.opening_balance AS account_opening_balance,
+                    a.status       AS account_status
                 FROM transaction_item ti
                 LEFT JOIN transaction t
                   ON ti.transaction_id = t.id
@@ -115,6 +121,8 @@ public class TransactionItemDao extends BaseDao<TransactionItem> {
                   ON ti.category_id = c.id
                 LEFT JOIN category_type ct
                   ON c.category_type_id = ct.id
+                LEFT JOIN account a
+                  ON ti.account_id = a.id
                 """);
 
     List<Object> params = new ArrayList<>();
