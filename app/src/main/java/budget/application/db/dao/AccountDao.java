@@ -57,4 +57,12 @@ public class AccountDao extends BaseDao<Account> {
   protected String orderByClause() {
     return "name ASC";
   }
+
+  public List<Account> readNoEx(List<UUID> ids) {
+    try {
+      return read(ids);
+    } catch (Exception e) {
+      return List.of();
+    }
+  }
 }

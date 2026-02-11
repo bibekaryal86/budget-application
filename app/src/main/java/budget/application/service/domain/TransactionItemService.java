@@ -2,6 +2,7 @@ package budget.application.service.domain;
 
 import budget.application.common.Exceptions;
 import budget.application.common.Validations;
+import budget.application.db.dao.AccountDao;
 import budget.application.db.dao.CategoryDao;
 import budget.application.db.dao.DaoFactory;
 import budget.application.db.dao.TransactionItemDao;
@@ -24,14 +25,17 @@ public class TransactionItemService {
   private final TransactionManager transactionManager;
   private final DaoFactory<TransactionItemDao> transactionItemDaoFactory;
   private final DaoFactory<CategoryDao> categoryDaoFactory;
+  private final DaoFactory<AccountDao> accountDaoFactory;
 
   public TransactionItemService(
       DataSource dataSource,
       DaoFactory<TransactionItemDao> transactionItemDaoFactory,
-      DaoFactory<CategoryDao> categoryDaoFactory) {
+      DaoFactory<CategoryDao> categoryDaoFactory,
+      DaoFactory<AccountDao> accountDaoFactory) {
     this.transactionManager = new TransactionManager(dataSource);
     this.transactionItemDaoFactory = transactionItemDaoFactory;
     this.categoryDaoFactory = categoryDaoFactory;
+    this.accountDaoFactory = accountDaoFactory;
   }
 
   public TransactionItemResponse create(TransactionItemRequest transactionItemRequest)
@@ -42,15 +46,17 @@ public class TransactionItemService {
           TransactionItemDao transactionItemDao =
               transactionItemDaoFactory.create(transactionContext.connection());
           CategoryDao categoryDao = categoryDaoFactory.create(transactionContext.connection());
+          AccountDao accountDao = accountDaoFactory.create(transactionContext.connection());
 
           Validations.validateTransactionItem(
-              transactionItemRequest, categoryDao, Boolean.FALSE, List.of());
+              transactionItemRequest, Boolean.FALSE, categoryDao, List.of(), accountDao, List.of());
 
           TransactionItem transactionItemIn =
               new TransactionItem(
                   null,
                   transactionItemRequest.transactionId(),
                   transactionItemRequest.categoryId(),
+                  transactionItemRequest.accountId(),
                   transactionItemRequest.amount(),
                   transactionItemRequest.tags(),
                   transactionItemRequest.notes());
@@ -106,8 +112,9 @@ public class TransactionItemService {
           TransactionItemDao transactionItemDao =
               transactionItemDaoFactory.create(transactionContext.connection());
           CategoryDao categoryDao = categoryDaoFactory.create(transactionContext.connection());
+          AccountDao accountDao = accountDaoFactory.create(transactionContext.connection());
           Validations.validateTransactionItem(
-              transactionItemRequest, categoryDao, Boolean.FALSE, List.of());
+              transactionItemRequest, Boolean.FALSE, categoryDao, List.of(), accountDao, List.of());
 
           List<TransactionItem> transactionItemList = transactionItemDao.read(List.of(id));
           if (transactionItemList.isEmpty()) {
@@ -119,6 +126,7 @@ public class TransactionItemService {
                   id,
                   transactionItemRequest.transactionId(),
                   transactionItemRequest.categoryId(),
+                  transactionItemRequest.accountId(),
                   transactionItemRequest.amount(),
                   transactionItemRequest.tags(),
                   transactionItemRequest.notes());

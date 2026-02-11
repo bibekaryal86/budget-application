@@ -8,6 +8,7 @@ public record TransactionItem(
     UUID id,
     UUID transactionId,
     UUID categoryId,
+    UUID accountId,
     BigDecimal amount,
     List<String> tags,
     String notes) {}

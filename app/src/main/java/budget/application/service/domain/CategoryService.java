@@ -48,24 +48,20 @@ public class CategoryService {
               new Category(null, categoryRequest.categoryTypeId(), categoryRequest.name());
           UUID id = categoryDao.create(categoryIn).id();
           log.debug("Created category: Id=[{}]", id);
-          CategoryResponse.Category category =
-              categoryDao.readCategories(List.of(id), List.of()).getFirst();
+          CategoryResponse.Category category = categoryDao.readCategories(List.of(id)).getFirst();
 
           return new CategoryResponse(
               List.of(category), ResponseMetadataUtils.defaultInsertResponseMetadata());
         });
   }
 
-  public CategoryResponse read(List<UUID> categoryIds, List<UUID> categoryTypeIds)
-      throws SQLException {
-    log.debug(
-        "Read categories: CategoryIds=[{}], CategoryTypeIds=[{}]", categoryIds, categoryTypeIds);
+  public CategoryResponse read(List<UUID> categoryIds) throws SQLException {
+    log.debug("Read categories: CategoryIds=[{}]", categoryIds);
 
     return transactionManager.execute(
         transactionContext -> {
           CategoryDao categoryDao = categoryDaoFactory.create(transactionContext.connection());
-          List<CategoryResponse.Category> categories =
-              categoryDao.readCategories(categoryIds, categoryTypeIds);
+          List<CategoryResponse.Category> categories = categoryDao.readCategories(categoryIds);
 
           if (categoryIds.size() == 1 && categories.isEmpty()) {
             throw new Exceptions.NotFoundException("Category", categoryIds.getFirst().toString());
@@ -92,8 +88,7 @@ public class CategoryService {
           Category categoryIn =
               new Category(id, categoryRequest.categoryTypeId(), categoryRequest.name());
           categoryDao.update(categoryIn);
-          CategoryResponse.Category category =
-              categoryDao.readCategories(List.of(id), List.of()).getFirst();
+          CategoryResponse.Category category = categoryDao.readCategories(List.of(id)).getFirst();
           return new CategoryResponse(
               List.of(category), ResponseMetadataUtils.defaultUpdateResponseMetadata());
         });

@@ -8,7 +8,6 @@ public record Transaction(
     UUID id,
     LocalDateTime txnDate,
     String merchant,
-    UUID accountId,
     BigDecimal totalAmount,
     LocalDateTime createdAt,
     LocalDateTime updatedAt) {}

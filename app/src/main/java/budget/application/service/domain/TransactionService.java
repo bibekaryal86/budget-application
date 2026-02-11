@@ -3,6 +3,7 @@ package budget.application.service.domain;
 import budget.application.common.Constants;
 import budget.application.common.Exceptions;
 import budget.application.common.Validations;
+import budget.application.db.dao.AccountDao;
 import budget.application.db.dao.CategoryDao;
 import budget.application.db.dao.CategoryTypeDao;
 import budget.application.db.dao.DaoFactory;
@@ -40,6 +41,7 @@ public class TransactionService {
   private final DaoFactory<TransactionItemDao> transactionItemDaoFactory;
   private final DaoFactory<CategoryDao> categoryDaoFactory;
   private final DaoFactory<CategoryTypeDao> categoryTypeDaoFactory;
+  private final DaoFactory<AccountDao> accountDaoFactory;
 
   public TransactionService(
       DataSource dataSource,
@@ -47,13 +49,15 @@ public class TransactionService {
       DaoFactory<TransactionDao> transactionDaoFactory,
       DaoFactory<TransactionItemDao> transactionItemDaoFactory,
       DaoFactory<CategoryDao> categoryDaoFactory,
-      DaoFactory<CategoryTypeDao> categoryTypeDaoFactory) {
+      DaoFactory<CategoryTypeDao> categoryTypeDaoFactory,
+      DaoFactory<AccountDao> accountDaoFactory) {
     this.transactionManager = new TransactionManager(dataSource);
     this.email = email;
     this.transactionDaoFactory = transactionDaoFactory;
     this.transactionItemDaoFactory = transactionItemDaoFactory;
     this.categoryDaoFactory = categoryDaoFactory;
     this.categoryTypeDaoFactory = categoryTypeDaoFactory;
+    this.accountDaoFactory = accountDaoFactory;
   }
 
   public TransactionResponse create(TransactionRequest transactionRequest) throws SQLException {
@@ -65,16 +69,17 @@ public class TransactionService {
           CategoryDao categoryDao = categoryDaoFactory.create(transactionContext.connection());
           CategoryTypeDao categoryTypeDao =
               categoryTypeDaoFactory.create(transactionContext.connection());
+          AccountDao accountDao = accountDaoFactory.create(transactionContext.connection());
           TransactionItemDao transactionItemDao =
               transactionItemDaoFactory.create(transactionContext.connection());
 
-          Validations.validateTransaction(transactionRequest, categoryDao, categoryTypeDao);
+          Validations.validateTransaction(
+              transactionRequest, categoryDao, categoryTypeDao, accountDao);
           Transaction transactionIn =
               new Transaction(
                   null,
                   transactionRequest.txnDate(),
                   transactionRequest.merchant(),
-                  transactionRequest.accountId(),
                   transactionRequest.totalAmount(),
                   null,
                   null);
@@ -90,6 +95,7 @@ public class TransactionService {
                               null,
                               transactionId,
                               item.categoryId(),
+                              item.accountId(),
                               item.amount(),
                               item.tags(),
                               item.notes()))
@@ -165,10 +171,12 @@ public class TransactionService {
           CategoryDao categoryDao = categoryDaoFactory.create(transactionContext.connection());
           CategoryTypeDao categoryTypeDao =
               categoryTypeDaoFactory.create(transactionContext.connection());
+          AccountDao accountDao = accountDaoFactory.create(transactionContext.connection());
           TransactionItemDao transactionItemDao =
               transactionItemDaoFactory.create(transactionContext.connection());
 
-          Validations.validateTransaction(transactionRequest, categoryDao, categoryTypeDao);
+          Validations.validateTransaction(
+              transactionRequest, categoryDao, categoryTypeDao, accountDao);
 
           List<Transaction> transactionList = transactionDao.read(List.of(id));
           if (transactionList.isEmpty()) {
@@ -180,7 +188,6 @@ public class TransactionService {
                   id,
                   transactionRequest.txnDate(),
                   transactionRequest.merchant(),
-                  transactionRequest.accountId(),
                   transactionRequest.totalAmount(),
                   null,
                   null);
@@ -203,6 +210,7 @@ public class TransactionService {
                               null,
                               id,
                               item.categoryId(),
+                              item.accountId(),
                               item.amount(),
                               item.tags(),
                               item.notes()))

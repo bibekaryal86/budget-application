@@ -73,10 +73,6 @@ public class ServerUtils {
             ResponseMetadata.emptyResponsePageInfo()));
   }
 
-  public static RequestParams.CategoryParams getCategoryParams(QueryStringDecoder decoder) {
-    return new RequestParams.CategoryParams(parseUUIDs(decoder, "categoryTypeIds"));
-  }
-
   public static PaginationRequest getPaginationRequest(QueryStringDecoder decoder) {
     int pageNumber = parseIntNoEx(decoder, "pageNumber");
     if (pageNumber == 0) {

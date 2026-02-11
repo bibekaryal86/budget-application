@@ -27,12 +27,12 @@ public class AccountRowMappers {
     @Override
     public AccountResponse.Account map(ResultSet resultSet) throws SQLException {
       return new AccountResponse.Account(
-          resultSet.getObject("id", UUID.class),
-          resultSet.getString("name"),
+          resultSet.getObject("account_id", UUID.class),
+          resultSet.getString("account_name"),
           resultSet.getString("account_type"),
-          resultSet.getString("bank_name"),
-          resultSet.getBigDecimal("opening_balance"),
-          resultSet.getString("status"));
+          resultSet.getString("account_bank_name"),
+          resultSet.getBigDecimal("account_opening_balance"),
+          resultSet.getString("account_status"));
     }
   }
 }

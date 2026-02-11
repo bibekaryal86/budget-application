@@ -1,7 +1,5 @@
 package budget.application.db.mapper;
 
-import budget.application.model.dto.CategoryResponse;
-import budget.application.model.dto.CategoryTypeResponse;
 import budget.application.model.dto.TransactionItemResponse;
 import budget.application.model.entity.TransactionItem;
 import java.sql.Array;
@@ -19,6 +17,7 @@ public class TransactionItemRowMappers {
           resultSet.getObject("id", UUID.class),
           resultSet.getObject("transaction_id", UUID.class),
           resultSet.getObject("category_id", UUID.class),
+          resultSet.getObject("account_id", UUID.class),
           resultSet.getBigDecimal("amount"),
           extractReportTags(resultSet.getArray("tags")),
           resultSet.getString("notes"));
@@ -32,12 +31,8 @@ public class TransactionItemRowMappers {
       return new TransactionItemResponse.TransactionItem(
           resultSet.getObject("txn_item_id", UUID.class),
           null,
-          new CategoryResponse.Category(
-              resultSet.getObject("category_id", UUID.class),
-              new CategoryTypeResponse.CategoryType(
-                  resultSet.getObject("category_type_id", UUID.class),
-                  resultSet.getString("category_type_name")),
-              resultSet.getString("category_name")),
+          new CategoryRowMappers.CategoryRowMapperResponse().map(resultSet),
+          new AccountRowMappers.AccountRowMapperResponse().map(resultSet),
           resultSet.getBigDecimal("txn_item_amount"),
           extractReportTags(resultSet.getArray("txn_item_tags")),
           resultSet.getString("txn_item_notes"));

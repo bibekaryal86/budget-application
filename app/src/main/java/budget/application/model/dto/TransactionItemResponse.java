@@ -10,6 +10,7 @@ public record TransactionItemResponse(List<TransactionItem> data, ResponseMetada
       UUID id,
       TransactionResponse.Transaction transaction,
       CategoryResponse.Category category,
+      AccountResponse.Account account,
       BigDecimal amount,
       List<String> tags,
       String notes) {}

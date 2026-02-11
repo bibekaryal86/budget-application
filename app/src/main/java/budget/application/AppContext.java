@@ -29,6 +29,7 @@ import budget.application.service.domain.InsightsService;
 import budget.application.service.domain.TransactionItemService;
 import budget.application.service.domain.TransactionService;
 import io.github.bibekaryal86.shdsvc.Email;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 import javax.sql.DataSource;
@@ -62,7 +63,8 @@ public final class AppContext {
     CategoryService categoryService =
         new CategoryService(dataSource, categoryDaoFactory, categoryTypeDaoFactory);
     TransactionItemService transactionItemService =
-        new TransactionItemService(dataSource, transactionItemDaoFactory, categoryDaoFactory);
+        new TransactionItemService(
+            dataSource, transactionItemDaoFactory, categoryDaoFactory, accountDaoFactory);
     TransactionService transactionService =
         new TransactionService(
             dataSource,
@@ -70,7 +72,8 @@ public final class AppContext {
             transactionDaoFactory,
             transactionItemDaoFactory,
             categoryDaoFactory,
-            categoryTypeDaoFactory);
+            categoryTypeDaoFactory,
+            accountDaoFactory);
 
     AccountHandler accountHandler = new AccountHandler(accountService);
     AppTestsHandler appTestsHandler = new AppTestsHandler();
@@ -95,9 +98,11 @@ public final class AppContext {
             transactionHandler);
 
     // seed caches
-    accountDaoFactory.create(dataSource.getConnection()).read(List.of());
-    categoryDaoFactory.create(dataSource.getConnection()).read(List.of());
-    categoryTypeDaoFactory.create(dataSource.getConnection()).read(List.of());
+    try (Connection connection = dataSource.getConnection()) {
+      accountDaoFactory.create(connection).read(List.of());
+      categoryDaoFactory.create(connection).read(List.of());
+      categoryTypeDaoFactory.create(connection).read(List.of());
+    }
   }
 
   public ScheduleManager getScheduleManager() {

@@ -33,7 +33,7 @@ public class TransactionItemDao extends BaseDao<TransactionItem> {
 
   @Override
   protected List<String> insertColumns() {
-    return List.of("transaction_id", "category_id", "amount", "tags", "notes");
+    return List.of("transaction_id", "category_id", "account_id", "amount", "tags", "notes");
   }
 
   @Override
@@ -41,6 +41,7 @@ public class TransactionItemDao extends BaseDao<TransactionItem> {
     return List.of(
         transactionItem.transactionId(),
         transactionItem.categoryId(),
+        transactionItem.accountId(),
         transactionItem.amount(),
         switch (transactionItem.tags()) {
           case null -> Collections.emptyList();
@@ -51,13 +52,14 @@ public class TransactionItemDao extends BaseDao<TransactionItem> {
 
   @Override
   protected List<String> updateColumns() {
-    return List.of("category_id", "amount", "tags", "notes");
+    return List.of("category_id", "account_id", "amount", "tags", "notes");
   }
 
   @Override
   protected List<Object> updateValues(TransactionItem transactionItem) {
     return List.of(
         transactionItem.categoryId(),
+        transactionItem.accountId(),
         transactionItem.amount(),
         switch (transactionItem.tags()) {
           case null -> Collections.emptyList();

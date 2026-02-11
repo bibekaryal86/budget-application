@@ -1,5 +1,6 @@
 package budget.application.common;
 
+import budget.application.db.dao.AccountDao;
 import budget.application.db.dao.CategoryDao;
 import budget.application.db.dao.CategoryTypeDao;
 import budget.application.model.dto.AccountRequest;
@@ -8,6 +9,7 @@ import budget.application.model.dto.CategoryRequest;
 import budget.application.model.dto.CategoryTypeRequest;
 import budget.application.model.dto.TransactionItemRequest;
 import budget.application.model.dto.TransactionRequest;
+import budget.application.model.entity.Account;
 import budget.application.model.entity.Category;
 import budget.application.model.entity.CategoryType;
 import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
@@ -100,9 +102,11 @@ public class Validations {
 
   public static void validateTransactionItem(
       TransactionItemRequest transactionItemRequest,
-      CategoryDao categoryDao,
       Boolean isCreateTransaction,
-      List<Category> categories) {
+      CategoryDao categoryDao,
+      List<Category> categories,
+      AccountDao accountDao,
+      List<Account> accounts) {
     if (transactionItemRequest == null) {
       throw new Exceptions.BadRequestException("Transaction item request cannot be null...");
     }
@@ -111,6 +115,9 @@ public class Validations {
     }
     if (transactionItemRequest.categoryId() == null) {
       throw new Exceptions.BadRequestException("Transaction item category cannot be null...");
+    }
+    if (transactionItemRequest.accountId() == null) {
+      throw new Exceptions.BadRequestException("Transaction account cannot be null...");
     }
     if (transactionItemRequest.amount() == null
         || transactionItemRequest.amount().compareTo(BigDecimal.ZERO) <= 0) {
@@ -131,20 +138,32 @@ public class Validations {
     if (category == null) {
       throw new Exceptions.BadRequestException("Category does not exist...");
     }
+
+    if (CommonUtilities.isEmpty(accounts)) {
+      accounts = accountDao.readNoEx(List.of(transactionItemRequest.accountId()));
+    }
+
+    Account account =
+        accounts.stream()
+            .filter(acc -> acc.id().equals(transactionItemRequest.accountId()))
+            .findFirst()
+            .orElse(null);
+
+    if (account == null) {
+      throw new Exceptions.BadRequestException("Account does not exist...");
+    }
   }
 
   public static void validateTransaction(
       TransactionRequest transactionRequest,
       CategoryDao categoryDao,
-      CategoryTypeDao categoryTypeDao) {
+      CategoryTypeDao categoryTypeDao,
+      AccountDao accountDao) {
     if (transactionRequest == null) {
       throw new Exceptions.BadRequestException("Transaction request cannot be null...");
     }
     if (CommonUtilities.isEmpty(transactionRequest.merchant())) {
       throw new Exceptions.BadRequestException("Transaction merchant cannot be empty...");
-    }
-    if (transactionRequest.accountId() == null) {
-      throw new Exceptions.BadRequestException("Transaction account cannot be null...");
     }
     if (transactionRequest.totalAmount() == null
         || transactionRequest.totalAmount().compareTo(BigDecimal.ZERO) <= 0) {
@@ -193,7 +212,8 @@ public class Validations {
     }
 
     for (TransactionItemRequest transactionItemRequest : transactionRequest.items()) {
-      validateTransactionItem(transactionItemRequest, categoryDao, Boolean.TRUE, categories);
+      validateTransactionItem(
+          transactionItemRequest, Boolean.TRUE, categoryDao, categories, accountDao, List.of());
     }
   }
 }
