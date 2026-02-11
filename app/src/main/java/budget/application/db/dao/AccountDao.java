@@ -4,6 +4,10 @@ import budget.application.cache.AccountCache;
 import budget.application.db.mapper.AccountRowMappers;
 import budget.application.model.entity.Account;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -64,5 +68,17 @@ public class AccountDao extends BaseDao<Account> {
     } catch (Exception e) {
       return List.of();
     }
+  }
+
+  public List<String> readAllBanks() throws SQLException {
+    String sql = "SELECT DISTINCT bank_name FROM account ORDER BY bank_name ASC";
+    List<String> bankNames = new ArrayList<>();
+    try (PreparedStatement preparedStatement = connection.prepareStatement(sql);
+        ResultSet resultSet = preparedStatement.executeQuery()) {
+      while (resultSet.next()) {
+        bankNames.add(resultSet.getString("bank_name"));
+      }
+    }
+    return bankNames;
   }
 }

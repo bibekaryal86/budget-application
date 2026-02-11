@@ -10,6 +10,9 @@ public class ApiPaths {
 
   public static final String ACCOUNTS_V1 = BASE_V1 + "/accounts";
   public static final String ACCOUNTS_V1_WITH_ID = ACCOUNTS_V1 + "/";
+  public static final String ACCOUNTS_V1_TYPES = ACCOUNTS_V1 + "/types";
+  public static final String ACCOUNTS_V1_STATUSES = ACCOUNTS_V1 + "/statuses";
+  public static final String ACCOUNTS_V1_BANKS = ACCOUNTS_V1 + "/banks";
 
   public static final String BUDGETS_V1 = BASE_V1 + "/budgets";
   public static final String BUDGETS_V1_WITH_ID = BUDGETS_V1 + "/";

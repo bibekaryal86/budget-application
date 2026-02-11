@@ -89,6 +89,18 @@ public class AccountService {
         });
   }
 
+  public AccountResponse.AccountRefLists readAccountBanks() throws SQLException {
+    log.debug("Read account banks");
+    return transactionManager.execute(
+        transactionContext -> {
+          AccountDao accountDao = accountDaoFactory.create(transactionContext.connection());
+
+          List<String> bankNames = accountDao.readAllBanks();
+          return new AccountResponse.AccountRefLists(
+              bankNames, ResponseMetadata.emptyResponseMetadata());
+        });
+  }
+
   public AccountResponse update(UUID id, AccountRequest accountRequest) throws SQLException {
     log.debug("Update account: Id=[{}], AccountRequest=[{}]", id, accountRequest);
     return transactionManager.execute(

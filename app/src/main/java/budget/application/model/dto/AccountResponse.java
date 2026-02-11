@@ -13,4 +13,6 @@ public record AccountResponse(List<Account> data, ResponseMetadata metadata) {
       String bankName,
       BigDecimal openingBalance,
       String status) {}
+
+  public record AccountRefLists(List<String> data, ResponseMetadata metadata) {}
 }
