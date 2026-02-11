@@ -11,6 +11,7 @@ import budget.application.model.entity.Account;
 import budget.application.service.util.ResponseMetadataUtils;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseMetadata;
 import java.sql.SQLException;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 import javax.sql.DataSource;
@@ -83,6 +84,7 @@ public class AccountService {
                               account.bankName(),
                               account.openingBalance(),
                               account.status()))
+                  .sorted(Comparator.comparing(AccountResponse.Account::bankName))
                   .toList();
 
           return new AccountResponse(accounts, ResponseMetadata.emptyResponseMetadata());
