@@ -71,6 +71,9 @@ public class Constants {
   public static final List<String> ACCOUNT_TYPES =
       List.of("CASH", "CREDIT", "LOAN", "CHECKING", "SAVINGS", "INVESTMENT", "OTHER");
   public static final List<String> ACCOUNT_STATUSES = List.of("ACTIVE", "INACTIVE");
+  public static final List<String> ASSET_ACCOUNT_TYPES = List.of("CASH", "CHECKING", "SAVINGS");
+  public static final List<String> DEBT_ACCOUNT_TYPES = List.of("CREDIT", "LOAN");
+  public static final List<String> INVEST_ACCOUNT_TYPES = List.of("INVESTMENT", "OTHER");
 
   public static final String CATEGORY_TYPE_INCOME_NAME = "INCOME";
   public static final String CATEGORY_TYPE_SAVINGS_NAME = "SAVINGS";

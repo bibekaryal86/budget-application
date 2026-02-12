@@ -1,5 +1,6 @@
 package budget.application.service.domain;
 
+import budget.application.common.Constants;
 import budget.application.common.Exceptions;
 import budget.application.common.Validations;
 import budget.application.db.dao.AccountDao;
@@ -10,9 +11,11 @@ import budget.application.model.dto.AccountResponse;
 import budget.application.model.entity.Account;
 import budget.application.service.util.ResponseMetadataUtils;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseMetadata;
+import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import javax.sql.DataSource;
 import org.slf4j.Logger;
@@ -56,6 +59,7 @@ public class AccountService {
                   accountOut.accountType(),
                   accountOut.bankName(),
                   accountOut.openingBalance(),
+                  accountOut.openingBalance(), // balances are same when account is created
                   accountOut.status());
 
           return new AccountResponse(
@@ -73,6 +77,9 @@ public class AccountService {
             throw new Exceptions.NotFoundException("Account", ids.getFirst().toString());
           }
 
+          Map<UUID, AccountResponse.AccountCurrentBalanceCalc> currentBalanceCalcMap =
+              accountDao.getTotalBalancesForCurrentBalance(ids);
+
           List<AccountResponse.Account> accounts =
               accountList.stream()
                   .map(
@@ -83,6 +90,7 @@ public class AccountService {
                               account.accountType(),
                               account.bankName(),
                               account.openingBalance(),
+                              getCurrentBalance(account, currentBalanceCalcMap),
                               account.status()))
                   .sorted(Comparator.comparing(AccountResponse.Account::bankName))
                   .toList();
@@ -126,6 +134,8 @@ public class AccountService {
                   null,
                   null);
           Account accountOut = accountDao.update(accountIn);
+          Map<UUID, AccountResponse.AccountCurrentBalanceCalc> currentBalanceCalcMap =
+              accountDao.getTotalBalancesForCurrentBalance(List.of(id));
           AccountResponse.Account account =
               new AccountResponse.Account(
                   accountOut.id(),
@@ -133,6 +143,7 @@ public class AccountService {
                   accountOut.accountType(),
                   accountOut.bankName(),
                   accountOut.openingBalance(),
+                  getCurrentBalance(accountOut, currentBalanceCalcMap),
                   accountOut.status());
           return new AccountResponse(
               List.of(account), ResponseMetadataUtils.defaultUpdateResponseMetadata());
@@ -154,5 +165,27 @@ public class AccountService {
           return new AccountResponse(
               List.of(), ResponseMetadataUtils.defaultDeleteResponseMetadata(deleteCount));
         });
+  }
+
+  private BigDecimal getCurrentBalance(
+      Account account, Map<UUID, AccountResponse.AccountCurrentBalanceCalc> currentBalanceCalcMap) {
+    BigDecimal openingBalance = account.openingBalance();
+    BigDecimal currentBalance = openingBalance;
+    if (currentBalanceCalcMap.containsKey(account.id())) {
+      BigDecimal totalIncomes = currentBalanceCalcMap.get(account.id()).totalIncome();
+      BigDecimal totalExpenses = currentBalanceCalcMap.get(account.id()).totalExpense();
+      BigDecimal totalTransfers = currentBalanceCalcMap.get(account.id()).totalTransfers();
+
+      if (Constants.ASSET_ACCOUNT_TYPES.contains(account.accountType())) {
+        currentBalance =
+            openingBalance.add(totalIncomes).subtract(totalExpenses).add(totalTransfers);
+      } else if (Constants.DEBT_ACCOUNT_TYPES.contains(account.accountType())) {
+        currentBalance =
+            openingBalance.subtract(totalIncomes).add(totalExpenses).subtract(totalTransfers);
+      } else if (Constants.INVEST_ACCOUNT_TYPES.contains(account.accountType())) {
+        currentBalance = openingBalance.add(totalTransfers);
+      }
+    }
+    return currentBalance;
   }
 }

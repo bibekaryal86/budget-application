@@ -32,7 +32,20 @@ public class AccountRowMappers {
           resultSet.getString("account_type"),
           resultSet.getString("account_bank_name"),
           resultSet.getBigDecimal("account_opening_balance"),
+          null,
           resultSet.getString("account_status"));
+    }
+  }
+
+  public static class AccountCurrentBalanceCalcMapper
+      implements RowMapper<AccountResponse.AccountCurrentBalanceCalc> {
+    @Override
+    public AccountResponse.AccountCurrentBalanceCalc map(ResultSet resultSet) throws SQLException {
+      return new AccountResponse.AccountCurrentBalanceCalc(
+          resultSet.getObject("account_id", UUID.class),
+          resultSet.getBigDecimal("total_incomes"),
+          resultSet.getBigDecimal("total_expenses"),
+          resultSet.getBigDecimal("total_transfers"));
     }
   }
 }
