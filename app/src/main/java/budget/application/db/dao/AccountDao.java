@@ -95,7 +95,7 @@ public class AccountDao extends BaseDao<Account> {
         """
           SELECT
               ti.account_id AS account_id,
-              SUM(CASE WHEN ct.name = 'INCOME' THEN ti.amount ELSE 0 END) AS total_income,
+              SUM(CASE WHEN ct.name = 'INCOME' THEN ti.amount ELSE 0 END) AS total_incomes,
               SUM(CASE WHEN ct.name = 'TRANSFER' AND c.name = 'TRANSFER IN' THEN ti.amount
                         WHEN ct.name = 'TRANSFER' AND c.name = 'TRANSFER OUT' THEN -ti.amount
                           ELSE 0 END ) AS total_transfers,

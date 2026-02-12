@@ -77,8 +77,9 @@ public class AccountService {
             throw new Exceptions.NotFoundException("Account", ids.getFirst().toString());
           }
 
+          List<UUID> accountIds = accountList.stream().map(Account::id).toList();
           Map<UUID, AccountResponse.AccountCurrentBalanceCalc> currentBalanceCalcMap =
-              accountDao.getTotalBalancesForCurrentBalance(ids);
+              accountDao.getTotalBalancesForCurrentBalance(accountIds);
 
           List<AccountResponse.Account> accounts =
               accountList.stream()
