@@ -209,8 +209,20 @@ public class Validations {
                 "Category type [%s] cannot be mixed with other category types...",
                 categoryTypeName));
       }
-      if (categoryTypeName.equals(Constants.CATEGORY_TYPE_TRANSFER_NAME) && transactionRequest.items().size() != 2) {
-        throw new Exceptions.BadRequestException("Transfer transaction must have exactly 2 items...");
+      if (categoryTypeName.equals(Constants.CATEGORY_TYPE_TRANSFER_NAME)) {
+        if (transactionRequest.items().size() != 2) {
+          throw new Exceptions.BadRequestException(
+              "Transfer transaction must have exactly 2 items...");
+        }
+        if (transactionRequest
+                .items()
+                .getFirst()
+                .amount()
+                .compareTo(transactionRequest.items().getLast().amount())
+            != 0) {
+          throw new Exceptions.BadRequestException(
+              "Transfer transaction items must have same amount...");
+        }
       }
     }
 
