@@ -68,16 +68,13 @@ public class Constants {
   public static final int MAX_CONTENT_LENGTH = 1048576; // 1MB
   public static final String CONTENT_LENGTH_DEFAULT = "0";
 
-  public static final List<String> ASSET_ACCOUNT_TYPES =
-          List.of("CASH", "CHECKING", "SAVINGS");
-  public static final List<String> DEBT_ACCOUNT_TYPES =
-          List.of("CREDIT", "LOAN");
-  public static final List<String> INVEST_ACCOUNT_TYPES =
-          List.of("INVESTMENT", "OTHER");
+  public static final List<String> ASSET_ACCOUNT_TYPES = List.of("CASH", "CHECKING", "SAVINGS");
+  public static final List<String> DEBT_ACCOUNT_TYPES = List.of("CREDIT", "LOAN");
+  public static final List<String> INVEST_ACCOUNT_TYPES = List.of("INVESTMENT", "OTHER");
   public static final List<String> ACCOUNT_TYPES =
-          Stream.of(ASSET_ACCOUNT_TYPES, DEBT_ACCOUNT_TYPES, INVEST_ACCOUNT_TYPES)
-                  .flatMap(List::stream)
-                  .toList();
+      Stream.of(ASSET_ACCOUNT_TYPES, DEBT_ACCOUNT_TYPES, INVEST_ACCOUNT_TYPES)
+          .flatMap(List::stream)
+          .toList();
   public static final List<String> ACCOUNT_STATUSES = List.of("ACTIVE", "INACTIVE");
 
   public static final String CATEGORY_TYPE_INCOME_NAME = "INCOME";
