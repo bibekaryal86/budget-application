@@ -5,6 +5,7 @@ import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 import io.netty.util.AttributeKey;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Stream;
 
 public class Constants {
   private Constants() {}
@@ -67,13 +68,17 @@ public class Constants {
   public static final int MAX_CONTENT_LENGTH = 1048576; // 1MB
   public static final String CONTENT_LENGTH_DEFAULT = "0";
 
-  public static final List<String> TRANSACTION_TYPES = List.of("NEEDS", "WANTS");
+  public static final List<String> ASSET_ACCOUNT_TYPES =
+          List.of("CASH", "CHECKING", "SAVINGS");
+  public static final List<String> DEBT_ACCOUNT_TYPES =
+          List.of("CREDIT", "LOAN");
+  public static final List<String> INVEST_ACCOUNT_TYPES =
+          List.of("INVESTMENT", "OTHER");
   public static final List<String> ACCOUNT_TYPES =
-      List.of("CASH", "CREDIT", "LOAN", "CHECKING", "SAVINGS", "INVESTMENT", "OTHER");
+          Stream.of(ASSET_ACCOUNT_TYPES, DEBT_ACCOUNT_TYPES, INVEST_ACCOUNT_TYPES)
+                  .flatMap(List::stream)
+                  .toList();
   public static final List<String> ACCOUNT_STATUSES = List.of("ACTIVE", "INACTIVE");
-  public static final List<String> ASSET_ACCOUNT_TYPES = List.of("CASH", "CHECKING", "SAVINGS");
-  public static final List<String> DEBT_ACCOUNT_TYPES = List.of("CREDIT", "LOAN");
-  public static final List<String> INVEST_ACCOUNT_TYPES = List.of("INVESTMENT", "OTHER");
 
   public static final String CATEGORY_TYPE_INCOME_NAME = "INCOME";
   public static final String CATEGORY_TYPE_SAVINGS_NAME = "SAVINGS";
