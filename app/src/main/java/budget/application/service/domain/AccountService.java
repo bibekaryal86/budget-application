@@ -176,16 +176,26 @@ public class AccountService {
       BigDecimal totalExpenses = currentBalanceCalcMap.get(account.id()).totalExpense();
       BigDecimal totalTransfers = currentBalanceCalcMap.get(account.id()).totalTransfers();
 
-      if (Constants.ASSET_ACCOUNT_TYPES.contains(account.accountType())) {
-        currentBalance =
-            openingBalance.add(totalIncomes).subtract(totalExpenses).add(totalTransfers);
+      String accountType;
+      if (Constants.ASSET_ACCOUNT_TYPES.contains(account.accountType())
+          || Constants.INVEST_ACCOUNT_TYPES.contains(account.accountType())) {
+        accountType = "POSITIVE";
       } else if (Constants.DEBT_ACCOUNT_TYPES.contains(account.accountType())) {
-        currentBalance =
-            openingBalance.subtract(totalIncomes).add(totalExpenses).subtract(totalTransfers);
-      } else if (Constants.INVEST_ACCOUNT_TYPES.contains(account.accountType())) {
-        currentBalance = openingBalance.add(totalTransfers);
+        accountType = "NEGATIVE";
+      } else {
+        throw new Exceptions.NotFoundException("Account", "Type");
+      }
+
+      switch (accountType) {
+        case "POSITIVE" ->
+            currentBalance =
+                openingBalance.add(totalIncomes).subtract(totalExpenses).add(totalTransfers);
+        case "NEGATIVE" ->
+            currentBalance =
+                openingBalance.subtract(totalIncomes).add(totalExpenses).subtract(totalTransfers);
       }
     }
+
     return currentBalance;
   }
 }

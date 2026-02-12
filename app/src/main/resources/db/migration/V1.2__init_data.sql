@@ -172,10 +172,8 @@ INSERT INTO category (id, category_type_id, name) VALUES ('8def7f01-7e8f-4c91-0d
 INSERT INTO category (id, category_type_id, name) VALUES ('9ef08112-8f90-4da2-1e2f-3a4b5c6d011d', 'd7c5a2e9-6f1b-4a8c-3e9d-bf7a1c260548', 'STATE TAX');
 INSERT INTO category (id, category_type_id, name) VALUES ('af109223-9011-4eb3-2f3a-4b5c6d7e012e', 'd7c5a2e9-6f1b-4a8c-3e9d-bf7a1c260548', 'TAXES - OTHER');
 
-INSERT INTO category (id, category_type_id, name) VALUES ('b1f2c3d4-5e6f-4a7b-8c9d-0e1f2a3b0135', '2f6a9c7b-1d3e-4a5f-8c4e-b7d9a1c20564', 'BALANCE TRANSFER');
-INSERT INTO category (id, category_type_id, name) VALUES ('c2d3e4f5-6a7b-4c8d-9e0f-1a2b3c4d0146', '2f6a9c7b-1d3e-4a5f-8c4e-b7d9a1c20564', 'CREDIT CARD PAYMENT');
-INSERT INTO category (id, category_type_id, name) VALUES ('d3e4f5a6-7b8c-4d9e-0f1a-2b3c4d5e0157', '2f6a9c7b-1d3e-4a5f-8c4e-b7d9a1c20564', 'CASH TRANSFER');
-INSERT INTO category (id, category_type_id, name) VALUES ('e4f5a6b7-8c9d-4e0f-1a2b-3c4d5e6f0168', '2f6a9c7b-1d3e-4a5f-8c4e-b7d9a1c20564', 'TRANSFER - OTHER');
+INSERT INTO category (id, category_type_id, name) VALUES ('b1f2c3d4-5e6f-4a7b-8c9d-0e1f2a3b0135', '2f6a9c7b-1d3e-4a5f-8c4e-b7d9a1c20564', 'TRANSFER IN');
+INSERT INTO category (id, category_type_id, name) VALUES ('d3e4f5a6-7b8c-4d9e-0f1a-2b3c4d5e0157', '2f6a9c7b-1d3e-4a5f-8c4e-b7d9a1c20564', 'TRANSFER OUT');
 
 INSERT INTO category (id, category_type_id, name) VALUES ('f5a6b7c8-9d0e-4f1a-2b3c-4d5e6f7a0179', '8d1e9a3f-7b2c-4f6a-9e5d-c4b7a1e26059', 'LODGING');
 INSERT INTO category (id, category_type_id, name) VALUES ('06b7c8d9-0e1f-4a2b-3c4d-5e6f7a8b018a', '8d1e9a3f-7b2c-4f6a-9e5d-c4b7a1e26059', 'RENTAL CAR AND TAXI');

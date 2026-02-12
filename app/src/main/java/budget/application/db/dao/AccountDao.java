@@ -96,7 +96,9 @@ public class AccountDao extends BaseDao<Account> {
           SELECT
               ti.account_id AS account_id,
               SUM(CASE WHEN ct.name = 'INCOME' THEN ti.amount ELSE 0 END) AS total_income,
-              SUM(CASE WHEN ct.name = 'TRANSFER' THEN ti.amount ELSE 0 END) AS total_transfers,
+              SUM(CASE WHEN ct.name = 'TRANSFER' AND c.name = 'TRANSFER IN' THEN ti.amount
+                        WHEN ct.name = 'TRANSFER' AND c.name = 'TRANSFER OUT' THEN -ti.amount
+                          ELSE 0 END ) AS total_transfers,
               SUM(CASE WHEN ct.name NOT IN ('INCOME', 'TRANSFER') THEN ti.amount ELSE 0 END) AS total_expenses
           FROM transaction_item ti
           JOIN category c ON c.id = ti.category_id
