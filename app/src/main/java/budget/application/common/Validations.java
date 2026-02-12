@@ -209,6 +209,9 @@ public class Validations {
                 "Category type [%s] cannot be mixed with other category types...",
                 categoryTypeName));
       }
+      if (categoryTypeName.equals(Constants.CATEGORY_TYPE_TRANSFER_NAME) && transactionRequest.items().size() != 2) {
+        throw new Exceptions.BadRequestException("Transfer transaction must have exactly 2 items...");
+      }
     }
 
     for (TransactionItemRequest transactionItemRequest : transactionRequest.items()) {
