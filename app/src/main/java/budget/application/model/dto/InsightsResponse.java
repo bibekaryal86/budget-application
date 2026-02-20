@@ -17,10 +17,4 @@ public record InsightsResponse() {
   public record CategorySummary(String yearMonth, List<CategoryAmount> categoryAmounts) {}
 
   public record CategoryAmount(CategoryResponse.Category category, BigDecimal amount) {}
-
-  public record NetWorthSummaries(List<NetWorthSummary> data, ResponseMetadata metadata) {}
-  
-  public record NetWorthSummary(String yearMonth, List<NetWorthAmount> netWorthAmounts) {}
-
-  public record NetWorthAmount(String accountType, BigDecimal currentBalance) {}
 }
