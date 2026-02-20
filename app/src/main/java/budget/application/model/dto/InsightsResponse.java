@@ -20,7 +20,7 @@ public record InsightsResponse() {
 
   public record NetWorthSummaries(List<NetWorthSummary> data, ResponseMetadata metadata) {}
   
-  public record NetWorthSummary(String yearMonth, List<CurrentBalance> netWorthCalculations) {}
+  public record NetWorthSummary(String yearMonth, List<NetWorthAmount> netWorthAmounts) {}
 
-  public record CurrentBalance(String accountType, BigDecimal currentBalances) {}
+  public record NetWorthAmount(String accountType, BigDecimal currentBalance) {}
 }
