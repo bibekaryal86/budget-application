@@ -55,25 +55,24 @@ public final class AppContext {
     DaoFactory<TransactionItemDao> transactionItemDaoFactory = TransactionItemDao::new;
 
     AccountService accountService = new AccountService(dataSource, accountDaoFactory);
-    BudgetService budgetService =
-        new BudgetService(dataSource, budgetDaoFactory, categoryDaoFactory);
     InsightsService insightsService = new InsightsService(dataSource, insightsDaoFactory);
     CategoryTypeService categoryTypeService =
         new CategoryTypeService(dataSource, categoryTypeDaoFactory);
     CategoryService categoryService =
-        new CategoryService(dataSource, categoryDaoFactory, categoryTypeDaoFactory);
+        new CategoryService(dataSource, categoryDaoFactory, categoryTypeService);
+    BudgetService budgetService = new BudgetService(dataSource, budgetDaoFactory, categoryService);
     TransactionItemService transactionItemService =
         new TransactionItemService(
-            dataSource, transactionItemDaoFactory, categoryDaoFactory, accountDaoFactory);
+            dataSource, transactionItemDaoFactory, categoryService, accountService);
     TransactionService transactionService =
         new TransactionService(
             dataSource,
             email,
             transactionDaoFactory,
             transactionItemDaoFactory,
-            categoryDaoFactory,
-            categoryTypeDaoFactory,
-            accountDaoFactory);
+            categoryService,
+            categoryTypeService,
+            accountService);
 
     AccountHandler accountHandler = new AccountHandler(accountService);
     AppTestsHandler appTestsHandler = new AppTestsHandler();

@@ -12,6 +12,7 @@ import budget.application.model.entity.Account;
 import budget.application.service.util.ResponseMetadataUtils;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseMetadata;
 import java.math.BigDecimal;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Comparator;
 import java.util.List;
@@ -65,6 +66,11 @@ public class AccountService {
           return new AccountResponse(
               List.of(account), ResponseMetadataUtils.defaultInsertResponseMetadata());
         });
+  }
+
+  public List<Account> readNoEx(List<UUID> ids, Connection connection) throws SQLException {
+    AccountDao accountDao = accountDaoFactory.create(connection);
+    return accountDao.readNoEx(ids);
   }
 
   public AccountResponse read(List<UUID> ids) throws SQLException {

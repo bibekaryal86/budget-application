@@ -3,9 +3,6 @@ package budget.application.service.domain;
 import budget.application.common.Constants;
 import budget.application.common.Exceptions;
 import budget.application.common.Validations;
-import budget.application.db.dao.AccountDao;
-import budget.application.db.dao.CategoryDao;
-import budget.application.db.dao.CategoryTypeDao;
 import budget.application.db.dao.DaoFactory;
 import budget.application.db.dao.TransactionDao;
 import budget.application.db.dao.TransactionItemDao;
@@ -44,25 +41,25 @@ public class TransactionService {
   private final Email email;
   private final DaoFactory<TransactionDao> transactionDaoFactory;
   private final DaoFactory<TransactionItemDao> transactionItemDaoFactory;
-  private final DaoFactory<CategoryDao> categoryDaoFactory;
-  private final DaoFactory<CategoryTypeDao> categoryTypeDaoFactory;
-  private final DaoFactory<AccountDao> accountDaoFactory;
+  private final CategoryService categoryService;
+  private final CategoryTypeService categoryTypeService;
+  private final AccountService accountService;
 
   public TransactionService(
       DataSource dataSource,
       Email email,
       DaoFactory<TransactionDao> transactionDaoFactory,
       DaoFactory<TransactionItemDao> transactionItemDaoFactory,
-      DaoFactory<CategoryDao> categoryDaoFactory,
-      DaoFactory<CategoryTypeDao> categoryTypeDaoFactory,
-      DaoFactory<AccountDao> accountDaoFactory) {
+      CategoryService categoryService,
+      CategoryTypeService categoryTypeService,
+      AccountService accountService) {
     this.transactionManager = new TransactionManager(dataSource);
     this.email = email;
     this.transactionDaoFactory = transactionDaoFactory;
     this.transactionItemDaoFactory = transactionItemDaoFactory;
-    this.categoryDaoFactory = categoryDaoFactory;
-    this.categoryTypeDaoFactory = categoryTypeDaoFactory;
-    this.accountDaoFactory = accountDaoFactory;
+    this.categoryService = categoryService;
+    this.categoryTypeService = categoryTypeService;
+    this.accountService = accountService;
   }
 
   public TransactionResponse create(TransactionRequest transactionRequest) throws SQLException {
@@ -71,10 +68,6 @@ public class TransactionService {
         transactionContext -> {
           TransactionDao transactionDao =
               transactionDaoFactory.create(transactionContext.connection());
-          CategoryDao categoryDao = categoryDaoFactory.create(transactionContext.connection());
-          CategoryTypeDao categoryTypeDao =
-              categoryTypeDaoFactory.create(transactionContext.connection());
-          AccountDao accountDao = accountDaoFactory.create(transactionContext.connection());
           TransactionItemDao transactionItemDao =
               transactionItemDaoFactory.create(transactionContext.connection());
 
@@ -86,11 +79,13 @@ public class TransactionService {
                       .collect(Collectors.toSet())
                       .stream()
                       .toList();
-          List<Category> categories = categoryDao.readNoEx(categoryIds);
+          List<Category> categories =
+              categoryService.readNoEx(categoryIds, transactionContext.connection());
           List<UUID> categoryTypeIds =
               categories.stream().map(Category::categoryTypeId).collect(Collectors.toSet()).stream()
                   .toList();
-          List<CategoryType> categoryTypes = categoryTypeDao.readNoEx(categoryTypeIds);
+          List<CategoryType> categoryTypes =
+              categoryTypeService.readNoEx(categoryTypeIds, transactionContext.connection());
           List<UUID> accountIds =
               transactionRequest == null || CommonUtilities.isEmpty(transactionRequest.items())
                   ? List.of()
@@ -99,7 +94,8 @@ public class TransactionService {
                       .collect(Collectors.toSet())
                       .stream()
                       .toList();
-          List<Account> accounts = accountDao.readNoEx(accountIds);
+          List<Account> accounts =
+              accountService.readNoEx(accountIds, transactionContext.connection());
           Validations.validateTransaction(transactionRequest, categories, categoryTypes, accounts);
 
           Transaction transactionIn =
@@ -195,10 +191,6 @@ public class TransactionService {
         transactionContext -> {
           TransactionDao transactionDao =
               transactionDaoFactory.create(transactionContext.connection());
-          CategoryDao categoryDao = categoryDaoFactory.create(transactionContext.connection());
-          CategoryTypeDao categoryTypeDao =
-              categoryTypeDaoFactory.create(transactionContext.connection());
-          AccountDao accountDao = accountDaoFactory.create(transactionContext.connection());
           TransactionItemDao transactionItemDao =
               transactionItemDaoFactory.create(transactionContext.connection());
 
@@ -210,11 +202,13 @@ public class TransactionService {
                       .collect(Collectors.toSet())
                       .stream()
                       .toList();
-          List<Category> categories = categoryDao.readNoEx(categoryIds);
+          List<Category> categories =
+              categoryService.readNoEx(categoryIds, transactionContext.connection());
           List<UUID> categoryTypeIds =
               categories.stream().map(Category::categoryTypeId).collect(Collectors.toSet()).stream()
                   .toList();
-          List<CategoryType> categoryTypes = categoryTypeDao.readNoEx(categoryTypeIds);
+          List<CategoryType> categoryTypes =
+              categoryTypeService.readNoEx(categoryTypeIds, transactionContext.connection());
           List<UUID> accountIds =
               transactionRequest == null || CommonUtilities.isEmpty(transactionRequest.items())
                   ? List.of()
@@ -223,7 +217,8 @@ public class TransactionService {
                       .collect(Collectors.toSet())
                       .stream()
                       .toList();
-          List<Account> accounts = accountDao.readNoEx(accountIds);
+          List<Account> accounts =
+              accountService.readNoEx(accountIds, transactionContext.connection());
           Validations.validateTransaction(transactionRequest, categories, categoryTypes, accounts);
 
           List<Transaction> transactionList = transactionDao.read(List.of(id));

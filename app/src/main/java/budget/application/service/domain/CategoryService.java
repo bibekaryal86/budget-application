@@ -3,7 +3,6 @@ package budget.application.service.domain;
 import budget.application.common.Exceptions;
 import budget.application.common.Validations;
 import budget.application.db.dao.CategoryDao;
-import budget.application.db.dao.CategoryTypeDao;
 import budget.application.db.dao.DaoFactory;
 import budget.application.db.util.TransactionManager;
 import budget.application.model.dto.CategoryRequest;
@@ -12,6 +11,7 @@ import budget.application.model.entity.Category;
 import budget.application.model.entity.CategoryType;
 import budget.application.service.util.ResponseMetadataUtils;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseMetadata;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
@@ -24,15 +24,15 @@ public class CategoryService {
 
   private final TransactionManager transactionManager;
   private final DaoFactory<CategoryDao> categoryDaoFactory;
-  private final DaoFactory<CategoryTypeDao> categoryTypeDaoFactory;
+  private final CategoryTypeService categoryTypeService;
 
   public CategoryService(
       DataSource dataSource,
       DaoFactory<CategoryDao> categoryDaoFactory,
-      DaoFactory<CategoryTypeDao> categoryTypeDaoFactory) {
+      CategoryTypeService categoryTypeService) {
     this.transactionManager = new TransactionManager(dataSource);
     this.categoryDaoFactory = categoryDaoFactory;
-    this.categoryTypeDaoFactory = categoryTypeDaoFactory;
+    this.categoryTypeService = categoryTypeService;
   }
 
   public CategoryResponse create(CategoryRequest categoryRequest) throws SQLException {
@@ -40,13 +40,12 @@ public class CategoryService {
     return transactionManager.execute(
         transactionContext -> {
           CategoryDao categoryDao = categoryDaoFactory.create(transactionContext.connection());
-          CategoryTypeDao categoryTypeDao =
-              categoryTypeDaoFactory.create(transactionContext.connection());
 
           List<CategoryType> categoryTypeList =
               categoryRequest == null || categoryRequest.categoryTypeId() == null
                   ? List.of()
-                  : categoryTypeDao.readNoEx(List.of(categoryRequest.categoryTypeId()));
+                  : categoryTypeService.readNoEx(
+                      List.of(categoryRequest.categoryTypeId()), transactionContext.connection());
           Validations.validateCategory(categoryRequest, categoryTypeList);
 
           Category categoryIn =
@@ -58,6 +57,11 @@ public class CategoryService {
           return new CategoryResponse(
               List.of(category), ResponseMetadataUtils.defaultInsertResponseMetadata());
         });
+  }
+
+  public List<Category> readNoEx(List<UUID> ids, Connection connection) throws SQLException {
+    CategoryDao categoryDao = categoryDaoFactory.create(connection);
+    return categoryDao.readNoEx(ids);
   }
 
   public CategoryResponse read(List<UUID> categoryIds) throws SQLException {
@@ -81,13 +85,12 @@ public class CategoryService {
     return transactionManager.execute(
         transactionContext -> {
           CategoryDao categoryDao = categoryDaoFactory.create(transactionContext.connection());
-          CategoryTypeDao categoryTypeDao =
-              categoryTypeDaoFactory.create(transactionContext.connection());
 
           List<CategoryType> categoryTypeList =
               categoryRequest == null || categoryRequest.categoryTypeId() == null
                   ? List.of()
-                  : categoryTypeDao.readNoEx(List.of(categoryRequest.categoryTypeId()));
+                  : categoryTypeService.readNoEx(
+                      List.of(categoryRequest.categoryTypeId()), transactionContext.connection());
           Validations.validateCategory(categoryRequest, categoryTypeList);
 
           List<Category> categoryList = categoryDao.read(List.of(id));

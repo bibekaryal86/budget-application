@@ -3,7 +3,6 @@ package budget.application.service.domain;
 import budget.application.common.Exceptions;
 import budget.application.common.Validations;
 import budget.application.db.dao.BudgetDao;
-import budget.application.db.dao.CategoryDao;
 import budget.application.db.dao.DaoFactory;
 import budget.application.db.util.TransactionManager;
 import budget.application.model.dto.BudgetRequest;
@@ -25,15 +24,15 @@ public class BudgetService {
 
   private final TransactionManager transactionManager;
   private final DaoFactory<BudgetDao> budgetDaoFactory;
-  private final DaoFactory<CategoryDao> categoryDaoFactory;
+  private final CategoryService categoryService;
 
   public BudgetService(
       DataSource dataSource,
       DaoFactory<BudgetDao> budgetDaoFactory,
-      DaoFactory<CategoryDao> categoryDaoFactory) {
+      CategoryService categoryService) {
     this.transactionManager = new TransactionManager(dataSource);
     this.budgetDaoFactory = budgetDaoFactory;
-    this.categoryDaoFactory = categoryDaoFactory;
+    this.categoryService = categoryService;
   }
 
   public BudgetResponse create(BudgetRequest budgetRequest) throws SQLException {
@@ -41,12 +40,12 @@ public class BudgetService {
     return transactionManager.execute(
         transactionContext -> {
           BudgetDao budgetDao = budgetDaoFactory.create(transactionContext.connection());
-          CategoryDao categoryDao = categoryDaoFactory.create(transactionContext.connection());
 
           List<Category> categories =
               budgetRequest == null || budgetRequest.categoryId() == null
                   ? List.of()
-                  : categoryDao.readNoEx(List.of(budgetRequest.categoryId()));
+                  : categoryService.readNoEx(
+                      List.of(budgetRequest.categoryId()), transactionContext.connection());
 
           Validations.validateBudget(budgetRequest, categories);
 
@@ -96,12 +95,12 @@ public class BudgetService {
     return transactionManager.execute(
         transactionContext -> {
           BudgetDao budgetDao = budgetDaoFactory.create(transactionContext.connection());
-          CategoryDao categoryDao = categoryDaoFactory.create(transactionContext.connection());
 
           List<Category> categories =
               budgetRequest == null || budgetRequest.categoryId() == null
                   ? List.of()
-                  : categoryDao.readNoEx(List.of(budgetRequest.categoryId()));
+                  : categoryService.readNoEx(
+                      List.of(budgetRequest.categoryId()), transactionContext.connection());
           Validations.validateBudget(budgetRequest, categories);
 
           List<Budget> budgets = budgetDao.read(List.of(id));

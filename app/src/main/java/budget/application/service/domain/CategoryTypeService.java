@@ -10,6 +10,7 @@ import budget.application.model.dto.CategoryTypeResponse;
 import budget.application.model.entity.CategoryType;
 import budget.application.service.util.ResponseMetadataUtils;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseMetadata;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
@@ -46,6 +47,11 @@ public class CategoryTypeService {
           return new CategoryTypeResponse(
               List.of(categoryType), ResponseMetadataUtils.defaultInsertResponseMetadata());
         });
+  }
+
+  public List<CategoryType> readNoEx(List<UUID> ids, Connection connection) throws SQLException {
+    CategoryTypeDao categoryTypeDao = categoryTypeDaoFactory.create(connection);
+    return categoryTypeDao.readNoEx(ids);
   }
 
   public CategoryTypeResponse read(List<UUID> ids) throws SQLException {

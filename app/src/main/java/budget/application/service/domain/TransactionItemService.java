@@ -2,8 +2,6 @@ package budget.application.service.domain;
 
 import budget.application.common.Exceptions;
 import budget.application.common.Validations;
-import budget.application.db.dao.AccountDao;
-import budget.application.db.dao.CategoryDao;
 import budget.application.db.dao.DaoFactory;
 import budget.application.db.dao.TransactionItemDao;
 import budget.application.db.util.TransactionManager;
@@ -26,18 +24,18 @@ public class TransactionItemService {
 
   private final TransactionManager transactionManager;
   private final DaoFactory<TransactionItemDao> transactionItemDaoFactory;
-  private final DaoFactory<CategoryDao> categoryDaoFactory;
-  private final DaoFactory<AccountDao> accountDaoFactory;
+  private final CategoryService categoryService;
+  private final AccountService accountService;
 
   public TransactionItemService(
       DataSource dataSource,
       DaoFactory<TransactionItemDao> transactionItemDaoFactory,
-      DaoFactory<CategoryDao> categoryDaoFactory,
-      DaoFactory<AccountDao> accountDaoFactory) {
+      CategoryService categoryService,
+      AccountService accountService) {
     this.transactionManager = new TransactionManager(dataSource);
     this.transactionItemDaoFactory = transactionItemDaoFactory;
-    this.categoryDaoFactory = categoryDaoFactory;
-    this.accountDaoFactory = accountDaoFactory;
+    this.categoryService = categoryService;
+    this.accountService = accountService;
   }
 
   public TransactionItemResponse create(TransactionItemRequest transactionItemRequest)
@@ -47,17 +45,18 @@ public class TransactionItemService {
         transactionContext -> {
           TransactionItemDao transactionItemDao =
               transactionItemDaoFactory.create(transactionContext.connection());
-          CategoryDao categoryDao = categoryDaoFactory.create(transactionContext.connection());
-          AccountDao accountDao = accountDaoFactory.create(transactionContext.connection());
 
           List<Category> categoryList =
               transactionItemRequest == null || transactionItemRequest.categoryId() == null
                   ? List.of()
-                  : categoryDao.readNoEx(List.of(transactionItemRequest.categoryId()));
+                  : categoryService.readNoEx(
+                      List.of(transactionItemRequest.categoryId()),
+                      transactionContext.connection());
           List<Account> accountList =
               transactionItemRequest == null || transactionItemRequest.accountId() == null
                   ? List.of()
-                  : accountDao.readNoEx(List.of(transactionItemRequest.accountId()));
+                  : accountService.readNoEx(
+                      List.of(transactionItemRequest.accountId()), transactionContext.connection());
           Validations.validateTransactionItem(
               transactionItemRequest, Boolean.FALSE, categoryList, accountList);
 
@@ -121,17 +120,18 @@ public class TransactionItemService {
         transactionContext -> {
           TransactionItemDao transactionItemDao =
               transactionItemDaoFactory.create(transactionContext.connection());
-          CategoryDao categoryDao = categoryDaoFactory.create(transactionContext.connection());
-          AccountDao accountDao = accountDaoFactory.create(transactionContext.connection());
 
           List<Category> categoryList =
               transactionItemRequest == null || transactionItemRequest.categoryId() == null
                   ? List.of()
-                  : categoryDao.readNoEx(List.of(transactionItemRequest.categoryId()));
+                  : categoryService.readNoEx(
+                      List.of(transactionItemRequest.categoryId()),
+                      transactionContext.connection());
           List<Account> accountList =
               transactionItemRequest == null || transactionItemRequest.accountId() == null
                   ? List.of()
-                  : accountDao.readNoEx(List.of(transactionItemRequest.accountId()));
+                  : accountService.readNoEx(
+                      List.of(transactionItemRequest.accountId()), transactionContext.connection());
           Validations.validateTransactionItem(
               transactionItemRequest, Boolean.FALSE, categoryList, accountList);
 
