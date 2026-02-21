@@ -2,7 +2,6 @@ package budget.application.service.domain;
 
 import budget.application.common.Constants;
 import budget.application.common.Exceptions;
-import budget.application.common.Validations;
 import budget.application.db.dao.AccountDao;
 import budget.application.db.dao.DaoFactory;
 import budget.application.db.util.TransactionManager;
@@ -11,6 +10,7 @@ import budget.application.model.dto.AccountResponse;
 import budget.application.model.entity.Account;
 import budget.application.service.util.ResponseMetadataUtils;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseMetadata;
+import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -38,8 +38,7 @@ public class AccountService {
     return transactionManager.execute(
         transactionContext -> {
           AccountDao accountDao = accountDaoFactory.create(transactionContext.connection());
-
-          Validations.validateAccount(accountRequest);
+          validateAccount(accountRequest);
 
           Account accountIn =
               new Account(
@@ -68,7 +67,7 @@ public class AccountService {
         });
   }
 
-  public List<Account> readNoEx(List<UUID> ids, Connection connection) throws SQLException {
+  public List<Account> readNoEx(List<UUID> ids, Connection connection) {
     AccountDao accountDao = accountDaoFactory.create(connection);
     return accountDao.readNoEx(ids);
   }
@@ -123,7 +122,7 @@ public class AccountService {
     return transactionManager.execute(
         transactionContext -> {
           AccountDao accountDao = accountDaoFactory.create(transactionContext.connection());
-          Validations.validateAccount(accountRequest);
+          validateAccount(accountRequest);
 
           List<Account> accountList = accountDao.read(List.of(id));
           if (accountList.isEmpty()) {
@@ -204,5 +203,32 @@ public class AccountService {
     }
 
     return currentBalance;
+  }
+
+  private void validateAccount(AccountRequest accountRequest) {
+    if (accountRequest == null) {
+      throw new Exceptions.BadRequestException("Account request cannot be null...");
+    }
+    if (CommonUtilities.isEmpty(accountRequest.name())) {
+      throw new Exceptions.BadRequestException("Account name cannot be empty...");
+    }
+    if (CommonUtilities.isEmpty(accountRequest.accountType())) {
+      throw new Exceptions.BadRequestException("Account type cannot be empty...");
+    }
+    if (!Constants.ACCOUNT_TYPES.contains(accountRequest.accountType())) {
+      throw new Exceptions.BadRequestException("Account type is invalid...");
+    }
+    if (CommonUtilities.isEmpty(accountRequest.bankName())) {
+      throw new Exceptions.BadRequestException("Bank name cannot be empty...");
+    }
+    if (accountRequest.openingBalance() == null || accountRequest.openingBalance().intValue() < 0) {
+      throw new Exceptions.BadRequestException("Opening balance cannot be null or negative...");
+    }
+    if (CommonUtilities.isEmpty(accountRequest.status())) {
+      throw new Exceptions.BadRequestException("Account status cannot be empty...");
+    }
+    if (!Constants.ACCOUNT_STATUSES.contains(accountRequest.status())) {
+      throw new Exceptions.BadRequestException("Account status is invalid...");
+    }
   }
 }

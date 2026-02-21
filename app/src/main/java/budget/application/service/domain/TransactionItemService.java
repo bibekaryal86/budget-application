@@ -1,7 +1,6 @@
 package budget.application.service.domain;
 
 import budget.application.common.Exceptions;
-import budget.application.common.Validations;
 import budget.application.db.dao.DaoFactory;
 import budget.application.db.dao.TransactionItemDao;
 import budget.application.db.util.TransactionManager;
@@ -12,6 +11,8 @@ import budget.application.model.entity.Category;
 import budget.application.model.entity.TransactionItem;
 import budget.application.service.util.ResponseMetadataUtils;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseMetadata;
+import java.math.BigDecimal;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
@@ -45,20 +46,8 @@ public class TransactionItemService {
         transactionContext -> {
           TransactionItemDao transactionItemDao =
               transactionItemDaoFactory.create(transactionContext.connection());
-
-          List<Category> categoryList =
-              transactionItemRequest == null || transactionItemRequest.categoryId() == null
-                  ? List.of()
-                  : categoryService.readNoEx(
-                      List.of(transactionItemRequest.categoryId()),
-                      transactionContext.connection());
-          List<Account> accountList =
-              transactionItemRequest == null || transactionItemRequest.accountId() == null
-                  ? List.of()
-                  : accountService.readNoEx(
-                      List.of(transactionItemRequest.accountId()), transactionContext.connection());
-          Validations.validateTransactionItem(
-              transactionItemRequest, Boolean.FALSE, categoryList, accountList);
+          validateTransactionItem(
+              transactionItemRequest, Boolean.FALSE, transactionContext.connection());
 
           TransactionItem transactionItemIn =
               new TransactionItem(
@@ -120,20 +109,8 @@ public class TransactionItemService {
         transactionContext -> {
           TransactionItemDao transactionItemDao =
               transactionItemDaoFactory.create(transactionContext.connection());
-
-          List<Category> categoryList =
-              transactionItemRequest == null || transactionItemRequest.categoryId() == null
-                  ? List.of()
-                  : categoryService.readNoEx(
-                      List.of(transactionItemRequest.categoryId()),
-                      transactionContext.connection());
-          List<Account> accountList =
-              transactionItemRequest == null || transactionItemRequest.accountId() == null
-                  ? List.of()
-                  : accountService.readNoEx(
-                      List.of(transactionItemRequest.accountId()), transactionContext.connection());
-          Validations.validateTransactionItem(
-              transactionItemRequest, Boolean.FALSE, categoryList, accountList);
+          validateTransactionItem(
+              transactionItemRequest, Boolean.FALSE, transactionContext.connection());
 
           List<TransactionItem> transactionItemList = transactionItemDao.read(List.of(id));
           if (transactionItemList.isEmpty()) {
@@ -173,5 +150,53 @@ public class TransactionItemService {
           return new TransactionItemResponse(
               List.of(), ResponseMetadataUtils.defaultDeleteResponseMetadata(deleteCount));
         });
+  }
+
+  private void validateTransactionItem(
+      TransactionItemRequest transactionItemRequest,
+      Boolean isCreateTransaction,
+      Connection connection) {
+    if (transactionItemRequest == null) {
+      throw new Exceptions.BadRequestException("Transaction item request cannot be null...");
+    }
+    if (!isCreateTransaction && transactionItemRequest.transactionId() == null) {
+      throw new Exceptions.BadRequestException("Transaction item transaction cannot be null...");
+    }
+    if (transactionItemRequest.categoryId() == null) {
+      throw new Exceptions.BadRequestException("Transaction item category cannot be null...");
+    }
+    if (transactionItemRequest.accountId() == null) {
+      throw new Exceptions.BadRequestException("Transaction item account cannot be null...");
+    }
+    if (transactionItemRequest.amount() == null
+        || transactionItemRequest.amount().compareTo(BigDecimal.ZERO) <= 0) {
+      throw new Exceptions.BadRequestException(
+          "Transaction item amount cannot be null or negative...");
+    }
+
+    List<Category> categoryList =
+        categoryService.readNoEx(List.of(transactionItemRequest.categoryId()), connection);
+    List<Account> accountList =
+        accountService.readNoEx(List.of(transactionItemRequest.accountId()), connection);
+
+    Category category =
+        categoryList.stream()
+            .filter(cat -> cat.id().equals(transactionItemRequest.categoryId()))
+            .findFirst()
+            .orElse(null);
+
+    if (category == null) {
+      throw new Exceptions.BadRequestException("Category does not exist...");
+    }
+
+    Account account =
+        accountList.stream()
+            .filter(acc -> acc.id().equals(transactionItemRequest.accountId()))
+            .findFirst()
+            .orElse(null);
+
+    if (account == null) {
+      throw new Exceptions.BadRequestException("Account does not exist...");
+    }
   }
 }

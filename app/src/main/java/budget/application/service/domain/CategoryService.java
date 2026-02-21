@@ -1,7 +1,6 @@
 package budget.application.service.domain;
 
 import budget.application.common.Exceptions;
-import budget.application.common.Validations;
 import budget.application.db.dao.CategoryDao;
 import budget.application.db.dao.DaoFactory;
 import budget.application.db.util.TransactionManager;
@@ -11,6 +10,7 @@ import budget.application.model.entity.Category;
 import budget.application.model.entity.CategoryType;
 import budget.application.service.util.ResponseMetadataUtils;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseMetadata;
+import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
@@ -40,13 +40,7 @@ public class CategoryService {
     return transactionManager.execute(
         transactionContext -> {
           CategoryDao categoryDao = categoryDaoFactory.create(transactionContext.connection());
-
-          List<CategoryType> categoryTypeList =
-              categoryRequest == null || categoryRequest.categoryTypeId() == null
-                  ? List.of()
-                  : categoryTypeService.readNoEx(
-                      List.of(categoryRequest.categoryTypeId()), transactionContext.connection());
-          Validations.validateCategory(categoryRequest, categoryTypeList);
+          validateCategory(categoryRequest, transactionContext.connection());
 
           Category categoryIn =
               new Category(null, categoryRequest.categoryTypeId(), categoryRequest.name());
@@ -59,7 +53,7 @@ public class CategoryService {
         });
   }
 
-  public List<Category> readNoEx(List<UUID> ids, Connection connection) throws SQLException {
+  public List<Category> readNoEx(List<UUID> ids, Connection connection) {
     CategoryDao categoryDao = categoryDaoFactory.create(connection);
     return categoryDao.readNoEx(ids);
   }
@@ -85,13 +79,7 @@ public class CategoryService {
     return transactionManager.execute(
         transactionContext -> {
           CategoryDao categoryDao = categoryDaoFactory.create(transactionContext.connection());
-
-          List<CategoryType> categoryTypeList =
-              categoryRequest == null || categoryRequest.categoryTypeId() == null
-                  ? List.of()
-                  : categoryTypeService.readNoEx(
-                      List.of(categoryRequest.categoryTypeId()), transactionContext.connection());
-          Validations.validateCategory(categoryRequest, categoryTypeList);
+          validateCategory(categoryRequest, transactionContext.connection());
 
           List<Category> categoryList = categoryDao.read(List.of(id));
           if (categoryList.isEmpty()) {
@@ -122,5 +110,24 @@ public class CategoryService {
           return new CategoryResponse(
               List.of(), ResponseMetadataUtils.defaultDeleteResponseMetadata(deleteCount));
         });
+  }
+
+  private void validateCategory(CategoryRequest categoryRequest, Connection connection) {
+    if (categoryRequest == null) {
+      throw new Exceptions.BadRequestException("Category request cannot be null...");
+    }
+    if (categoryRequest.categoryTypeId() == null) {
+      throw new Exceptions.BadRequestException("Category type cannot be null...");
+    }
+    if (CommonUtilities.isEmpty(categoryRequest.name())) {
+      throw new Exceptions.BadRequestException("Category name cannot be empty...");
+    }
+
+    List<CategoryType> categoryTypeList =
+        categoryTypeService.readNoEx(List.of(categoryRequest.categoryTypeId()), connection);
+
+    if (CommonUtilities.isEmpty(categoryTypeList)) {
+      throw new Exceptions.BadRequestException("Category type does not exist...");
+    }
   }
 }

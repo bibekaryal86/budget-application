@@ -1,7 +1,6 @@
 package budget.application.service.domain;
 
 import budget.application.common.Exceptions;
-import budget.application.common.Validations;
 import budget.application.db.dao.BudgetDao;
 import budget.application.db.dao.DaoFactory;
 import budget.application.db.util.TransactionManager;
@@ -12,6 +11,8 @@ import budget.application.model.entity.Budget;
 import budget.application.model.entity.Category;
 import budget.application.service.util.ResponseMetadataUtils;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseMetadata;
+import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
@@ -40,14 +41,7 @@ public class BudgetService {
     return transactionManager.execute(
         transactionContext -> {
           BudgetDao budgetDao = budgetDaoFactory.create(transactionContext.connection());
-
-          List<Category> categories =
-              budgetRequest == null || budgetRequest.categoryId() == null
-                  ? List.of()
-                  : categoryService.readNoEx(
-                      List.of(budgetRequest.categoryId()), transactionContext.connection());
-
-          Validations.validateBudget(budgetRequest, categories);
+          validateBudget(budgetRequest, transactionContext.connection());
 
           Budget budgetIn =
               new Budget(
@@ -95,13 +89,7 @@ public class BudgetService {
     return transactionManager.execute(
         transactionContext -> {
           BudgetDao budgetDao = budgetDaoFactory.create(transactionContext.connection());
-
-          List<Category> categories =
-              budgetRequest == null || budgetRequest.categoryId() == null
-                  ? List.of()
-                  : categoryService.readNoEx(
-                      List.of(budgetRequest.categoryId()), transactionContext.connection());
-          Validations.validateBudget(budgetRequest, categories);
+          validateBudget(budgetRequest, transactionContext.connection());
 
           List<Budget> budgets = budgetDao.read(List.of(id));
           if (budgets.isEmpty()) {
@@ -141,5 +129,31 @@ public class BudgetService {
           return new BudgetResponse(
               List.of(), ResponseMetadataUtils.defaultDeleteResponseMetadata(deleteCount));
         });
+  }
+
+  private void validateBudget(BudgetRequest budgetRequest, Connection connection) {
+    if (budgetRequest == null) {
+      throw new Exceptions.BadRequestException("Budget request cannot be null...");
+    }
+    if (budgetRequest.categoryId() == null) {
+      throw new Exceptions.BadRequestException("Budget category cannot be null...");
+    }
+    if (budgetRequest.budgetMonth() < 1 || budgetRequest.budgetMonth() > 12) {
+      throw new Exceptions.BadRequestException("Budget month should be between 1 and 12...");
+    }
+    if (budgetRequest.budgetYear() < 2025 || budgetRequest.budgetYear() > 2100) {
+      throw new Exceptions.BadRequestException("Budget year should be between 2025 and 2100...");
+    }
+
+    if (budgetRequest.amount() == null || budgetRequest.amount().intValue() < 1) {
+      throw new Exceptions.BadRequestException("Budget amount cannot be zero or negative...");
+    }
+
+    List<Category> categories =
+        categoryService.readNoEx(List.of(budgetRequest.categoryId()), connection);
+
+    if (CommonUtilities.isEmpty(categories)) {
+      throw new Exceptions.BadRequestException("Category does not exist...");
+    }
   }
 }
