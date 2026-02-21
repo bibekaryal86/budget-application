@@ -41,31 +41,66 @@ public class TransactionItemService {
 
   public TransactionItemResponse create(TransactionItemRequest transactionItemRequest)
       throws SQLException {
+    return create(transactionItemRequest, null);
+  }
+
+  public TransactionItemResponse create(
+      TransactionItemRequest transactionItemRequest, Connection connection) throws SQLException {
     log.debug("Create transaction item: TransactionItemRequest=[{}]", transactionItemRequest);
-    return transactionManager.execute(
-        transactionContext -> {
-          TransactionItemDao transactionItemDao =
-              transactionItemDaoFactory.create(transactionContext.connection());
-          validateTransactionItem(
-              transactionItemRequest, Boolean.FALSE, transactionContext.connection());
 
-          TransactionItem transactionItemIn =
-              new TransactionItem(
-                  null,
-                  transactionItemRequest.transactionId(),
-                  transactionItemRequest.categoryId(),
-                  transactionItemRequest.accountId(),
-                  transactionItemRequest.amount(),
-                  transactionItemRequest.tags(),
-                  transactionItemRequest.notes());
-          UUID id = transactionItemDao.create(transactionItemIn).id();
-          log.debug("Created transaction item: Id=[{}]", id);
+    if (connection == null) {
+      return transactionManager.execute(
+          transactionContext -> create(transactionItemRequest, transactionContext.connection()));
+    }
 
-          List<TransactionItemResponse.TransactionItem> transactionItems =
-              transactionItemDao.readTransactionItems(List.of(id));
-          return new TransactionItemResponse(
-              transactionItems, ResponseMetadataUtils.defaultInsertResponseMetadata());
-        });
+    TransactionItemDao transactionItemDao = transactionItemDaoFactory.create(connection);
+    validateTransactionItem(transactionItemRequest, Boolean.FALSE, connection);
+
+    TransactionItem transactionItemIn =
+        new TransactionItem(
+            null,
+            transactionItemRequest.transactionId(),
+            transactionItemRequest.categoryId(),
+            transactionItemRequest.accountId(),
+            transactionItemRequest.amount(),
+            transactionItemRequest.tags(),
+            transactionItemRequest.notes());
+    UUID id = transactionItemDao.create(transactionItemIn).id();
+    log.debug("Created transaction item: Id=[{}]", id);
+
+    List<TransactionItemResponse.TransactionItem> transactionItems =
+        transactionItemDao.readTransactionItems(List.of(id));
+    return new TransactionItemResponse(
+        transactionItems, ResponseMetadataUtils.defaultInsertResponseMetadata());
+  }
+
+  public List<TransactionItem> createItems(
+      UUID transactionId,
+      List<TransactionItemRequest> transactionItemRequests,
+      Connection connection)
+      throws SQLException {
+    log.debug(
+        "Create transaction items: TransactionId=[{}], TransactionItemRequests=[{}]",
+        transactionId,
+        transactionItemRequests);
+    transactionItemRequests.forEach(
+        transactionRequest ->
+            validateTransactionItem(transactionRequest, Boolean.TRUE, connection));
+    TransactionItemDao transactionItemDao = transactionItemDaoFactory.create(connection);
+    List<TransactionItem> transactionItemsIn =
+        transactionItemRequests.stream()
+            .map(
+                item ->
+                    new TransactionItem(
+                        null,
+                        transactionId,
+                        item.categoryId(),
+                        item.accountId(),
+                        item.amount(),
+                        item.tags(),
+                        item.notes()))
+            .toList();
+    return transactionItemDao.createItems(transactionItemsIn);
   }
 
   public TransactionItemResponse read(List<UUID> transactionItemIds) throws SQLException {
@@ -87,6 +122,13 @@ public class TransactionItemService {
         });
   }
 
+  public List<TransactionItem> readByTransactionIds(
+      List<UUID> transactionIds, Connection connection) throws SQLException {
+    log.debug("Read transaction items by transaction ids: TransactionIds={}", transactionIds);
+    TransactionItemDao transactionItemDao = transactionItemDaoFactory.create(connection);
+    return transactionItemDao.readByTransactionIds(transactionIds);
+  }
+
   public TransactionItemResponse.TransactionItemTags readTransactionItemTags() throws SQLException {
     log.debug("Read transaction item tags...");
     return transactionManager.execute(
@@ -101,60 +143,80 @@ public class TransactionItemService {
 
   public TransactionItemResponse update(UUID id, TransactionItemRequest transactionItemRequest)
       throws SQLException {
+    return update(id, transactionItemRequest, null);
+  }
+
+  public TransactionItemResponse update(
+      UUID id, TransactionItemRequest transactionItemRequest, Connection connection)
+      throws SQLException {
     log.debug(
         "Update transaction item: Id=[{}], TransactionItemRequest=[{}]",
         id,
         transactionItemRequest);
-    return transactionManager.execute(
-        transactionContext -> {
-          TransactionItemDao transactionItemDao =
-              transactionItemDaoFactory.create(transactionContext.connection());
-          validateTransactionItem(
-              transactionItemRequest, Boolean.FALSE, transactionContext.connection());
 
-          List<TransactionItem> transactionItemList = transactionItemDao.read(List.of(id));
-          if (transactionItemList.isEmpty()) {
-            throw new Exceptions.NotFoundException("TransactionItem", id.toString());
-          }
+    if (connection == null) {
+      return transactionManager.execute(
+          transactionContext ->
+              update(id, transactionItemRequest, transactionContext.connection()));
+    }
 
-          TransactionItem transactionItemIn =
-              new TransactionItem(
-                  id,
-                  transactionItemRequest.transactionId(),
-                  transactionItemRequest.categoryId(),
-                  transactionItemRequest.accountId(),
-                  transactionItemRequest.amount(),
-                  transactionItemRequest.tags(),
-                  transactionItemRequest.notes());
-          transactionItemDao.update(transactionItemIn);
-          TransactionItemResponse.TransactionItem transactionItem =
-              transactionItemDao.readTransactionItems(List.of(id)).getFirst();
-          return new TransactionItemResponse(
-              List.of(transactionItem), ResponseMetadataUtils.defaultUpdateResponseMetadata());
-        });
+    TransactionItemDao transactionItemDao = transactionItemDaoFactory.create(connection);
+    validateTransactionItem(transactionItemRequest, Boolean.FALSE, connection);
+
+    List<TransactionItem> transactionItemList = transactionItemDao.read(List.of(id));
+    if (transactionItemList.isEmpty()) {
+      throw new Exceptions.NotFoundException("TransactionItem", id.toString());
+    }
+
+    TransactionItem transactionItemIn =
+        new TransactionItem(
+            id,
+            transactionItemRequest.transactionId(),
+            transactionItemRequest.categoryId(),
+            transactionItemRequest.accountId(),
+            transactionItemRequest.amount(),
+            transactionItemRequest.tags(),
+            transactionItemRequest.notes());
+    transactionItemDao.update(transactionItemIn);
+    TransactionItemResponse.TransactionItem transactionItem =
+        transactionItemDao.readTransactionItems(List.of(id)).getFirst();
+    return new TransactionItemResponse(
+        List.of(transactionItem), ResponseMetadataUtils.defaultUpdateResponseMetadata());
   }
 
   public TransactionItemResponse delete(List<UUID> ids) throws SQLException {
+    return delete(ids, null);
+  }
+
+  public TransactionItemResponse delete(List<UUID> ids, Connection connection) throws SQLException {
     log.info("Delete transaction items: Ids=[{}]", ids);
-    return transactionManager.execute(
-        transactionContext -> {
-          TransactionItemDao transactionItemDao =
-              transactionItemDaoFactory.create(transactionContext.connection());
 
-          List<TransactionItem> transactionItemList = transactionItemDao.read(ids);
-          if (ids.size() == 1 && transactionItemList.isEmpty()) {
-            throw new Exceptions.NotFoundException("TransactionItem", ids.getFirst().toString());
-          }
+    if (connection == null) {
+      return transactionManager.execute(
+          transactionContext -> delete(ids, transactionContext.connection()));
+    }
 
-          int deleteCount = transactionItemDao.delete(ids);
-          return new TransactionItemResponse(
-              List.of(), ResponseMetadataUtils.defaultDeleteResponseMetadata(deleteCount));
-        });
+    TransactionItemDao transactionItemDao = transactionItemDaoFactory.create(connection);
+    List<TransactionItem> transactionItemList = transactionItemDao.read(ids);
+    if (ids.size() == 1 && transactionItemList.isEmpty()) {
+      throw new Exceptions.NotFoundException("TransactionItem", ids.getFirst().toString());
+    }
+
+    int deleteCount = transactionItemDao.delete(ids);
+    return new TransactionItemResponse(
+        List.of(), ResponseMetadataUtils.defaultDeleteResponseMetadata(deleteCount));
+  }
+
+  public int deleteByTransactionIds(List<UUID> transactionIds, Connection connection)
+      throws SQLException {
+    log.info("Delete transaction items by Transaction Ids: TransactionIds=[{}]", transactionIds);
+    TransactionItemDao transactionItemDao = transactionItemDaoFactory.create(connection);
+    return transactionItemDao.deleteByTransactionIds(transactionIds);
   }
 
   private void validateTransactionItem(
       TransactionItemRequest transactionItemRequest,
-      Boolean isCreateTransaction,
+      boolean isCreateTransaction,
       Connection connection) {
     if (transactionItemRequest == null) {
       throw new Exceptions.BadRequestException("Transaction item request cannot be null...");

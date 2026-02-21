@@ -159,7 +159,6 @@ public class TransactionItemDao extends BaseDao<TransactionItem> {
   }
 
   public List<TransactionItem> readByTransactionIds(List<UUID> transactionIds) throws SQLException {
-    log.debug("Reading transaction items for TransactionIds: {}", transactionIds);
     if (CommonUtilities.isEmpty(transactionIds)) {
       return List.of();
     }
@@ -170,7 +169,6 @@ public class TransactionItemDao extends BaseDao<TransactionItem> {
             + " WHERE transaction_id IN ("
             + DaoUtils.placeholders(transactionIds.size())
             + ")";
-    log.debug("Read By Transaction Ids SQL=[{}]", sql);
 
     try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
       DaoUtils.bindParams(preparedStatement, transactionIds, Boolean.TRUE);

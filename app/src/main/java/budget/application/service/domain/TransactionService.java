@@ -4,7 +4,6 @@ import budget.application.common.Constants;
 import budget.application.common.Exceptions;
 import budget.application.db.dao.DaoFactory;
 import budget.application.db.dao.TransactionDao;
-import budget.application.db.dao.TransactionItemDao;
 import budget.application.db.util.TransactionManager;
 import budget.application.model.dto.PaginationRequest;
 import budget.application.model.dto.PaginationResponse;
@@ -41,7 +40,7 @@ public class TransactionService {
   private final TransactionManager transactionManager;
   private final Email email;
   private final DaoFactory<TransactionDao> transactionDaoFactory;
-  private final DaoFactory<TransactionItemDao> transactionItemDaoFactory;
+  private final TransactionItemService transactionItemService;
   private final CategoryService categoryService;
   private final CategoryTypeService categoryTypeService;
   private final AccountService accountService;
@@ -50,14 +49,14 @@ public class TransactionService {
       DataSource dataSource,
       Email email,
       DaoFactory<TransactionDao> transactionDaoFactory,
-      DaoFactory<TransactionItemDao> transactionItemDaoFactory,
+      TransactionItemService transactionItemService,
       CategoryService categoryService,
       CategoryTypeService categoryTypeService,
       AccountService accountService) {
     this.transactionManager = new TransactionManager(dataSource);
     this.email = email;
     this.transactionDaoFactory = transactionDaoFactory;
-    this.transactionItemDaoFactory = transactionItemDaoFactory;
+    this.transactionItemService = transactionItemService;
     this.categoryService = categoryService;
     this.categoryTypeService = categoryTypeService;
     this.accountService = accountService;
@@ -69,9 +68,6 @@ public class TransactionService {
         transactionContext -> {
           TransactionDao transactionDao =
               transactionDaoFactory.create(transactionContext.connection());
-          TransactionItemDao transactionItemDao =
-              transactionItemDaoFactory.create(transactionContext.connection());
-
           validateTransaction(transactionRequest, transactionContext.connection());
 
           Transaction transactionIn =
@@ -86,21 +82,11 @@ public class TransactionService {
           UUID transactionId = transactionDao.create(transactionIn).id();
           log.debug("Created transaction: Id=[{}]", transactionId);
 
-          List<TransactionItem> transactionItemsIn =
-              transactionRequest.items().stream()
-                  .map(
-                      item ->
-                          new TransactionItem(
-                              null,
-                              transactionId,
-                              item.categoryId(),
-                              item.accountId(),
-                              item.amount(),
-                              item.tags(),
-                              item.notes()))
-                  .toList();
           List<UUID> transactionItemIds =
-              transactionItemDao.createItems(transactionItemsIn).stream()
+              transactionItemService
+                  .createItems(
+                      transactionId, transactionRequest.items(), transactionContext.connection())
+                  .stream()
                   .map(TransactionItem::id)
                   .toList();
           log.debug("Created transaction items: TransactionItems=[{}]", transactionItemIds);
@@ -167,8 +153,6 @@ public class TransactionService {
         transactionContext -> {
           TransactionDao transactionDao =
               transactionDaoFactory.create(transactionContext.connection());
-          TransactionItemDao transactionItemDao =
-              transactionItemDaoFactory.create(transactionContext.connection());
 
           validateTransaction(transactionRequest, transactionContext.connection());
 
@@ -190,27 +174,17 @@ public class TransactionService {
           Transaction transactionOut = transactionDao.update(transactionIn);
           log.debug("Updated transaction: Transaction=[{}]", transactionOut);
 
-          int deleteCount = transactionItemDao.deleteByTransactionIds(List.of(id));
+          int deleteCount =
+              transactionItemService.deleteByTransactionIds(
+                  List.of(id), transactionContext.connection());
           log.debug(
-              "Deleted transaction items for transaction: TxnId=[{}], DeleteCount=[{}]",
+              "Deleted transaction items for transaction: TransactionId=[{}], DeleteCount=[{}]",
               id,
               deleteCount);
 
-          List<TransactionItem> transactionItemsList =
-              transactionRequest.items().stream()
-                  .map(
-                      item ->
-                          new TransactionItem(
-                              null,
-                              id,
-                              item.categoryId(),
-                              item.accountId(),
-                              item.amount(),
-                              item.tags(),
-                              item.notes()))
-                  .toList();
           List<TransactionItem> transactionItemList =
-              transactionItemDao.createItems(transactionItemsList);
+              transactionItemService.createItems(
+                  id, transactionRequest.items(), transactionContext.connection());
           log.debug("Recreated transaction items: TransactionItems=[{}]", transactionItemList);
 
           List<TransactionResponse.Transaction> transactions =
@@ -226,15 +200,14 @@ public class TransactionService {
         transactionContext -> {
           TransactionDao transactionDao =
               transactionDaoFactory.create(transactionContext.connection());
-          TransactionItemDao transactionItemDao =
-              transactionItemDaoFactory.create(transactionContext.connection());
 
           List<Transaction> transactionList = transactionDao.read(ids);
           if (ids.size() == 1 && transactionList.isEmpty()) {
             throw new Exceptions.NotFoundException("Transaction", ids.getFirst().toString());
           }
 
-          int deleteCountTransactionItems = transactionItemDao.deleteByTransactionIds(ids);
+          int deleteCountTransactionItems =
+              transactionItemService.deleteByTransactionIds(ids, transactionContext.connection());
           log.info(
               "Deleted transaction items for transactions: Ids=[{}], DeleteCount=[{}]",
               ids,
@@ -254,8 +227,6 @@ public class TransactionService {
         transactionContext -> {
           TransactionDao transactionDao =
               transactionDaoFactory.create(transactionContext.connection());
-          TransactionItemDao transactionItemDao =
-              transactionItemDaoFactory.create(transactionContext.connection());
           // Read all transactions
           int pageNumber = 1;
           int pageSize = 1000;
@@ -274,7 +245,8 @@ public class TransactionService {
             for (TransactionResponse.Transaction transaction : transactions) {
               UUID id = transaction.id();
               List<TransactionItem> transactionItemList =
-                  transactionItemDao.readByTransactionIds(List.of(id));
+                  transactionItemService.readByTransactionIds(
+                      List.of(id), transactionContext.connection());
               BigDecimal sumItems =
                   transactionItemList.stream()
                       .map(TransactionItem::amount)

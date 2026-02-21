@@ -69,7 +69,7 @@ public final class AppContext {
             dataSource,
             email,
             transactionDaoFactory,
-            transactionItemDaoFactory,
+            transactionItemService,
             categoryService,
             categoryTypeService,
             accountService);
