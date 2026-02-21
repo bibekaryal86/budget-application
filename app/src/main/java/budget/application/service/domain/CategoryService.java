@@ -9,6 +9,7 @@ import budget.application.db.util.TransactionManager;
 import budget.application.model.dto.CategoryRequest;
 import budget.application.model.dto.CategoryResponse;
 import budget.application.model.entity.Category;
+import budget.application.model.entity.CategoryType;
 import budget.application.service.util.ResponseMetadataUtils;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseMetadata;
 import java.sql.SQLException;
@@ -42,7 +43,11 @@ public class CategoryService {
           CategoryTypeDao categoryTypeDao =
               categoryTypeDaoFactory.create(transactionContext.connection());
 
-          Validations.validateCategory(categoryRequest, categoryTypeDao);
+          List<CategoryType> categoryTypeList =
+              categoryRequest == null || categoryRequest.categoryTypeId() == null
+                  ? List.of()
+                  : categoryTypeDao.readNoEx(List.of(categoryRequest.categoryTypeId()));
+          Validations.validateCategory(categoryRequest, categoryTypeList);
 
           Category categoryIn =
               new Category(null, categoryRequest.categoryTypeId(), categoryRequest.name());
@@ -78,7 +83,12 @@ public class CategoryService {
           CategoryDao categoryDao = categoryDaoFactory.create(transactionContext.connection());
           CategoryTypeDao categoryTypeDao =
               categoryTypeDaoFactory.create(transactionContext.connection());
-          Validations.validateCategory(categoryRequest, categoryTypeDao);
+
+          List<CategoryType> categoryTypeList =
+              categoryRequest == null || categoryRequest.categoryTypeId() == null
+                  ? List.of()
+                  : categoryTypeDao.readNoEx(List.of(categoryRequest.categoryTypeId()));
+          Validations.validateCategory(categoryRequest, categoryTypeList);
 
           List<Category> categoryList = categoryDao.read(List.of(id));
           if (categoryList.isEmpty()) {

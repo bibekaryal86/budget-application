@@ -13,8 +13,12 @@ import budget.application.db.util.TransactionManager;
 import budget.application.model.dto.PaginationRequest;
 import budget.application.model.dto.PaginationResponse;
 import budget.application.model.dto.RequestParams;
+import budget.application.model.dto.TransactionItemRequest;
 import budget.application.model.dto.TransactionRequest;
 import budget.application.model.dto.TransactionResponse;
+import budget.application.model.entity.Account;
+import budget.application.model.entity.Category;
+import budget.application.model.entity.CategoryType;
 import budget.application.model.entity.Transaction;
 import budget.application.model.entity.TransactionItem;
 import budget.application.service.util.ResponseMetadataUtils;
@@ -28,6 +32,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,8 +78,30 @@ public class TransactionService {
           TransactionItemDao transactionItemDao =
               transactionItemDaoFactory.create(transactionContext.connection());
 
-          Validations.validateTransaction(
-              transactionRequest, categoryDao, categoryTypeDao, accountDao);
+          List<UUID> categoryIds =
+              transactionRequest == null || CommonUtilities.isEmpty(transactionRequest.items())
+                  ? List.of()
+                  : transactionRequest.items().stream()
+                      .map(TransactionItemRequest::categoryId)
+                      .collect(Collectors.toSet())
+                      .stream()
+                      .toList();
+          List<Category> categories = categoryDao.readNoEx(categoryIds);
+          List<UUID> categoryTypeIds =
+              categories.stream().map(Category::categoryTypeId).collect(Collectors.toSet()).stream()
+                  .toList();
+          List<CategoryType> categoryTypes = categoryTypeDao.readNoEx(categoryTypeIds);
+          List<UUID> accountIds =
+              transactionRequest == null || CommonUtilities.isEmpty(transactionRequest.items())
+                  ? List.of()
+                  : transactionRequest.items().stream()
+                      .map(TransactionItemRequest::accountId)
+                      .collect(Collectors.toSet())
+                      .stream()
+                      .toList();
+          List<Account> accounts = accountDao.readNoEx(accountIds);
+          Validations.validateTransaction(transactionRequest, categories, categoryTypes, accounts);
+
           Transaction transactionIn =
               new Transaction(
                   null,
@@ -175,8 +202,29 @@ public class TransactionService {
           TransactionItemDao transactionItemDao =
               transactionItemDaoFactory.create(transactionContext.connection());
 
-          Validations.validateTransaction(
-              transactionRequest, categoryDao, categoryTypeDao, accountDao);
+          List<UUID> categoryIds =
+              transactionRequest == null || CommonUtilities.isEmpty(transactionRequest.items())
+                  ? List.of()
+                  : transactionRequest.items().stream()
+                      .map(TransactionItemRequest::categoryId)
+                      .collect(Collectors.toSet())
+                      .stream()
+                      .toList();
+          List<Category> categories = categoryDao.readNoEx(categoryIds);
+          List<UUID> categoryTypeIds =
+              categories.stream().map(Category::categoryTypeId).collect(Collectors.toSet()).stream()
+                  .toList();
+          List<CategoryType> categoryTypes = categoryTypeDao.readNoEx(categoryTypeIds);
+          List<UUID> accountIds =
+              transactionRequest == null || CommonUtilities.isEmpty(transactionRequest.items())
+                  ? List.of()
+                  : transactionRequest.items().stream()
+                      .map(TransactionItemRequest::accountId)
+                      .collect(Collectors.toSet())
+                      .stream()
+                      .toList();
+          List<Account> accounts = accountDao.readNoEx(accountIds);
+          Validations.validateTransaction(transactionRequest, categories, categoryTypes, accounts);
 
           List<Transaction> transactionList = transactionDao.read(List.of(id));
           if (transactionList.isEmpty()) {

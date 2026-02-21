@@ -9,6 +9,8 @@ import budget.application.db.dao.TransactionItemDao;
 import budget.application.db.util.TransactionManager;
 import budget.application.model.dto.TransactionItemRequest;
 import budget.application.model.dto.TransactionItemResponse;
+import budget.application.model.entity.Account;
+import budget.application.model.entity.Category;
 import budget.application.model.entity.TransactionItem;
 import budget.application.service.util.ResponseMetadataUtils;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseMetadata;
@@ -48,8 +50,16 @@ public class TransactionItemService {
           CategoryDao categoryDao = categoryDaoFactory.create(transactionContext.connection());
           AccountDao accountDao = accountDaoFactory.create(transactionContext.connection());
 
+          List<Category> categoryList =
+              transactionItemRequest == null || transactionItemRequest.categoryId() == null
+                  ? List.of()
+                  : categoryDao.readNoEx(List.of(transactionItemRequest.categoryId()));
+          List<Account> accountList =
+              transactionItemRequest == null || transactionItemRequest.accountId() == null
+                  ? List.of()
+                  : accountDao.readNoEx(List.of(transactionItemRequest.accountId()));
           Validations.validateTransactionItem(
-              transactionItemRequest, Boolean.FALSE, categoryDao, List.of(), accountDao, List.of());
+              transactionItemRequest, Boolean.FALSE, categoryList, accountList);
 
           TransactionItem transactionItemIn =
               new TransactionItem(
@@ -113,8 +123,17 @@ public class TransactionItemService {
               transactionItemDaoFactory.create(transactionContext.connection());
           CategoryDao categoryDao = categoryDaoFactory.create(transactionContext.connection());
           AccountDao accountDao = accountDaoFactory.create(transactionContext.connection());
+
+          List<Category> categoryList =
+              transactionItemRequest == null || transactionItemRequest.categoryId() == null
+                  ? List.of()
+                  : categoryDao.readNoEx(List.of(transactionItemRequest.categoryId()));
+          List<Account> accountList =
+              transactionItemRequest == null || transactionItemRequest.accountId() == null
+                  ? List.of()
+                  : accountDao.readNoEx(List.of(transactionItemRequest.accountId()));
           Validations.validateTransactionItem(
-              transactionItemRequest, Boolean.FALSE, categoryDao, List.of(), accountDao, List.of());
+              transactionItemRequest, Boolean.FALSE, categoryList, accountList);
 
           List<TransactionItem> transactionItemList = transactionItemDao.read(List.of(id));
           if (transactionItemList.isEmpty()) {

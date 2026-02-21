@@ -10,6 +10,7 @@ import budget.application.model.dto.BudgetRequest;
 import budget.application.model.dto.BudgetResponse;
 import budget.application.model.dto.RequestParams;
 import budget.application.model.entity.Budget;
+import budget.application.model.entity.Category;
 import budget.application.service.util.ResponseMetadataUtils;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseMetadata;
 import java.sql.SQLException;
@@ -42,7 +43,12 @@ public class BudgetService {
           BudgetDao budgetDao = budgetDaoFactory.create(transactionContext.connection());
           CategoryDao categoryDao = categoryDaoFactory.create(transactionContext.connection());
 
-          Validations.validateBudget(budgetRequest, categoryDao);
+          List<Category> categories =
+              budgetRequest == null || budgetRequest.categoryId() == null
+                  ? List.of()
+                  : categoryDao.readNoEx(List.of(budgetRequest.categoryId()));
+
+          Validations.validateBudget(budgetRequest, categories);
 
           Budget budgetIn =
               new Budget(
@@ -91,7 +97,12 @@ public class BudgetService {
         transactionContext -> {
           BudgetDao budgetDao = budgetDaoFactory.create(transactionContext.connection());
           CategoryDao categoryDao = categoryDaoFactory.create(transactionContext.connection());
-          Validations.validateBudget(budgetRequest, categoryDao);
+
+          List<Category> categories =
+              budgetRequest == null || budgetRequest.categoryId() == null
+                  ? List.of()
+                  : categoryDao.readNoEx(List.of(budgetRequest.categoryId()));
+          Validations.validateBudget(budgetRequest, categories);
 
           List<Budget> budgets = budgetDao.read(List.of(id));
           if (budgets.isEmpty()) {
