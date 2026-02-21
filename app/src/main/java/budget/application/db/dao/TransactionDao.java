@@ -138,13 +138,15 @@ public class TransactionDao extends BaseDao<Transaction> {
                 LEFT JOIN account a
                     ON ti.account_id = a.id
                 """);
+
+    StringBuilder whereClause = new StringBuilder();
     List<Object> params = new ArrayList<>();
     final boolean[] whereAdded = {false};
 
     Consumer<String> addWhere =
         (condition) -> {
-          sql.append(whereAdded[0] ? " AND " : " WHERE ");
-          sql.append(condition);
+          whereClause.append(whereAdded[0] ? " AND " : " WHERE ");
+          whereClause.append(condition);
           whereAdded[0] = true;
         };
 
@@ -180,6 +182,7 @@ public class TransactionDao extends BaseDao<Transaction> {
       params.add(sqlArray);
     }
 
+    sql.append(whereClause);
     sql.append(" ORDER BY t.txn_date DESC");
     sql.append(" LIMIT ? OFFSET ?");
     int limit = perPage;
@@ -238,7 +241,7 @@ public class TransactionDao extends BaseDao<Transaction> {
               .toList();
     }
 
-    int totalItems = countAll();
+    int totalItems = countAll(whereClause, params);
     int totalPages = (int) Math.ceil((double) totalItems / perPage);
     ResponseMetadata.ResponsePageInfo pageInfo =
         new ResponseMetadata.ResponsePageInfo(totalItems, totalPages, pageNumber, perPage);
@@ -258,14 +261,26 @@ public class TransactionDao extends BaseDao<Transaction> {
     return merchants;
   }
 
-  private int countAll() throws SQLException {
-    String sql = "SELECT COUNT(*) FROM transaction";
+  private int countAll(StringBuilder whereClause, List<Object> params) throws SQLException {
+    String countSql =
+        """
+              SELECT COUNT(DISTINCT t.id)
+              FROM transaction t
+              LEFT JOIN transaction_item ti ON ti.transaction_id = t.id
+              LEFT JOIN category c ON c.id = ti.category_id
+              LEFT JOIN category_type ct ON ct.id = c.category_type_id
+              LEFT JOIN account a ON ti.account_id = a.id
+              """
+            + whereClause;
 
-    try (PreparedStatement preparedStatement = connection.prepareStatement(sql);
-        ResultSet resultSet = preparedStatement.executeQuery()) {
-
-      resultSet.next();
-      return resultSet.getInt(1);
+    try (PreparedStatement preparedStatement = connection.prepareStatement(countSql)) {
+      if (!params.isEmpty()) {
+        DaoUtils.bindParams(preparedStatement, params, Boolean.TRUE);
+      }
+      try (ResultSet resultSet = preparedStatement.executeQuery()) {
+        resultSet.next();
+        return resultSet.getInt(1);
+      }
     }
   }
 
