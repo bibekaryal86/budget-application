@@ -78,37 +78,6 @@ public class CategoryHandlerTest extends IntegrationBaseTest {
   }
 
   @Test
-  void testReadCategories() throws Exception {
-    // SETUP
-    UUID ctId1 = UUID.randomUUID();
-    UUID ctId2 = UUID.randomUUID();
-    UUID cId1 = UUID.randomUUID();
-    UUID cId2 = UUID.randomUUID();
-    UUID cId3 = UUID.randomUUID();
-    testDataHelper.insertCategoryType(ctId1, "CT ONE");
-    testDataHelper.insertCategoryType(ctId2, "CT TWO");
-    testDataHelper.insertCategory(cId1, ctId1, "C ONE");
-    testDataHelper.insertCategory(cId2, ctId1, "C TWO");
-    testDataHelper.insertCategory(cId3, ctId2, "C THREE");
-
-    HttpResponse<String> resp = httpGet(ApiPaths.CATEGORIES_V1, Boolean.TRUE);
-    Assertions.assertEquals(200, resp.statusCode());
-    CategoryResponse response = JsonUtils.fromJson(resp.body(), CategoryResponse.class);
-    Assertions.assertEquals(4, response.data().size());
-
-    resp = httpGet(ApiPaths.CATEGORIES_V1 + "?categoryTypeIds=" + TEST_ID, Boolean.TRUE);
-    Assertions.assertEquals(200, resp.statusCode());
-    response = JsonUtils.fromJson(resp.body(), CategoryResponse.class);
-    Assertions.assertEquals(1, response.data().size());
-
-    resp =
-        httpGet(ApiPaths.CATEGORIES_V1 + "?categoryTypeIds=" + TEST_ID + "," + ctId1, Boolean.TRUE);
-    Assertions.assertEquals(200, resp.statusCode());
-    response = JsonUtils.fromJson(resp.body(), CategoryResponse.class);
-    Assertions.assertEquals(3, response.data().size());
-  }
-
-  @Test
   void testCategoriesUnauthorized() throws Exception {
     HttpResponse<String> resp = httpPost(ApiPaths.CATEGORIES_V1, "", Boolean.FALSE);
     Assertions.assertEquals(401, resp.statusCode());

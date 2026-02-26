@@ -12,7 +12,6 @@ public record TransactionResponse(List<Transaction> data, ResponseMetadata metad
       LocalDateTime txnDate,
       String merchant,
       BigDecimal totalAmount,
-      AccountResponse.Account account,
       List<TransactionItemResponse.TransactionItem> items) {}
 
   public record TransactionMerchants(List<String> data, ResponseMetadata metadata) {}

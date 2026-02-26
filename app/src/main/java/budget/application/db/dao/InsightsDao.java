@@ -38,7 +38,6 @@ public class InsightsDao {
         endDate,
         totalMonths);
 
-    List<InsightsResponse.CashFlowSummary> results = new ArrayList<>();
     String sql =
         """
               WITH RECURSIVE date_intervals AS (
@@ -60,7 +59,7 @@ public class InsightsDao {
                   di.interval_end AS end_date,
                   COALESCE(SUM(CASE WHEN ct.name = 'INCOME' THEN ti.amount ELSE 0 END), 0) AS incomes,
                   COALESCE(SUM(CASE WHEN ct.name = 'SAVINGS' THEN ti.amount ELSE 0 END), 0) AS savings,
-                  COALESCE(SUM(CASE WHEN ct.name NOT IN ('INCOME', 'SAVINGS') THEN ti.amount ELSE 0 END), 0) AS expenses
+                  COALESCE(SUM(CASE WHEN ct.name NOT IN ('INCOME', 'SAVINGS', 'TRANSFER') THEN ti.amount ELSE 0 END), 0) AS expenses
               FROM date_intervals di
               LEFT JOIN transaction t
                   ON t.txn_date >= di.interval_start
@@ -81,12 +80,12 @@ public class InsightsDao {
     params.add(totalMonths);
 
     log.debug("Read Transaction Summary SQL=[{}]", sql);
-
-    try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-      DaoUtils.bindParams(stmt, params, Boolean.TRUE);
-      try (ResultSet rs = stmt.executeQuery()) {
-        while (rs.next()) {
-          results.add(cashFlowSummaryRowMapper.map(rs));
+    List<InsightsResponse.CashFlowSummary> results = new ArrayList<>();
+    try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+      DaoUtils.bindParams(preparedStatement, params, Boolean.TRUE);
+      try (ResultSet resultSet = preparedStatement.executeQuery()) {
+        while (resultSet.next()) {
+          results.add(cashFlowSummaryRowMapper.map(resultSet));
         }
       }
     }
@@ -154,13 +153,13 @@ public class InsightsDao {
     params.add(endDate);
     params.add(totalMonths);
 
-    boolean hasCat = !CommonUtilities.isEmpty(categoryIds);
-    boolean hasCatTypes = !CommonUtilities.isEmpty(categoryTypeIds);
+    boolean hasCategoryIds = !CommonUtilities.isEmpty(categoryIds);
+    boolean hasCategoryTypeIds = !CommonUtilities.isEmpty(categoryTypeIds);
 
-    params.add(hasCat);
-    params.add(hasCat ? categoryIds.toArray(new UUID[0]) : null);
-    params.add(hasCatTypes);
-    params.add(hasCatTypes ? categoryTypeIds.toArray(new UUID[0]) : null);
+    params.add(hasCategoryIds);
+    params.add(hasCategoryIds ? categoryIds.toArray(new UUID[0]) : null);
+    params.add(hasCategoryTypeIds);
+    params.add(hasCategoryTypeIds ? categoryTypeIds.toArray(new UUID[0]) : null);
 
     log.debug("Read Category Summary SQL=[{}]", sql);
 

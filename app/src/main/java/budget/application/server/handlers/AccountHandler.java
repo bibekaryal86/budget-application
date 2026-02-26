@@ -1,10 +1,12 @@
 package budget.application.server.handlers;
 
+import budget.application.common.Constants;
 import budget.application.model.dto.AccountRequest;
 import budget.application.model.dto.AccountResponse;
 import budget.application.server.util.ApiPaths;
 import budget.application.server.util.ServerUtils;
 import budget.application.service.domain.AccountService;
+import io.github.bibekaryal86.shdsvc.dtos.ResponseMetadata;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.FullHttpRequest;
@@ -49,6 +51,24 @@ public class AccountHandler extends SimpleChannelInboundHandler<FullHttpRequest>
       return;
     }
 
+    // READ TYPES: GET /petssvc/api/v1/accounts/types
+    if (path.equals(ApiPaths.ACCOUNTS_V1_TYPES) && method.equals(HttpMethod.GET)) {
+      handleReadAccountTypes(channelHandlerContext);
+      return;
+    }
+
+    // READ STATUSES: GET /petssvc/api/v1/accounts/statuses
+    if (path.equals(ApiPaths.ACCOUNTS_V1_STATUSES) && method.equals(HttpMethod.GET)) {
+      handleReadAccountStatuses(channelHandlerContext);
+      return;
+    }
+
+    // READ BANKS: GET /petssvc/api/v1/accounts/banks
+    if (path.equals(ApiPaths.ACCOUNTS_V1_BANKS) && method.equals(HttpMethod.GET)) {
+      handleReadAccountBanks(channelHandlerContext);
+      return;
+    }
+
     // READ ONE: GET /petssvc/api/v1/accounts/{id}
     if (path.startsWith(ApiPaths.ACCOUNTS_V1_WITH_ID) && method.equals(HttpMethod.GET)) {
       UUID id = ServerUtils.getEntityId(path, ApiPaths.ACCOUNTS_V1_WITH_ID);
@@ -86,6 +106,31 @@ public class AccountHandler extends SimpleChannelInboundHandler<FullHttpRequest>
   // READ ALL
   private void handleReadAll(ChannelHandlerContext channelHandlerContext) throws Exception {
     AccountResponse response = accountService.read(List.of());
+    ServerUtils.sendResponse(channelHandlerContext, HttpResponseStatus.OK, response);
+  }
+
+  // READ ACCOUNT TYPES
+  private void handleReadAccountTypes(ChannelHandlerContext channelHandlerContext)
+      throws Exception {
+    AccountResponse.AccountRefLists response =
+        new AccountResponse.AccountRefLists(
+            Constants.ACCOUNT_TYPES, ResponseMetadata.emptyResponseMetadata());
+    ServerUtils.sendResponse(channelHandlerContext, HttpResponseStatus.OK, response);
+  }
+
+  // READ ACCOUNT STATUSES
+  private void handleReadAccountStatuses(ChannelHandlerContext channelHandlerContext)
+      throws Exception {
+    AccountResponse.AccountRefLists response =
+        new AccountResponse.AccountRefLists(
+            Constants.ACCOUNT_STATUSES, ResponseMetadata.emptyResponseMetadata());
+    ServerUtils.sendResponse(channelHandlerContext, HttpResponseStatus.OK, response);
+  }
+
+  // READ BANKS
+  private void handleReadAccountBanks(ChannelHandlerContext channelHandlerContext)
+      throws Exception {
+    AccountResponse.AccountRefLists response = accountService.readAccountBanks();
     ServerUtils.sendResponse(channelHandlerContext, HttpResponseStatus.OK, response);
   }
 

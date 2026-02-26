@@ -29,6 +29,7 @@ import budget.application.service.domain.InsightsService;
 import budget.application.service.domain.TransactionItemService;
 import budget.application.service.domain.TransactionService;
 import io.github.bibekaryal86.shdsvc.Email;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 import javax.sql.DataSource;
@@ -54,23 +55,24 @@ public final class AppContext {
     DaoFactory<TransactionItemDao> transactionItemDaoFactory = TransactionItemDao::new;
 
     AccountService accountService = new AccountService(dataSource, accountDaoFactory);
-    BudgetService budgetService =
-        new BudgetService(dataSource, budgetDaoFactory, categoryDaoFactory);
     InsightsService insightsService = new InsightsService(dataSource, insightsDaoFactory);
     CategoryTypeService categoryTypeService =
         new CategoryTypeService(dataSource, categoryTypeDaoFactory);
     CategoryService categoryService =
-        new CategoryService(dataSource, categoryDaoFactory, categoryTypeDaoFactory);
+        new CategoryService(dataSource, categoryDaoFactory, categoryTypeService);
+    BudgetService budgetService = new BudgetService(dataSource, budgetDaoFactory, categoryService);
     TransactionItemService transactionItemService =
-        new TransactionItemService(dataSource, transactionItemDaoFactory, categoryDaoFactory);
+        new TransactionItemService(
+            dataSource, transactionItemDaoFactory, categoryService, accountService);
     TransactionService transactionService =
         new TransactionService(
             dataSource,
             email,
             transactionDaoFactory,
-            transactionItemDaoFactory,
-            categoryDaoFactory,
-            categoryTypeDaoFactory);
+            transactionItemService,
+            categoryService,
+            categoryTypeService,
+            accountService);
 
     AccountHandler accountHandler = new AccountHandler(accountService);
     AppTestsHandler appTestsHandler = new AppTestsHandler();
@@ -95,9 +97,11 @@ public final class AppContext {
             transactionHandler);
 
     // seed caches
-    accountDaoFactory.create(dataSource.getConnection()).read(List.of());
-    categoryDaoFactory.create(dataSource.getConnection()).read(List.of());
-    categoryTypeDaoFactory.create(dataSource.getConnection()).read(List.of());
+    try (Connection connection = dataSource.getConnection()) {
+      accountDaoFactory.create(connection).read(List.of());
+      categoryDaoFactory.create(connection).read(List.of());
+      categoryTypeDaoFactory.create(connection).read(List.of());
+    }
   }
 
   public ScheduleManager getScheduleManager() {

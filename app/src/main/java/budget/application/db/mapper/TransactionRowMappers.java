@@ -16,7 +16,6 @@ public class TransactionRowMappers {
           resultSet.getObject("id", UUID.class),
           resultSet.getObject("txn_date", LocalDateTime.class),
           resultSet.getString("merchant"),
-          resultSet.getObject("account_id", UUID.class),
           resultSet.getBigDecimal("total_amount"),
           resultSet.getObject("created_at", LocalDateTime.class),
           resultSet.getObject("updated_at", LocalDateTime.class));
@@ -33,7 +32,6 @@ public class TransactionRowMappers {
           resultSet.getObject("txn_date", LocalDateTime.class),
           resultSet.getString("txn_merchant"),
           resultSet.getBigDecimal("txn_total_amount"),
-          null,
           List.of());
     }
   }

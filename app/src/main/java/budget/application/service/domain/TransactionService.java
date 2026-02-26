@@ -2,18 +2,18 @@ package budget.application.service.domain;
 
 import budget.application.common.Constants;
 import budget.application.common.Exceptions;
-import budget.application.common.Validations;
-import budget.application.db.dao.CategoryDao;
-import budget.application.db.dao.CategoryTypeDao;
 import budget.application.db.dao.DaoFactory;
 import budget.application.db.dao.TransactionDao;
-import budget.application.db.dao.TransactionItemDao;
 import budget.application.db.util.TransactionManager;
 import budget.application.model.dto.PaginationRequest;
 import budget.application.model.dto.PaginationResponse;
 import budget.application.model.dto.RequestParams;
+import budget.application.model.dto.TransactionItemRequest;
 import budget.application.model.dto.TransactionRequest;
 import budget.application.model.dto.TransactionResponse;
+import budget.application.model.entity.Account;
+import budget.application.model.entity.Category;
+import budget.application.model.entity.CategoryType;
 import budget.application.model.entity.Transaction;
 import budget.application.model.entity.TransactionItem;
 import budget.application.service.util.ResponseMetadataUtils;
@@ -23,10 +23,13 @@ import io.github.bibekaryal86.shdsvc.dtos.EmailResponse;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseMetadata;
 import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 import java.math.BigDecimal;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,23 +40,26 @@ public class TransactionService {
   private final TransactionManager transactionManager;
   private final Email email;
   private final DaoFactory<TransactionDao> transactionDaoFactory;
-  private final DaoFactory<TransactionItemDao> transactionItemDaoFactory;
-  private final DaoFactory<CategoryDao> categoryDaoFactory;
-  private final DaoFactory<CategoryTypeDao> categoryTypeDaoFactory;
+  private final TransactionItemService transactionItemService;
+  private final CategoryService categoryService;
+  private final CategoryTypeService categoryTypeService;
+  private final AccountService accountService;
 
   public TransactionService(
       DataSource dataSource,
       Email email,
       DaoFactory<TransactionDao> transactionDaoFactory,
-      DaoFactory<TransactionItemDao> transactionItemDaoFactory,
-      DaoFactory<CategoryDao> categoryDaoFactory,
-      DaoFactory<CategoryTypeDao> categoryTypeDaoFactory) {
+      TransactionItemService transactionItemService,
+      CategoryService categoryService,
+      CategoryTypeService categoryTypeService,
+      AccountService accountService) {
     this.transactionManager = new TransactionManager(dataSource);
     this.email = email;
     this.transactionDaoFactory = transactionDaoFactory;
-    this.transactionItemDaoFactory = transactionItemDaoFactory;
-    this.categoryDaoFactory = categoryDaoFactory;
-    this.categoryTypeDaoFactory = categoryTypeDaoFactory;
+    this.transactionItemService = transactionItemService;
+    this.categoryService = categoryService;
+    this.categoryTypeService = categoryTypeService;
+    this.accountService = accountService;
   }
 
   public TransactionResponse create(TransactionRequest transactionRequest) throws SQLException {
@@ -62,19 +68,13 @@ public class TransactionService {
         transactionContext -> {
           TransactionDao transactionDao =
               transactionDaoFactory.create(transactionContext.connection());
-          CategoryDao categoryDao = categoryDaoFactory.create(transactionContext.connection());
-          CategoryTypeDao categoryTypeDao =
-              categoryTypeDaoFactory.create(transactionContext.connection());
-          TransactionItemDao transactionItemDao =
-              transactionItemDaoFactory.create(transactionContext.connection());
+          validateTransaction(transactionRequest, transactionContext.connection());
 
-          Validations.validateTransaction(transactionRequest, categoryDao, categoryTypeDao);
           Transaction transactionIn =
               new Transaction(
                   null,
                   transactionRequest.txnDate(),
                   transactionRequest.merchant(),
-                  transactionRequest.accountId(),
                   transactionRequest.totalAmount(),
                   null,
                   null);
@@ -82,20 +82,11 @@ public class TransactionService {
           UUID transactionId = transactionDao.create(transactionIn).id();
           log.debug("Created transaction: Id=[{}]", transactionId);
 
-          List<TransactionItem> transactionItemsIn =
-              transactionRequest.items().stream()
-                  .map(
-                      item ->
-                          new TransactionItem(
-                              null,
-                              transactionId,
-                              item.categoryId(),
-                              item.amount(),
-                              item.tags(),
-                              item.notes()))
-                  .toList();
           List<UUID> transactionItemIds =
-              transactionItemDao.createItems(transactionItemsIn).stream()
+              transactionItemService
+                  .createItems(
+                      transactionId, transactionRequest.items(), transactionContext.connection())
+                  .stream()
                   .map(TransactionItem::id)
                   .toList();
           log.debug("Created transaction items: TransactionItems=[{}]", transactionItemIds);
@@ -162,13 +153,8 @@ public class TransactionService {
         transactionContext -> {
           TransactionDao transactionDao =
               transactionDaoFactory.create(transactionContext.connection());
-          CategoryDao categoryDao = categoryDaoFactory.create(transactionContext.connection());
-          CategoryTypeDao categoryTypeDao =
-              categoryTypeDaoFactory.create(transactionContext.connection());
-          TransactionItemDao transactionItemDao =
-              transactionItemDaoFactory.create(transactionContext.connection());
 
-          Validations.validateTransaction(transactionRequest, categoryDao, categoryTypeDao);
+          validateTransaction(transactionRequest, transactionContext.connection());
 
           List<Transaction> transactionList = transactionDao.read(List.of(id));
           if (transactionList.isEmpty()) {
@@ -180,7 +166,6 @@ public class TransactionService {
                   id,
                   transactionRequest.txnDate(),
                   transactionRequest.merchant(),
-                  transactionRequest.accountId(),
                   transactionRequest.totalAmount(),
                   null,
                   null);
@@ -189,26 +174,17 @@ public class TransactionService {
           Transaction transactionOut = transactionDao.update(transactionIn);
           log.debug("Updated transaction: Transaction=[{}]", transactionOut);
 
-          int deleteCount = transactionItemDao.deleteByTransactionIds(List.of(id));
+          int deleteCount =
+              transactionItemService.deleteByTransactionIds(
+                  List.of(id), transactionContext.connection());
           log.debug(
-              "Deleted transaction items for transaction: TxnId=[{}], DeleteCount=[{}]",
+              "Deleted transaction items for transaction: TransactionId=[{}], DeleteCount=[{}]",
               id,
               deleteCount);
 
-          List<TransactionItem> transactionItemsList =
-              transactionRequest.items().stream()
-                  .map(
-                      item ->
-                          new TransactionItem(
-                              null,
-                              id,
-                              item.categoryId(),
-                              item.amount(),
-                              item.tags(),
-                              item.notes()))
-                  .toList();
           List<TransactionItem> transactionItemList =
-              transactionItemDao.createItems(transactionItemsList);
+              transactionItemService.createItems(
+                  id, transactionRequest.items(), transactionContext.connection());
           log.debug("Recreated transaction items: TransactionItems=[{}]", transactionItemList);
 
           List<TransactionResponse.Transaction> transactions =
@@ -224,15 +200,14 @@ public class TransactionService {
         transactionContext -> {
           TransactionDao transactionDao =
               transactionDaoFactory.create(transactionContext.connection());
-          TransactionItemDao transactionItemDao =
-              transactionItemDaoFactory.create(transactionContext.connection());
 
           List<Transaction> transactionList = transactionDao.read(ids);
           if (ids.size() == 1 && transactionList.isEmpty()) {
             throw new Exceptions.NotFoundException("Transaction", ids.getFirst().toString());
           }
 
-          int deleteCountTransactionItems = transactionItemDao.deleteByTransactionIds(ids);
+          int deleteCountTransactionItems =
+              transactionItemService.deleteByTransactionIds(ids, transactionContext.connection());
           log.info(
               "Deleted transaction items for transactions: Ids=[{}], DeleteCount=[{}]",
               ids,
@@ -252,8 +227,6 @@ public class TransactionService {
         transactionContext -> {
           TransactionDao transactionDao =
               transactionDaoFactory.create(transactionContext.connection());
-          TransactionItemDao transactionItemDao =
-              transactionItemDaoFactory.create(transactionContext.connection());
           // Read all transactions
           int pageNumber = 1;
           int pageSize = 1000;
@@ -272,7 +245,8 @@ public class TransactionService {
             for (TransactionResponse.Transaction transaction : transactions) {
               UUID id = transaction.id();
               List<TransactionItem> transactionItemList =
-                  transactionItemDao.readByTransactionIds(List.of(id));
+                  transactionItemService.readByTransactionIds(
+                      List.of(id), transactionContext.connection());
               BigDecimal sumItems =
                   transactionItemList.stream()
                       .map(TransactionItem::amount)
@@ -343,5 +317,88 @@ public class TransactionService {
                 List.of()));
     log.info(
         "Txn Recon Email Sent: {}", emailResponse == null ? "Failed" : emailResponse.toString());
+  }
+
+  private void validateTransaction(TransactionRequest transactionRequest, Connection connection) {
+    if (transactionRequest == null) {
+      throw new Exceptions.BadRequestException("Transaction request cannot be null...");
+    }
+    if (CommonUtilities.isEmpty(transactionRequest.merchant())) {
+      throw new Exceptions.BadRequestException("Transaction merchant cannot be empty...");
+    }
+    if (transactionRequest.totalAmount() == null
+        || transactionRequest.totalAmount().compareTo(BigDecimal.ZERO) <= 0) {
+      throw new Exceptions.BadRequestException("Transaction total cannot be null or negative...");
+    }
+    if (CommonUtilities.isEmpty(transactionRequest.items())) {
+      throw new Exceptions.BadRequestException("Transaction must have at least one item...");
+    }
+    BigDecimal sumItems =
+        transactionRequest.items().stream()
+            .map(TransactionItemRequest::amount)
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+    if (sumItems.compareTo(transactionRequest.totalAmount()) != 0) {
+      throw new Exceptions.BadRequestException("Total amount does not match sum of items...");
+    }
+
+    List<UUID> categoryIds =
+        CommonUtilities.isEmpty(transactionRequest.items())
+            ? List.of()
+            : transactionRequest.items().stream()
+                .map(TransactionItemRequest::categoryId)
+                .collect(Collectors.toSet())
+                .stream()
+                .toList();
+    List<Category> categories = categoryService.readNoEx(categoryIds, connection);
+    List<UUID> categoryTypeIds =
+        categories.stream().map(Category::categoryTypeId).collect(Collectors.toSet()).stream()
+            .toList();
+    List<CategoryType> categoryTypes = categoryTypeService.readNoEx(categoryTypeIds, connection);
+    List<UUID> accountIds =
+        CommonUtilities.isEmpty(transactionRequest.items())
+            ? List.of()
+            : transactionRequest.items().stream()
+                .map(TransactionItemRequest::accountId)
+                .collect(Collectors.toSet())
+                .stream()
+                .toList();
+    List<Account> accounts = accountService.readNoEx(accountIds, connection);
+
+    if (CommonUtilities.isEmpty(categories) || (categories.size() != categoryIds.size())) {
+      throw new Exceptions.BadRequestException("Category does not exist...");
+    }
+
+    if (CommonUtilities.isEmpty(categoryTypes)
+        || (categoryTypes.size() != categoryTypeIds.size())) {
+      throw new Exceptions.BadRequestException("Category type does not exist...");
+    }
+
+    Set<String> categoryTypeNames =
+        categoryTypes.stream().map(CategoryType::name).collect(Collectors.toSet());
+
+    if (categoryTypeNames.contains(Constants.CATEGORY_TYPE_TRANSFER_NAME)) {
+      if (transactionRequest.items().size() != 2) {
+        throw new Exceptions.BadRequestException(
+            "Transfer transaction must have exactly 2 items...");
+      }
+      if (transactionRequest
+              .items()
+              .getFirst()
+              .amount()
+              .compareTo(transactionRequest.items().getLast().amount())
+          != 0) {
+        throw new Exceptions.BadRequestException(
+            "Transfer transaction items must have same amount...");
+      }
+    }
+
+    for (String categoryTypeName : Constants.NO_EXPENSE_CATEGORY_TYPES) {
+      if (categoryTypeNames.contains(categoryTypeName) && categoryTypeNames.size() > 1) {
+        throw new Exceptions.BadRequestException(
+            String.format(
+                "Category type [%s] cannot be mixed with other category types...",
+                categoryTypeName));
+      }
+    }
   }
 }

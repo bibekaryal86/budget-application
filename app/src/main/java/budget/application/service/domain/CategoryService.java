@@ -1,16 +1,17 @@
 package budget.application.service.domain;
 
 import budget.application.common.Exceptions;
-import budget.application.common.Validations;
 import budget.application.db.dao.CategoryDao;
-import budget.application.db.dao.CategoryTypeDao;
 import budget.application.db.dao.DaoFactory;
 import budget.application.db.util.TransactionManager;
 import budget.application.model.dto.CategoryRequest;
 import budget.application.model.dto.CategoryResponse;
 import budget.application.model.entity.Category;
+import budget.application.model.entity.CategoryType;
 import budget.application.service.util.ResponseMetadataUtils;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseMetadata;
+import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
@@ -23,15 +24,15 @@ public class CategoryService {
 
   private final TransactionManager transactionManager;
   private final DaoFactory<CategoryDao> categoryDaoFactory;
-  private final DaoFactory<CategoryTypeDao> categoryTypeDaoFactory;
+  private final CategoryTypeService categoryTypeService;
 
   public CategoryService(
       DataSource dataSource,
       DaoFactory<CategoryDao> categoryDaoFactory,
-      DaoFactory<CategoryTypeDao> categoryTypeDaoFactory) {
+      CategoryTypeService categoryTypeService) {
     this.transactionManager = new TransactionManager(dataSource);
     this.categoryDaoFactory = categoryDaoFactory;
-    this.categoryTypeDaoFactory = categoryTypeDaoFactory;
+    this.categoryTypeService = categoryTypeService;
   }
 
   public CategoryResponse create(CategoryRequest categoryRequest) throws SQLException {
@@ -39,33 +40,31 @@ public class CategoryService {
     return transactionManager.execute(
         transactionContext -> {
           CategoryDao categoryDao = categoryDaoFactory.create(transactionContext.connection());
-          CategoryTypeDao categoryTypeDao =
-              categoryTypeDaoFactory.create(transactionContext.connection());
-
-          Validations.validateCategory(categoryRequest, categoryTypeDao);
+          validateCategory(categoryRequest, transactionContext.connection());
 
           Category categoryIn =
               new Category(null, categoryRequest.categoryTypeId(), categoryRequest.name());
           UUID id = categoryDao.create(categoryIn).id();
           log.debug("Created category: Id=[{}]", id);
-          CategoryResponse.Category category =
-              categoryDao.readCategories(List.of(id), List.of()).getFirst();
+          CategoryResponse.Category category = categoryDao.readCategories(List.of(id)).getFirst();
 
           return new CategoryResponse(
               List.of(category), ResponseMetadataUtils.defaultInsertResponseMetadata());
         });
   }
 
-  public CategoryResponse read(List<UUID> categoryIds, List<UUID> categoryTypeIds)
-      throws SQLException {
-    log.debug(
-        "Read categories: CategoryIds=[{}], CategoryTypeIds=[{}]", categoryIds, categoryTypeIds);
+  public List<Category> readNoEx(List<UUID> ids, Connection connection) {
+    CategoryDao categoryDao = categoryDaoFactory.create(connection);
+    return categoryDao.readNoEx(ids);
+  }
+
+  public CategoryResponse read(List<UUID> categoryIds) throws SQLException {
+    log.debug("Read categories: CategoryIds=[{}]", categoryIds);
 
     return transactionManager.execute(
         transactionContext -> {
           CategoryDao categoryDao = categoryDaoFactory.create(transactionContext.connection());
-          List<CategoryResponse.Category> categories =
-              categoryDao.readCategories(categoryIds, categoryTypeIds);
+          List<CategoryResponse.Category> categories = categoryDao.readCategories(categoryIds);
 
           if (categoryIds.size() == 1 && categories.isEmpty()) {
             throw new Exceptions.NotFoundException("Category", categoryIds.getFirst().toString());
@@ -80,9 +79,7 @@ public class CategoryService {
     return transactionManager.execute(
         transactionContext -> {
           CategoryDao categoryDao = categoryDaoFactory.create(transactionContext.connection());
-          CategoryTypeDao categoryTypeDao =
-              categoryTypeDaoFactory.create(transactionContext.connection());
-          Validations.validateCategory(categoryRequest, categoryTypeDao);
+          validateCategory(categoryRequest, transactionContext.connection());
 
           List<Category> categoryList = categoryDao.read(List.of(id));
           if (categoryList.isEmpty()) {
@@ -92,8 +89,7 @@ public class CategoryService {
           Category categoryIn =
               new Category(id, categoryRequest.categoryTypeId(), categoryRequest.name());
           categoryDao.update(categoryIn);
-          CategoryResponse.Category category =
-              categoryDao.readCategories(List.of(id), List.of()).getFirst();
+          CategoryResponse.Category category = categoryDao.readCategories(List.of(id)).getFirst();
           return new CategoryResponse(
               List.of(category), ResponseMetadataUtils.defaultUpdateResponseMetadata());
         });
@@ -114,5 +110,24 @@ public class CategoryService {
           return new CategoryResponse(
               List.of(), ResponseMetadataUtils.defaultDeleteResponseMetadata(deleteCount));
         });
+  }
+
+  private void validateCategory(CategoryRequest categoryRequest, Connection connection) {
+    if (categoryRequest == null) {
+      throw new Exceptions.BadRequestException("Category request cannot be null...");
+    }
+    if (categoryRequest.categoryTypeId() == null) {
+      throw new Exceptions.BadRequestException("Category type cannot be null...");
+    }
+    if (CommonUtilities.isEmpty(categoryRequest.name())) {
+      throw new Exceptions.BadRequestException("Category name cannot be empty...");
+    }
+
+    List<CategoryType> categoryTypeList =
+        categoryTypeService.readNoEx(List.of(categoryRequest.categoryTypeId()), connection);
+
+    if (CommonUtilities.isEmpty(categoryTypeList)) {
+      throw new Exceptions.BadRequestException("Category type does not exist...");
+    }
   }
 }

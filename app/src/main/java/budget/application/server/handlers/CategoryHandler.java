@@ -47,8 +47,7 @@ public class CategoryHandler extends SimpleChannelInboundHandler<FullHttpRequest
 
     // READ ALL: GET /petssvc/api/v1/categories
     if (path.equals(ApiPaths.CATEGORIES_V1) && method.equals(HttpMethod.GET)) {
-      List<UUID> catTypeIds = ServerUtils.getCategoryParams(decoder).categoryTypeIds();
-      handleReadAll(channelHandlerContext, catTypeIds);
+      handleReadAll(channelHandlerContext);
       return;
     }
 
@@ -87,16 +86,15 @@ public class CategoryHandler extends SimpleChannelInboundHandler<FullHttpRequest
   }
 
   // READ ALL
-  private void handleReadAll(ChannelHandlerContext channelHandlerContext, List<UUID> catTypeIds)
-      throws Exception {
-    CategoryResponse response = categoryService.read(List.of(), catTypeIds);
+  private void handleReadAll(ChannelHandlerContext channelHandlerContext) throws Exception {
+    CategoryResponse response = categoryService.read(List.of());
     ServerUtils.sendResponse(channelHandlerContext, HttpResponseStatus.OK, response);
   }
 
   // READ ONE
   private void handleReadOne(ChannelHandlerContext channelHandlerContext, UUID id)
       throws Exception {
-    CategoryResponse response = categoryService.read(List.of(id), List.of());
+    CategoryResponse response = categoryService.read(List.of(id));
     ServerUtils.sendResponse(channelHandlerContext, HttpResponseStatus.OK, response);
   }
 

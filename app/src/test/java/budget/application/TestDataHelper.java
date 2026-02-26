@@ -177,15 +177,14 @@ public final class TestDataHelper {
         PreparedStatement stmt =
             c.prepareStatement(
                 """
-                INSERT INTO transaction (id, txn_date, merchant, account_id, total_amount)
-                VALUES (?, ?, ?, ?, ?)
+                INSERT INTO transaction (id, txn_date, merchant, total_amount)
+                VALUES (?, ?, ?, ?)
             """)) {
 
       stmt.setObject(1, id);
       stmt.setObject(2, txnDate.toLocalDate());
       stmt.setString(3, "Merchant: " + id);
-      stmt.setObject(4, IntegrationBaseTest.TEST_ID);
-      stmt.setDouble(5, totalAmount);
+      stmt.setDouble(4, totalAmount);
       stmt.executeUpdate();
     }
     return id;
@@ -218,15 +217,16 @@ public final class TestDataHelper {
         PreparedStatement stmt =
             c.prepareStatement(
                 """
-                INSERT INTO transaction_item (id, transaction_id, category_id, amount, tags, notes)
-                VALUES (?, ?, ?, ?, ?, ?)
+                INSERT INTO transaction_item (id, transaction_id, category_id, account_id, amount, tags, notes)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
             """)) {
       stmt.setObject(1, id);
       stmt.setObject(2, txnId);
       stmt.setObject(3, catId);
-      stmt.setDouble(4, amount);
-      stmt.setArray(5, c.createArrayOf("text", tags.toArray(new String[0])));
-      stmt.setString(6, "Note: " + id);
+      stmt.setObject(4, IntegrationBaseTest.TEST_ID);
+      stmt.setDouble(5, amount);
+      stmt.setArray(6, c.createArrayOf("text", tags.toArray(new String[0])));
+      stmt.setString(7, "Note: " + id);
       stmt.executeUpdate();
     }
     return id;

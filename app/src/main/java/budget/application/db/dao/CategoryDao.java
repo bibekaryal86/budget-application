@@ -67,10 +67,9 @@ public class CategoryDao extends BaseDao<Category> {
     }
   }
 
-  public List<CategoryResponse.Category> readCategories(
-      List<UUID> categoryIds, List<UUID> categoryTypeIds) throws SQLException {
-    log.debug(
-        "Read Categories: CategoryIds=[{}], CategoryTypeIds=[{}]", categoryIds, categoryTypeIds);
+  public List<CategoryResponse.Category> readCategories(List<UUID> categoryIds)
+      throws SQLException {
+    log.debug("Read Categories: CategoryIds=[{}]", categoryIds);
     StringBuilder sql =
         new StringBuilder(
             """
@@ -98,11 +97,7 @@ public class CategoryDao extends BaseDao<Category> {
       addWhere.accept("c.id IN (" + DaoUtils.placeholders(categoryIds.size()) + ")");
       params.addAll(categoryIds);
     }
-    if (!CommonUtilities.isEmpty(categoryTypeIds)) {
-      addWhere.accept(
-          "c.category_type_id IN (" + DaoUtils.placeholders(categoryTypeIds.size()) + ")");
-      params.addAll(categoryTypeIds);
-    }
+
     sql.append(" ORDER BY ct.name, c.name ASC ");
 
     log.debug("Read Categories SQL=[{}]", sql);

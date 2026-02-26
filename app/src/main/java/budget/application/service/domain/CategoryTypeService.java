@@ -1,7 +1,6 @@
 package budget.application.service.domain;
 
 import budget.application.common.Exceptions;
-import budget.application.common.Validations;
 import budget.application.db.dao.CategoryTypeDao;
 import budget.application.db.dao.DaoFactory;
 import budget.application.db.util.TransactionManager;
@@ -10,6 +9,8 @@ import budget.application.model.dto.CategoryTypeResponse;
 import budget.application.model.entity.CategoryType;
 import budget.application.service.util.ResponseMetadataUtils;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseMetadata;
+import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
@@ -36,7 +37,8 @@ public class CategoryTypeService {
         transactionContext -> {
           CategoryTypeDao categoryTypeDao =
               categoryTypeDaoFactory.create(transactionContext.connection());
-          Validations.validateCategoryType(categoryTypeRequest);
+          validateCategoryType(categoryTypeRequest);
+
           CategoryType categoryTypeIn = new CategoryType(null, categoryTypeRequest.name());
           UUID id = categoryTypeDao.create(categoryTypeIn).id();
           log.debug("Created category type: Id=[{}]", id);
@@ -46,6 +48,11 @@ public class CategoryTypeService {
           return new CategoryTypeResponse(
               List.of(categoryType), ResponseMetadataUtils.defaultInsertResponseMetadata());
         });
+  }
+
+  public List<CategoryType> readNoEx(List<UUID> ids, Connection connection) {
+    CategoryTypeDao categoryTypeDao = categoryTypeDaoFactory.create(connection);
+    return categoryTypeDao.readNoEx(ids);
   }
 
   public CategoryTypeResponse read(List<UUID> ids) throws SQLException {
@@ -78,7 +85,7 @@ public class CategoryTypeService {
         transactionContext -> {
           CategoryTypeDao categoryTypeDao =
               categoryTypeDaoFactory.create(transactionContext.connection());
-          Validations.validateCategoryType(categoryTypeRequest);
+          validateCategoryType(categoryTypeRequest);
 
           List<CategoryType> categoryTypeList = categoryTypeDao.read(List.of(id));
 
@@ -114,5 +121,14 @@ public class CategoryTypeService {
           return new CategoryTypeResponse(
               List.of(), ResponseMetadataUtils.defaultDeleteResponseMetadata(deleteCount));
         });
+  }
+
+  private void validateCategoryType(CategoryTypeRequest categoryTypeRequest) {
+    if (categoryTypeRequest == null) {
+      throw new Exceptions.BadRequestException("Category type request cannot be null...");
+    }
+    if (CommonUtilities.isEmpty(categoryTypeRequest.name())) {
+      throw new Exceptions.BadRequestException("Category type name cannot be empty...");
+    }
   }
 }
