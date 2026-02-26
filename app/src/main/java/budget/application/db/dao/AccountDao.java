@@ -31,32 +31,24 @@ public class AccountDao extends BaseDao<Account> {
 
   @Override
   protected List<String> insertColumns() {
-    return List.of("name", "account_type", "bank_name", "opening_balance", "status");
+    return List.of("name", "account_type", "bank_name", "status");
   }
 
   @Override
   protected List<Object> insertValues(Account account) {
     return List.of(
-        account.name().toUpperCase(),
-        account.accountType(),
-        account.bankName(),
-        account.openingBalance(),
-        account.status());
+        account.name().toUpperCase(), account.accountType(), account.bankName(), account.status());
   }
 
   @Override
   protected List<String> updateColumns() {
-    return List.of("name", "account_type", "bank_name", "opening_balance", "status");
+    return List.of("name", "account_type", "bank_name", "status");
   }
 
   @Override
   protected List<Object> updateValues(Account account) {
     return List.of(
-        account.name().toUpperCase(),
-        account.accountType(),
-        account.bankName(),
-        account.openingBalance(),
-        account.status());
+        account.name().toUpperCase(), account.accountType(), account.bankName(), account.status());
   }
 
   @Override
@@ -89,6 +81,7 @@ public class AccountDao extends BaseDao<Account> {
     return bankNames;
   }
 
+  // TODO delete this
   public Map<UUID, AccountResponse.AccountCurrentBalanceCalc> getTotalBalancesForCurrentBalance(
       List<UUID> accountIds) throws SQLException {
     String sql =

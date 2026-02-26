@@ -100,7 +100,7 @@ public final class TestDataHelper {
         PreparedStatement stmt =
             c.prepareStatement(
                 """
-                                          INSERT INTO account (id, name, account_type, bank_name, opening_balance, status)
+                                          INSERT INTO account (id, name, account_type, bank_name, account_balance, status)
                                           VALUES (?, ?, 'CHECKING', 'TEST BANK', 1000.00, 'ACTIVE')
                                       """)) {
 

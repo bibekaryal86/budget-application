@@ -9,7 +9,7 @@ public record Account(
     String name,
     String accountType,
     String bankName,
-    BigDecimal openingBalance,
+    BigDecimal accountBalance,
     String status,
     LocalDateTime createdAt,
     LocalDateTime updatedAt) {}

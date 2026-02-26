@@ -126,7 +126,7 @@ public class TransactionDao extends BaseDao<Transaction> {
                     a.name         AS account_name,
                     a.account_type AS account_type,
                     a.bank_name    AS account_bank_name,
-                    a.opening_balance AS account_opening_balance,
+                    a.account_balance AS account_balance,
                     a.status       AS account_status
                 FROM transaction t
                 LEFT JOIN transaction_item ti
