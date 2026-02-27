@@ -29,7 +29,6 @@ public class TransactionItemHandler extends SimpleChannelInboundHandler<FullHttp
   protected void channelRead0(
       ChannelHandlerContext channelHandlerContext, FullHttpRequest fullHttpRequest)
       throws Exception {
-    // String requestId = channelHandlerContext.channel().attr(Constants.REQUEST_ID).get();
     QueryStringDecoder decoder = new QueryStringDecoder(fullHttpRequest.uri());
     String path = decoder.path();
     HttpMethod method = fullHttpRequest.method();

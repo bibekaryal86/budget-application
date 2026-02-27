@@ -171,7 +171,7 @@ public class AccountService {
         transactionContext -> {
           AccountDao accountDao = accountDaoFactory.create(transactionContext.connection());
           int rowsUpdated = accountDao.updateAccountBalances(accountBalanceUpdates);
-          log.info("Updated [{}] accounts", rowsUpdated);
+          log.debug("Updated [{}] account balances", rowsUpdated);
         });
   }
 

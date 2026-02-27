@@ -85,6 +85,11 @@ public class AccountDao extends BaseDao<Account> {
 
   public int updateAccountBalances(Map<UUID, BigDecimal> accountBalanceUpdates)
       throws SQLException {
+    if (cache != null) {
+      List<UUID> ids = accountBalanceUpdates.keySet().stream().toList();
+      cache.clear(ids);
+    }
+
     String sql = "UPDATE account SET account_balance = ? WHERE id = ?";
 
     boolean originalAutoCommit = connection.getAutoCommit();

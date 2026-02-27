@@ -29,7 +29,6 @@ public class CategoryTypeHandler extends SimpleChannelInboundHandler<FullHttpReq
   protected void channelRead0(
       ChannelHandlerContext channelHandlerContext, FullHttpRequest fullHttpRequest)
       throws Exception {
-    String requestId = channelHandlerContext.channel().attr(Constants.REQUEST_ID).get();
     String path = fullHttpRequest.uri();
     HttpMethod method = fullHttpRequest.method();
 
