@@ -4,11 +4,13 @@ import budget.application.cache.AccountCache;
 import budget.application.db.mapper.AccountRowMappers;
 import budget.application.model.dto.AccountResponse;
 import budget.application.model.entity.Account;
+import java.math.BigDecimal;
 import java.sql.Array;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -79,6 +81,53 @@ public class AccountDao extends BaseDao<Account> {
       }
     }
     return bankNames;
+  }
+
+  public int updateAccountBalances(Map<UUID, BigDecimal> accountBalanceUpdates)
+      throws SQLException {
+    String sql = "UPDATE account SET account_balance = ? WHERE id = ?";
+
+    boolean originalAutoCommit = connection.getAutoCommit();
+    int totalUpdated = 0;
+    int batchSize = 100;
+    int count = 0;
+
+    try {
+      connection.setAutoCommit(false);
+      try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+        for (Map.Entry<UUID, BigDecimal> entry : accountBalanceUpdates.entrySet()) {
+          UUID id = entry.getKey();
+          BigDecimal balance = entry.getValue();
+
+          preparedStatement.setBigDecimal(1, balance);
+          preparedStatement.setObject(2, id);
+          preparedStatement.addBatch();
+
+          if (++count % batchSize == 0) {
+            totalUpdated += sumBatchResults(preparedStatement.executeBatch());
+          }
+        }
+
+        totalUpdated += sumBatchResults(preparedStatement.executeBatch());
+      }
+
+      connection.commit();
+      return totalUpdated;
+    } catch (SQLException e) {
+      connection.rollback();
+      throw e;
+    } finally {
+      connection.setAutoCommit(originalAutoCommit);
+    }
+  }
+
+  private int sumBatchResults(int[] results) {
+    int sum = 0;
+    for (int res : results) {
+      if (res >= 0) sum += res;
+      else if (res == Statement.SUCCESS_NO_INFO) sum += 1;
+    }
+    return sum;
   }
 
   // TODO delete this

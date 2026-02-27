@@ -11,6 +11,8 @@ import budget.application.db.dao.DaoFactory;
 import budget.application.db.dao.InsightsDao;
 import budget.application.db.dao.TransactionDao;
 import budget.application.db.dao.TransactionItemDao;
+import budget.application.event.AccountBalanceSubscriber;
+import budget.application.event.TransactionEventBus;
 import budget.application.scheduler.ScheduleManager;
 import budget.application.server.core.ServerContext;
 import budget.application.server.handlers.AccountHandler;
@@ -64,6 +66,10 @@ public final class AppContext {
     TransactionItemService transactionItemService =
         new TransactionItemService(
             dataSource, transactionItemDaoFactory, categoryService, accountService);
+
+    TransactionEventBus transactionEventBus = new TransactionEventBus();
+    transactionEventBus.subscribe(new AccountBalanceSubscriber(accountService));
+
     TransactionService transactionService =
         new TransactionService(
             dataSource,
@@ -72,7 +78,8 @@ public final class AppContext {
             transactionItemService,
             categoryService,
             categoryTypeService,
-            accountService);
+            accountService,
+            transactionEventBus);
 
     AccountHandler accountHandler = new AccountHandler(accountService);
     AppTestsHandler appTestsHandler = new AppTestsHandler();

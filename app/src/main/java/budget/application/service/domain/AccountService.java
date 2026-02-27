@@ -164,6 +164,17 @@ public class AccountService {
         });
   }
 
+  public void updateAccountBalances(Map<UUID, BigDecimal> accountBalanceUpdates)
+      throws SQLException {
+    log.debug("Update account balance: AccountBalanceUpdates={}", accountBalanceUpdates);
+    transactionManager.executeVoid(
+        transactionContext -> {
+          AccountDao accountDao = accountDaoFactory.create(transactionContext.connection());
+          int rowsUpdated = accountDao.updateAccountBalances(accountBalanceUpdates);
+          log.info("Updated [{}] accounts", rowsUpdated);
+        });
+  }
+
   // TODO remove this
   private BigDecimal getCurrentBalance(
       Account account, Map<UUID, AccountResponse.AccountCurrentBalanceCalc> currentBalanceCalcMap) {

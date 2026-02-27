@@ -5,6 +5,8 @@ import budget.application.common.Exceptions;
 import budget.application.db.dao.DaoFactory;
 import budget.application.db.dao.TransactionDao;
 import budget.application.db.util.TransactionManager;
+import budget.application.event.TransactionEvent;
+import budget.application.event.TransactionEventBus;
 import budget.application.model.dto.PaginationRequest;
 import budget.application.model.dto.PaginationResponse;
 import budget.application.model.dto.RequestParams;
@@ -44,6 +46,7 @@ public class TransactionService {
   private final CategoryService categoryService;
   private final CategoryTypeService categoryTypeService;
   private final AccountService accountService;
+  private final TransactionEventBus transactionEventBus;
 
   public TransactionService(
       DataSource dataSource,
@@ -52,7 +55,8 @@ public class TransactionService {
       TransactionItemService transactionItemService,
       CategoryService categoryService,
       CategoryTypeService categoryTypeService,
-      AccountService accountService) {
+      AccountService accountService,
+      TransactionEventBus transactionEventBus) {
     this.transactionManager = new TransactionManager(dataSource);
     this.email = email;
     this.transactionDaoFactory = transactionDaoFactory;
@@ -60,42 +64,51 @@ public class TransactionService {
     this.categoryService = categoryService;
     this.categoryTypeService = categoryTypeService;
     this.accountService = accountService;
+    this.transactionEventBus = transactionEventBus;
   }
 
   public TransactionResponse create(TransactionRequest transactionRequest) throws SQLException {
     log.debug("Create transaction: TransactionRequest=[{}]", transactionRequest);
-    return transactionManager.execute(
-        transactionContext -> {
-          TransactionDao transactionDao =
-              transactionDaoFactory.create(transactionContext.connection());
-          validateTransaction(transactionRequest, transactionContext.connection());
+    TransactionResponse transactionResponse =
+        transactionManager.execute(
+            transactionContext -> {
+              TransactionDao transactionDao =
+                  transactionDaoFactory.create(transactionContext.connection());
+              validateTransaction(transactionRequest, transactionContext.connection());
 
-          Transaction transactionIn =
-              new Transaction(
-                  null,
-                  transactionRequest.txnDate(),
-                  transactionRequest.merchant(),
-                  transactionRequest.totalAmount(),
-                  null,
-                  null);
+              Transaction transactionIn =
+                  new Transaction(
+                      null,
+                      transactionRequest.txnDate(),
+                      transactionRequest.merchant(),
+                      transactionRequest.totalAmount(),
+                      null,
+                      null);
 
-          UUID transactionId = transactionDao.create(transactionIn).id();
-          log.debug("Created transaction: Id=[{}]", transactionId);
+              UUID transactionId = transactionDao.create(transactionIn).id();
+              log.debug("Created transaction: Id=[{}]", transactionId);
 
-          List<UUID> transactionItemIds =
-              transactionItemService
-                  .createItems(
-                      transactionId, transactionRequest.items(), transactionContext.connection())
-                  .stream()
-                  .map(TransactionItem::id)
-                  .toList();
-          log.debug("Created transaction items: TransactionItems=[{}]", transactionItemIds);
+              List<UUID> transactionItemIds =
+                  transactionItemService
+                      .createItems(
+                          transactionId,
+                          transactionRequest.items(),
+                          transactionContext.connection())
+                      .stream()
+                      .map(TransactionItem::id)
+                      .toList();
+              log.debug("Created transaction items: TransactionItems=[{}]", transactionItemIds);
 
-          List<TransactionResponse.Transaction> transactions =
-              transactionDao.readTransactions(List.of(transactionId), null, null).items();
-          return new TransactionResponse(
-              transactions, ResponseMetadataUtils.defaultInsertResponseMetadata());
-        });
+              List<TransactionResponse.Transaction> transactions =
+                  transactionDao.readTransactions(List.of(transactionId), null, null).items();
+              return new TransactionResponse(
+                  transactions, ResponseMetadataUtils.defaultInsertResponseMetadata());
+            });
+
+    // publish transaction event
+    transactionEventBus.publish(
+        new TransactionEvent(TransactionEvent.Type.CREATE, transactionResponse.data(), List.of()));
+    return transactionResponse;
   }
 
   public TransactionResponse read(
@@ -149,75 +162,113 @@ public class TransactionService {
       throws SQLException {
     log.debug("Update transaction: Id=[{}], TransactionRequest=[{}]", id, transactionRequest);
 
-    return transactionManager.execute(
-        transactionContext -> {
-          TransactionDao transactionDao =
-              transactionDaoFactory.create(transactionContext.connection());
+    TransactionResponse transactionResponseBeforeUpdate =
+        transactionManager.execute(
+            transactionContext -> {
+              TransactionDao transactionDao =
+                  transactionDaoFactory.create(transactionContext.connection());
+              List<TransactionResponse.Transaction> transactions =
+                  transactionDao.readTransactions(List.of(id), null, null).items();
+              return new TransactionResponse(
+                  transactions, ResponseMetadataUtils.defaultUpdateResponseMetadata());
+            });
 
-          validateTransaction(transactionRequest, transactionContext.connection());
+    TransactionResponse transactionResponse =
+        transactionManager.execute(
+            transactionContext -> {
+              TransactionDao transactionDao =
+                  transactionDaoFactory.create(transactionContext.connection());
 
-          List<Transaction> transactionList = transactionDao.read(List.of(id));
-          if (transactionList.isEmpty()) {
-            throw new Exceptions.NotFoundException("Transaction", id.toString());
-          }
+              validateTransaction(transactionRequest, transactionContext.connection());
 
-          Transaction transactionIn =
-              new Transaction(
+              List<Transaction> transactionList = transactionDao.read(List.of(id));
+              if (transactionList.isEmpty()) {
+                throw new Exceptions.NotFoundException("Transaction", id.toString());
+              }
+
+              Transaction transactionIn =
+                  new Transaction(
+                      id,
+                      transactionRequest.txnDate(),
+                      transactionRequest.merchant(),
+                      transactionRequest.totalAmount(),
+                      null,
+                      null);
+
+              // Update transaction
+              Transaction transactionOut = transactionDao.update(transactionIn);
+              log.debug("Updated transaction: Transaction=[{}]", transactionOut);
+
+              int deleteCount =
+                  transactionItemService.deleteByTransactionIds(
+                      List.of(id), transactionContext.connection());
+              log.debug(
+                  "Deleted transaction items for transaction: TransactionId=[{}], DeleteCount=[{}]",
                   id,
-                  transactionRequest.txnDate(),
-                  transactionRequest.merchant(),
-                  transactionRequest.totalAmount(),
-                  null,
-                  null);
+                  deleteCount);
 
-          // Update transaction
-          Transaction transactionOut = transactionDao.update(transactionIn);
-          log.debug("Updated transaction: Transaction=[{}]", transactionOut);
+              List<TransactionItem> transactionItemList =
+                  transactionItemService.createItems(
+                      id, transactionRequest.items(), transactionContext.connection());
+              log.debug("Recreated transaction items: TransactionItems=[{}]", transactionItemList);
 
-          int deleteCount =
-              transactionItemService.deleteByTransactionIds(
-                  List.of(id), transactionContext.connection());
-          log.debug(
-              "Deleted transaction items for transaction: TransactionId=[{}], DeleteCount=[{}]",
-              id,
-              deleteCount);
+              List<TransactionResponse.Transaction> transactions =
+                  transactionDao.readTransactions(List.of(id), null, null).items();
+              return new TransactionResponse(
+                  transactions, ResponseMetadataUtils.defaultUpdateResponseMetadata());
+            });
 
-          List<TransactionItem> transactionItemList =
-              transactionItemService.createItems(
-                  id, transactionRequest.items(), transactionContext.connection());
-          log.debug("Recreated transaction items: TransactionItems=[{}]", transactionItemList);
-
-          List<TransactionResponse.Transaction> transactions =
-              transactionDao.readTransactions(List.of(id), null, null).items();
-          return new TransactionResponse(
-              transactions, ResponseMetadataUtils.defaultUpdateResponseMetadata());
-        });
+    transactionEventBus.publish(
+        new TransactionEvent(
+            TransactionEvent.Type.UPDATE,
+            transactionResponse.data(),
+            transactionResponseBeforeUpdate.data()));
+    return transactionResponse;
   }
 
   public TransactionResponse delete(List<UUID> ids) throws SQLException {
     log.info("Delete transactions: Ids=[{}]", ids);
-    return transactionManager.execute(
-        transactionContext -> {
-          TransactionDao transactionDao =
-              transactionDaoFactory.create(transactionContext.connection());
 
-          List<Transaction> transactionList = transactionDao.read(ids);
-          if (ids.size() == 1 && transactionList.isEmpty()) {
-            throw new Exceptions.NotFoundException("Transaction", ids.getFirst().toString());
-          }
+    TransactionResponse transactionResponseBeforeUpdate =
+        transactionManager.execute(
+            transactionContext -> {
+              TransactionDao transactionDao =
+                  transactionDaoFactory.create(transactionContext.connection());
+              List<TransactionResponse.Transaction> transactions =
+                  transactionDao.readTransactions(ids, null, null).items();
+              return new TransactionResponse(
+                  transactions, ResponseMetadataUtils.defaultUpdateResponseMetadata());
+            });
 
-          int deleteCountTransactionItems =
-              transactionItemService.deleteByTransactionIds(ids, transactionContext.connection());
-          log.info(
-              "Deleted transaction items for transactions: Ids=[{}], DeleteCount=[{}]",
-              ids,
-              deleteCountTransactionItems);
+    TransactionResponse transactionResponse =
+        transactionManager.execute(
+            transactionContext -> {
+              TransactionDao transactionDao =
+                  transactionDaoFactory.create(transactionContext.connection());
 
-          int deleteCount = transactionDao.delete(ids);
-          log.info("Deleted transactions: Ids=[{}], DeleteCount=[{}]", ids, deleteCount);
-          return new TransactionResponse(
-              List.of(), ResponseMetadataUtils.defaultDeleteResponseMetadata(deleteCount));
-        });
+              List<Transaction> transactionList = transactionDao.read(ids);
+              if (ids.size() == 1 && transactionList.isEmpty()) {
+                throw new Exceptions.NotFoundException("Transaction", ids.getFirst().toString());
+              }
+
+              int deleteCountTransactionItems =
+                  transactionItemService.deleteByTransactionIds(
+                      ids, transactionContext.connection());
+              log.info(
+                  "Deleted transaction items for transactions: Ids=[{}], DeleteCount=[{}]",
+                  ids,
+                  deleteCountTransactionItems);
+
+              int deleteCount = transactionDao.delete(ids);
+              log.info("Deleted transactions: Ids=[{}], DeleteCount=[{}]", ids, deleteCount);
+              return new TransactionResponse(
+                  List.of(), ResponseMetadataUtils.defaultDeleteResponseMetadata(deleteCount));
+            });
+
+    transactionEventBus.publish(
+        new TransactionEvent(
+            TransactionEvent.Type.DELETE, List.of(), transactionResponseBeforeUpdate.data()));
+    return transactionResponse;
   }
 
   public void reconcileAll() throws SQLException {
