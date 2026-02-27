@@ -10,7 +10,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -90,49 +89,50 @@ public class AccountDao extends BaseDao<Account> {
       cache.clear(ids);
     }
 
-    String sql = "UPDATE account SET account_balance = ? WHERE id = ?";
+    String sql =
+        "WITH data(id, balance) AS ("
+            + "  SELECT UNNEST(?::uuid[]), UNNEST(?::numeric[])"
+            + ")"
+            + "UPDATE account a "
+            + "SET account_balance = d.balance "
+            + "FROM data d "
+            + "WHERE a.id = d.id "
+            + "RETURNING a.*";
 
     boolean originalAutoCommit = connection.getAutoCommit();
-    int totalUpdated = 0;
-    int batchSize = 100;
-    int count = 0;
+    List<Account> updatedAccounts = new ArrayList<>();
 
     try {
       connection.setAutoCommit(false);
-      try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-        for (Map.Entry<UUID, BigDecimal> entry : accountBalanceUpdates.entrySet()) {
-          UUID id = entry.getKey();
-          BigDecimal balance = entry.getValue();
 
-          preparedStatement.setBigDecimal(1, balance);
-          preparedStatement.setObject(2, id);
-          preparedStatement.addBatch();
+      UUID[] ids = accountBalanceUpdates.keySet().toArray(UUID[]::new);
+      BigDecimal[] balances = accountBalanceUpdates.values().toArray(BigDecimal[]::new);
 
-          if (++count % batchSize == 0) {
-            totalUpdated += sumBatchResults(preparedStatement.executeBatch());
+      try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        ps.setArray(1, connection.createArrayOf("uuid", ids));
+        ps.setArray(2, connection.createArrayOf("numeric", balances));
+
+        try (ResultSet rs = ps.executeQuery()) {
+          while (rs.next()) {
+            updatedAccounts.add(mapper.map(rs));
           }
         }
-
-        totalUpdated += sumBatchResults(preparedStatement.executeBatch());
       }
 
       connection.commit();
-      return totalUpdated;
+
+      if (cache != null) {
+        cache.put(updatedAccounts);
+      }
+
+      return updatedAccounts.size();
+
     } catch (SQLException e) {
       connection.rollback();
       throw e;
     } finally {
       connection.setAutoCommit(originalAutoCommit);
     }
-  }
-
-  private int sumBatchResults(int[] results) {
-    int sum = 0;
-    for (int res : results) {
-      if (res >= 0) sum += res;
-      else if (res == Statement.SUCCESS_NO_INFO) sum += 1;
-    }
-    return sum;
   }
 
   // TODO delete this
