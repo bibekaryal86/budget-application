@@ -1,10 +1,8 @@
 package budget.application.db.dao;
 
-import budget.application.cache.AccountCache;
 import budget.application.db.mapper.AccountRowMappers;
-import budget.application.model.dto.AccountResponse;
 import budget.application.model.entity.Account;
-import java.sql.Array;
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -13,15 +11,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 public class AccountDao extends BaseDao<Account> {
 
-  private final AccountRowMappers.AccountCurrentBalanceCalcMapper accountCurrentBalanceCalcMapper;
-
-  public AccountDao(Connection connection, AccountCache accountCache) {
-    super(connection, new AccountRowMappers.AccountRowMapper(), accountCache);
-    this.accountCurrentBalanceCalcMapper = new AccountRowMappers.AccountCurrentBalanceCalcMapper();
+  public AccountDao(Connection connection) {
+    super(connection, new AccountRowMappers.AccountRowMapper(), null);
   }
 
   @Override
@@ -31,32 +25,24 @@ public class AccountDao extends BaseDao<Account> {
 
   @Override
   protected List<String> insertColumns() {
-    return List.of("name", "account_type", "bank_name", "opening_balance", "status");
+    return List.of("name", "account_type", "bank_name", "status");
   }
 
   @Override
   protected List<Object> insertValues(Account account) {
     return List.of(
-        account.name().toUpperCase(),
-        account.accountType(),
-        account.bankName(),
-        account.openingBalance(),
-        account.status());
+        account.name().toUpperCase(), account.accountType(), account.bankName(), account.status());
   }
 
   @Override
   protected List<String> updateColumns() {
-    return List.of("name", "account_type", "bank_name", "opening_balance", "status");
+    return List.of("name", "account_type", "bank_name", "status");
   }
 
   @Override
   protected List<Object> updateValues(Account account) {
     return List.of(
-        account.name().toUpperCase(),
-        account.accountType(),
-        account.bankName(),
-        account.openingBalance(),
-        account.status());
+        account.name().toUpperCase(), account.accountType(), account.bankName(), account.status());
   }
 
   @Override
@@ -89,38 +75,40 @@ public class AccountDao extends BaseDao<Account> {
     return bankNames;
   }
 
-  public Map<UUID, AccountResponse.AccountCurrentBalanceCalc> getTotalBalancesForCurrentBalance(
-      List<UUID> accountIds) throws SQLException {
+  public int updateAccountBalances(Map<UUID, BigDecimal> accountBalanceUpdates)
+      throws SQLException {
     String sql =
-        """
-          SELECT
-              ti.account_id AS account_id,
-              SUM(CASE WHEN ct.name = 'INCOME' THEN ti.amount ELSE 0 END) AS total_incomes,
-              SUM(CASE WHEN ct.name = 'TRANSFER' AND c.name = 'TRANSFER IN' THEN ti.amount
-                        WHEN ct.name = 'TRANSFER' AND c.name = 'TRANSFER OUT' THEN -ti.amount
-                          ELSE 0 END ) AS total_transfers,
-              SUM(CASE WHEN ct.name NOT IN ('INCOME', 'TRANSFER') THEN ti.amount ELSE 0 END) AS total_expenses
-          FROM transaction_item ti
-          JOIN category c ON c.id = ti.category_id
-          JOIN category_type ct ON ct.id = c.category_type_id
-          WHERE ti.account_id = ANY(?)
-          GROUP BY ti.account_id
-      """;
+        "WITH data(id, balance) AS ("
+            + "  SELECT UNNEST(?::uuid[]), UNNEST(?::numeric[])"
+            + ")"
+            + "UPDATE account a "
+            + "SET account_balance = d.balance "
+            + "FROM data d "
+            + "WHERE a.id = d.id "
+            + "RETURNING a.*";
 
-    List<AccountResponse.AccountCurrentBalanceCalc> results = new ArrayList<>();
-    try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-      UUID[] idsArray = accountIds.toArray(new UUID[0]);
-      Array sqlArray = connection.createArrayOf("uuid", idsArray);
-      preparedStatement.setArray(1, sqlArray);
+    boolean originalAutoCommit = connection.getAutoCommit();
+    int updatedCount = 0;
 
-      try (ResultSet resultSet = preparedStatement.executeQuery()) {
-        while (resultSet.next()) {
-          results.add(accountCurrentBalanceCalcMapper.map(resultSet));
-        }
+    try {
+      connection.setAutoCommit(false);
+
+      UUID[] ids = accountBalanceUpdates.keySet().toArray(UUID[]::new);
+      BigDecimal[] balances = accountBalanceUpdates.values().toArray(BigDecimal[]::new);
+
+      try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+        preparedStatement.setArray(1, connection.createArrayOf("uuid", ids));
+        preparedStatement.setArray(2, connection.createArrayOf("numeric", balances));
+        updatedCount = preparedStatement.executeUpdate();
       }
-    }
 
-    return results.stream()
-        .collect(Collectors.toMap(AccountResponse.AccountCurrentBalanceCalc::id, acc -> acc));
+      connection.commit();
+      return updatedCount;
+    } catch (SQLException e) {
+      connection.rollback();
+      throw e;
+    } finally {
+      connection.setAutoCommit(originalAutoCommit);
+    }
   }
 }

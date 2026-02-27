@@ -46,7 +46,7 @@ public class AccountService {
                   accountRequest.name(),
                   accountRequest.accountType(),
                   accountRequest.bankName(),
-                  accountRequest.openingBalance(),
+                  null,
                   accountRequest.status(),
                   null,
                   null);
@@ -58,8 +58,7 @@ public class AccountService {
                   accountOut.name(),
                   accountOut.accountType(),
                   accountOut.bankName(),
-                  accountOut.openingBalance(),
-                  accountOut.openingBalance(), // balances are same when account is created
+                  accountOut.accountBalance(),
                   accountOut.status());
 
           return new AccountResponse(
@@ -82,10 +81,6 @@ public class AccountService {
             throw new Exceptions.NotFoundException("Account", ids.getFirst().toString());
           }
 
-          List<UUID> accountIds = accountList.stream().map(Account::id).toList();
-          Map<UUID, AccountResponse.AccountCurrentBalanceCalc> currentBalanceCalcMap =
-              accountDao.getTotalBalancesForCurrentBalance(accountIds);
-
           List<AccountResponse.Account> accounts =
               accountList.stream()
                   .map(
@@ -95,8 +90,7 @@ public class AccountService {
                               account.name(),
                               account.accountType(),
                               account.bankName(),
-                              account.openingBalance(),
-                              getCurrentBalance(account, currentBalanceCalcMap),
+                              account.accountBalance(),
                               account.status()))
                   .sorted(Comparator.comparing(AccountResponse.Account::bankName))
                   .toList();
@@ -135,21 +129,18 @@ public class AccountService {
                   accountRequest.name(),
                   accountRequest.accountType(),
                   accountRequest.bankName(),
-                  accountRequest.openingBalance(),
+                  null,
                   accountRequest.status(),
                   null,
                   null);
           Account accountOut = accountDao.update(accountIn);
-          Map<UUID, AccountResponse.AccountCurrentBalanceCalc> currentBalanceCalcMap =
-              accountDao.getTotalBalancesForCurrentBalance(List.of(id));
           AccountResponse.Account account =
               new AccountResponse.Account(
                   accountOut.id(),
                   accountOut.name(),
                   accountOut.accountType(),
                   accountOut.bankName(),
-                  accountOut.openingBalance(),
-                  getCurrentBalance(accountOut, currentBalanceCalcMap),
+                  accountOut.accountBalance(),
                   accountOut.status());
           return new AccountResponse(
               List.of(account), ResponseMetadataUtils.defaultUpdateResponseMetadata());
@@ -173,36 +164,15 @@ public class AccountService {
         });
   }
 
-  private BigDecimal getCurrentBalance(
-      Account account, Map<UUID, AccountResponse.AccountCurrentBalanceCalc> currentBalanceCalcMap) {
-    BigDecimal openingBalance = account.openingBalance();
-    BigDecimal currentBalance = openingBalance;
-    if (currentBalanceCalcMap.containsKey(account.id())) {
-      BigDecimal totalIncomes = currentBalanceCalcMap.get(account.id()).totalIncome();
-      BigDecimal totalExpenses = currentBalanceCalcMap.get(account.id()).totalExpense();
-      BigDecimal totalTransfers = currentBalanceCalcMap.get(account.id()).totalTransfers();
-
-      String accountType;
-      if (Constants.ASSET_ACCOUNT_TYPES.contains(account.accountType())
-          || Constants.INVEST_ACCOUNT_TYPES.contains(account.accountType())) {
-        accountType = "POSITIVE";
-      } else if (Constants.DEBT_ACCOUNT_TYPES.contains(account.accountType())) {
-        accountType = "NEGATIVE";
-      } else {
-        throw new Exceptions.NotFoundException("Account", "Type");
-      }
-
-      switch (accountType) {
-        case "POSITIVE" ->
-            currentBalance =
-                openingBalance.add(totalIncomes).subtract(totalExpenses).add(totalTransfers);
-        case "NEGATIVE" ->
-            currentBalance =
-                openingBalance.subtract(totalIncomes).add(totalExpenses).subtract(totalTransfers);
-      }
-    }
-
-    return currentBalance;
+  public void updateAccountBalances(Map<UUID, BigDecimal> accountBalanceUpdates)
+      throws SQLException {
+    log.debug("Update account balance: AccountBalanceUpdates={}", accountBalanceUpdates);
+    transactionManager.executeVoid(
+        transactionContext -> {
+          AccountDao accountDao = accountDaoFactory.create(transactionContext.connection());
+          int rowsUpdated = accountDao.updateAccountBalances(accountBalanceUpdates);
+          log.debug("Updated [{}] account balances", rowsUpdated);
+        });
   }
 
   private void validateAccount(AccountRequest accountRequest) {
@@ -220,9 +190,6 @@ public class AccountService {
     }
     if (CommonUtilities.isEmpty(accountRequest.bankName())) {
       throw new Exceptions.BadRequestException("Bank name cannot be empty...");
-    }
-    if (accountRequest.openingBalance() == null || accountRequest.openingBalance().intValue() < 0) {
-      throw new Exceptions.BadRequestException("Opening balance cannot be null or negative...");
     }
     if (CommonUtilities.isEmpty(accountRequest.status())) {
       throw new Exceptions.BadRequestException("Account status cannot be empty...");

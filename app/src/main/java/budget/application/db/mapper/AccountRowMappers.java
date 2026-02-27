@@ -16,7 +16,7 @@ public class AccountRowMappers {
           resultSet.getString("name"),
           resultSet.getString("account_type"),
           resultSet.getString("bank_name"),
-          resultSet.getBigDecimal("opening_balance"),
+          resultSet.getBigDecimal("account_balance"),
           resultSet.getString("status"),
           resultSet.getObject("created_at", LocalDateTime.class),
           resultSet.getObject("updated_at", LocalDateTime.class));
@@ -31,21 +31,8 @@ public class AccountRowMappers {
           resultSet.getString("account_name"),
           resultSet.getString("account_type"),
           resultSet.getString("account_bank_name"),
-          resultSet.getBigDecimal("account_opening_balance"),
-          null,
+          resultSet.getBigDecimal("account_balance"),
           resultSet.getString("account_status"));
-    }
-  }
-
-  public static class AccountCurrentBalanceCalcMapper
-      implements RowMapper<AccountResponse.AccountCurrentBalanceCalc> {
-    @Override
-    public AccountResponse.AccountCurrentBalanceCalc map(ResultSet resultSet) throws SQLException {
-      return new AccountResponse.AccountCurrentBalanceCalc(
-          resultSet.getObject("account_id", UUID.class),
-          resultSet.getBigDecimal("total_incomes"),
-          resultSet.getBigDecimal("total_expenses"),
-          resultSet.getBigDecimal("total_transfers"));
     }
   }
 }

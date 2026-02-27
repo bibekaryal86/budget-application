@@ -1,6 +1,5 @@
 package budget.application;
 
-import budget.application.cache.AccountCache;
 import budget.application.cache.CategoryCache;
 import budget.application.cache.CategoryTypeCache;
 import budget.application.db.dao.AccountDao;
@@ -11,6 +10,8 @@ import budget.application.db.dao.DaoFactory;
 import budget.application.db.dao.InsightsDao;
 import budget.application.db.dao.TransactionDao;
 import budget.application.db.dao.TransactionItemDao;
+import budget.application.event.AccountBalanceSubscriber;
+import budget.application.event.TransactionEventBus;
 import budget.application.scheduler.ScheduleManager;
 import budget.application.server.core.ServerContext;
 import budget.application.server.handlers.AccountHandler;
@@ -39,12 +40,10 @@ public final class AppContext {
   private final ServerContext serverContext;
 
   public AppContext(DataSource dataSource, Email email) throws SQLException {
-    AccountCache accountCache = new AccountCache();
     CategoryTypeCache categoryTypeCache = new CategoryTypeCache();
     CategoryCache categoryCache = new CategoryCache();
 
-    DaoFactory<AccountDao> accountDaoFactory =
-        connection -> new AccountDao(connection, accountCache);
+    DaoFactory<AccountDao> accountDaoFactory = AccountDao::new;
     DaoFactory<BudgetDao> budgetDaoFactory = BudgetDao::new;
     DaoFactory<CategoryDao> categoryDaoFactory =
         connection -> new CategoryDao(connection, categoryCache);
@@ -64,6 +63,10 @@ public final class AppContext {
     TransactionItemService transactionItemService =
         new TransactionItemService(
             dataSource, transactionItemDaoFactory, categoryService, accountService);
+
+    TransactionEventBus transactionEventBus = new TransactionEventBus();
+    transactionEventBus.subscribe(new AccountBalanceSubscriber(accountService));
+
     TransactionService transactionService =
         new TransactionService(
             dataSource,
@@ -72,7 +75,8 @@ public final class AppContext {
             transactionItemService,
             categoryService,
             categoryTypeService,
-            accountService);
+            accountService,
+            transactionEventBus);
 
     AccountHandler accountHandler = new AccountHandler(accountService);
     AppTestsHandler appTestsHandler = new AppTestsHandler();

@@ -11,12 +11,8 @@ public record AccountResponse(List<Account> data, ResponseMetadata metadata) {
       String name,
       String accountType,
       String bankName,
-      BigDecimal openingBalance,
-      BigDecimal currentBalance,
+      BigDecimal accountBalance,
       String status) {}
-
-  public record AccountCurrentBalanceCalc(
-      UUID id, BigDecimal totalIncome, BigDecimal totalExpense, BigDecimal totalTransfers) {}
 
   public record AccountRefLists(List<String> data, ResponseMetadata metadata) {}
 }

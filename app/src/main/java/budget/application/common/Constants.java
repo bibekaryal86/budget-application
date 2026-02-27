@@ -80,6 +80,8 @@ public class Constants {
   public static final String CATEGORY_TYPE_INCOME_NAME = "INCOME";
   public static final String CATEGORY_TYPE_SAVINGS_NAME = "SAVINGS";
   public static final String CATEGORY_TYPE_TRANSFER_NAME = "TRANSFER";
+  public static final String CATEGORY_TRANSFER_IN = "TRANSFER IN";
+  public static final String CATEGORY_TRANSFER_OUT = "TRANSFER OUT";
   public static final List<String> NO_EXPENSE_CATEGORY_TYPES =
       List.of(CATEGORY_TYPE_INCOME_NAME, CATEGORY_TYPE_SAVINGS_NAME, CATEGORY_TYPE_TRANSFER_NAME);
 

@@ -1,6 +1,5 @@
 package budget.application.server.handlers;
 
-import budget.application.common.Constants;
 import budget.application.model.dto.CategoryTypeRequest;
 import budget.application.model.dto.CategoryTypeResponse;
 import budget.application.server.util.ApiPaths;
@@ -29,7 +28,6 @@ public class CategoryTypeHandler extends SimpleChannelInboundHandler<FullHttpReq
   protected void channelRead0(
       ChannelHandlerContext channelHandlerContext, FullHttpRequest fullHttpRequest)
       throws Exception {
-    String requestId = channelHandlerContext.channel().attr(Constants.REQUEST_ID).get();
     String path = fullHttpRequest.uri();
     HttpMethod method = fullHttpRequest.method();
 
