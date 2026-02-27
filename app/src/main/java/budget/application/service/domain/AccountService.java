@@ -175,39 +175,6 @@ public class AccountService {
         });
   }
 
-  // TODO remove this
-  private BigDecimal getCurrentBalance(
-      Account account, Map<UUID, AccountResponse.AccountCurrentBalanceCalc> currentBalanceCalcMap) {
-    BigDecimal openingBalance = account.accountBalance();
-    BigDecimal currentBalance = openingBalance;
-    if (currentBalanceCalcMap.containsKey(account.id())) {
-      BigDecimal totalIncomes = currentBalanceCalcMap.get(account.id()).totalIncome();
-      BigDecimal totalExpenses = currentBalanceCalcMap.get(account.id()).totalExpense();
-      BigDecimal totalTransfers = currentBalanceCalcMap.get(account.id()).totalTransfers();
-
-      String accountType;
-      if (Constants.ASSET_ACCOUNT_TYPES.contains(account.accountType())
-          || Constants.INVEST_ACCOUNT_TYPES.contains(account.accountType())) {
-        accountType = "POSITIVE";
-      } else if (Constants.DEBT_ACCOUNT_TYPES.contains(account.accountType())) {
-        accountType = "NEGATIVE";
-      } else {
-        throw new Exceptions.NotFoundException("Account", "Type");
-      }
-
-      switch (accountType) {
-        case "POSITIVE" ->
-            currentBalance =
-                openingBalance.add(totalIncomes).subtract(totalExpenses).add(totalTransfers);
-        case "NEGATIVE" ->
-            currentBalance =
-                openingBalance.subtract(totalIncomes).add(totalExpenses).subtract(totalTransfers);
-      }
-    }
-
-    return currentBalance;
-  }
-
   private void validateAccount(AccountRequest accountRequest) {
     if (accountRequest == null) {
       throw new Exceptions.BadRequestException("Account request cannot be null...");
