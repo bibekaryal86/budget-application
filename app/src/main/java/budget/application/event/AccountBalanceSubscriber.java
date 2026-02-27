@@ -31,6 +31,7 @@ public final class AccountBalanceSubscriber implements TransactionEventSubscribe
 
   @Override
   public void onEvent(TransactionEvent event) {
+    log.info("Transaction event: [{}]", event);
     switch (event.eventType()) {
       case TransactionEvent.Type.CREATE -> updateAccountBalanceOnCreate(event);
       case TransactionEvent.Type.UPDATE -> updateAccountBalanceOnUpdate(event);
