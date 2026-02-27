@@ -1,6 +1,5 @@
 package budget.application;
 
-import budget.application.cache.AccountCache;
 import budget.application.cache.CategoryCache;
 import budget.application.cache.CategoryTypeCache;
 import budget.application.db.dao.AccountDao;
@@ -41,12 +40,10 @@ public final class AppContext {
   private final ServerContext serverContext;
 
   public AppContext(DataSource dataSource, Email email) throws SQLException {
-    AccountCache accountCache = new AccountCache();
     CategoryTypeCache categoryTypeCache = new CategoryTypeCache();
     CategoryCache categoryCache = new CategoryCache();
 
-    DaoFactory<AccountDao> accountDaoFactory =
-        connection -> new AccountDao(connection, accountCache);
+    DaoFactory<AccountDao> accountDaoFactory = connection -> new AccountDao(connection);
     DaoFactory<BudgetDao> budgetDaoFactory = BudgetDao::new;
     DaoFactory<CategoryDao> categoryDaoFactory =
         connection -> new CategoryDao(connection, categoryCache);

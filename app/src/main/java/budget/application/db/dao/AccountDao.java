@@ -1,6 +1,5 @@
 package budget.application.db.dao;
 
-import budget.application.cache.AccountCache;
 import budget.application.db.mapper.AccountRowMappers;
 import budget.application.model.dto.AccountResponse;
 import budget.application.model.entity.Account;
@@ -20,8 +19,8 @@ public class AccountDao extends BaseDao<Account> {
 
   private final AccountRowMappers.AccountCurrentBalanceCalcMapper accountCurrentBalanceCalcMapper;
 
-  public AccountDao(Connection connection, AccountCache accountCache) {
-    super(connection, new AccountRowMappers.AccountRowMapper(), accountCache);
+  public AccountDao(Connection connection) {
+    super(connection, new AccountRowMappers.AccountRowMapper(), null);
     this.accountCurrentBalanceCalcMapper = new AccountRowMappers.AccountCurrentBalanceCalcMapper();
   }
 

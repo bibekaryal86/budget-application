@@ -19,13 +19,13 @@ public class AccountHandlerTest extends IntegrationBaseTest {
   void testAccounts() throws Exception {
     // CREATE
     AccountRequest req =
-        new AccountRequest("Name Test", "CASH", "Bank Test", new BigDecimal("100.00"), "ACTIVE");
+        new AccountRequest("Name Test", "CASH", "Bank Test", "ACTIVE");
     HttpResponse<String> resp = httpPost(ApiPaths.ACCOUNTS_V1, JsonUtils.toJson(req), Boolean.TRUE);
     Assertions.assertEquals(201, resp.statusCode());
     AccountResponse response = JsonUtils.fromJson(resp.body(), AccountResponse.class);
     Assertions.assertEquals(1, response.data().size());
     Assertions.assertEquals(req.name().toUpperCase(), response.data().getFirst().name());
-    Assertions.assertEquals(req.openingBalance(), response.data().getFirst().openingBalance());
+    Assertions.assertEquals(new BigDecimal("0.00"), response.data().getFirst().accountBalance());
     Assertions.assertEquals(
         ResponseMetadataUtils.defaultInsertResponseMetadata(), response.metadata());
     final String id = response.data().getFirst().id().toString();
@@ -45,13 +45,13 @@ public class AccountHandlerTest extends IntegrationBaseTest {
     // UPDATE
     req =
         new AccountRequest(
-            "Name Updated", "CASH", "Bank Updated ", new BigDecimal("100.00"), "ACTIVE");
+            "Name Updated", "CASH", "Bank Updated ", "ACTIVE");
     resp = httpPut(ApiPaths.ACCOUNTS_V1_WITH_ID + id, JsonUtils.toJson(req), Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());
     response = JsonUtils.fromJson(resp.body(), AccountResponse.class);
     Assertions.assertEquals(1, response.data().size());
     Assertions.assertEquals(req.name().toUpperCase(), response.data().getFirst().name());
-    Assertions.assertEquals(req.openingBalance(), response.data().getFirst().openingBalance());
+    Assertions.assertEquals(new BigDecimal("0.00"), response.data().getFirst().accountBalance());
     Assertions.assertEquals(
         ResponseMetadataUtils.defaultUpdateResponseMetadata(), response.metadata());
 
@@ -94,44 +94,34 @@ public class AccountHandlerTest extends IntegrationBaseTest {
     Assertions.assertEquals(400, resp.statusCode());
     Assertions.assertTrue(resp.body().contains("Account request cannot be null..."));
 
-    AccountRequest req = new AccountRequest(null, null, "", null, "");
+    AccountRequest req = new AccountRequest(null, null, "", "");
     resp = httpPost(ApiPaths.ACCOUNTS_V1, JsonUtils.toJson(req), Boolean.TRUE);
     Assertions.assertEquals(400, resp.statusCode());
     Assertions.assertTrue(resp.body().contains("Account name cannot be empty..."));
 
-    req = new AccountRequest("Some name", "", "", null, "");
+    req = new AccountRequest("Some name", "", "", "");
     resp = httpPost(ApiPaths.ACCOUNTS_V1, JsonUtils.toJson(req), Boolean.TRUE);
     Assertions.assertEquals(400, resp.statusCode());
     Assertions.assertTrue(resp.body().contains("Account type cannot be empty..."));
 
-    req = new AccountRequest("Some name", "CREDIT", "", null, "");
+    req = new AccountRequest("Some name", "CREDIT", "", "");
     resp = httpPost(ApiPaths.ACCOUNTS_V1, JsonUtils.toJson(req), Boolean.TRUE);
     Assertions.assertEquals(400, resp.statusCode());
     Assertions.assertTrue(resp.body().contains("Bank name cannot be empty..."));
 
-    req = new AccountRequest("Some name", "CREDIT", "Some bank", null, "");
-    resp = httpPost(ApiPaths.ACCOUNTS_V1, JsonUtils.toJson(req), Boolean.TRUE);
-    Assertions.assertEquals(400, resp.statusCode());
-    Assertions.assertTrue(resp.body().contains("Opening balance cannot be null or negative..."));
-
-    req = new AccountRequest("Some name", "CREDIT", "Some bank", new BigDecimal("-1.0"), "");
-    resp = httpPost(ApiPaths.ACCOUNTS_V1, JsonUtils.toJson(req), Boolean.TRUE);
-    Assertions.assertEquals(400, resp.statusCode());
-    Assertions.assertTrue(resp.body().contains("Opening balance cannot be null or negative..."));
-
-    req = new AccountRequest("Some name", "CREDIT", "Some bank", new BigDecimal("0.00"), "");
+    req = new AccountRequest("Some name", "CREDIT", "Some bank", "");
     resp = httpPost(ApiPaths.ACCOUNTS_V1, JsonUtils.toJson(req), Boolean.TRUE);
     Assertions.assertEquals(400, resp.statusCode());
     Assertions.assertTrue(resp.body().contains("Account status cannot be empty..."));
 
     req =
-        new AccountRequest("Some name", "CREDIT", "Some bank", new BigDecimal("0.00"), "SOMETHING");
+        new AccountRequest("Some name", "CREDIT", "Some bank", "SOMETHING");
     resp = httpPost(ApiPaths.ACCOUNTS_V1, JsonUtils.toJson(req), Boolean.TRUE);
     Assertions.assertEquals(400, resp.statusCode());
     Assertions.assertTrue(resp.body().contains("Account status is invalid..."));
 
     req =
-        new AccountRequest("TEST ACCOUNT", "CREDIT", "Some bank", new BigDecimal("0.00"), "ACTIVE");
+        new AccountRequest("TEST ACCOUNT", "CREDIT", "Some bank", "ACTIVE");
     resp = httpPost(ApiPaths.ACCOUNTS_V1, JsonUtils.toJson(req), Boolean.TRUE);
     Assertions.assertEquals(400, resp.statusCode());
     Assertions.assertTrue(resp.body().contains("(TEST ACCOUNT) already exists."));
@@ -158,7 +148,7 @@ public class AccountHandlerTest extends IntegrationBaseTest {
   void testAccountsNotFound() throws Exception {
     UUID randomId = UUID.randomUUID();
     AccountRequest req =
-        new AccountRequest("Some name", "CREDIT", "Some bank", new BigDecimal("0.00"), "ACTIVE");
+        new AccountRequest("Some name", "CREDIT", "Some bank", "ACTIVE");
     HttpResponse<String> resp =
         httpPut(ApiPaths.ACCOUNTS_V1_WITH_ID + randomId, JsonUtils.toJson(req), Boolean.TRUE);
     Assertions.assertEquals(404, resp.statusCode());
