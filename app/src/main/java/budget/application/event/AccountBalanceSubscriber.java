@@ -106,28 +106,36 @@ public final class AccountBalanceSubscriber implements TransactionEventSubscribe
     return accountBalance.add(delta);
   }
 
+  private void processAccountBalanceUpdates(
+      List<TransactionItemResponse.TransactionItem> transactionItems,
+      TransactionEvent.Type eventType,
+      Map<UUID, BigDecimal> accountBalanceUpdates) {
+    for (TransactionItemResponse.TransactionItem transactionItem : transactionItems) {
+      AccountResponse.Account account = transactionItem.account();
+      CategoryResponse.Category category = transactionItem.category();
+      BigDecimal transactionAmount = transactionItem.amount();
+      AccountType accountType = getPositiveNegativeAccountType(account.accountType());
+
+      BigDecimal currentAccountBalance = accountBalanceUpdates.getOrDefault(account.id(), null);
+      if (currentAccountBalance == null) {
+        currentAccountBalance = account.accountBalance();
+      }
+      BigDecimal newAccountBalance =
+          calculateNewAccountBalance(
+              eventType, category, accountType, currentAccountBalance, transactionAmount);
+
+      accountBalanceUpdates.put(account.id(), newAccountBalance);
+    }
+  }
+
   public void updateAccountBalanceOnCreate(TransactionEvent event) {
     try {
       Map<UUID, BigDecimal> accountBalanceUpdates = new HashMap<>();
 
       List<TransactionItemResponse.TransactionItem> transactionItems =
           event.transactionResponse().getFirst().items();
-      for (TransactionItemResponse.TransactionItem transactionItem : transactionItems) {
-        AccountResponse.Account account = transactionItem.account();
-        CategoryResponse.Category category = transactionItem.category();
-        BigDecimal transactionAmount = transactionItem.amount();
-        AccountType accountType = getPositiveNegativeAccountType(account.accountType());
+      processAccountBalanceUpdates(transactionItems, event.eventType(), accountBalanceUpdates);
 
-        BigDecimal currentAccountBalance = accountBalanceUpdates.getOrDefault(account.id(), null);
-        if (currentAccountBalance == null) {
-          currentAccountBalance = account.accountBalance();
-        }
-        BigDecimal newAccountBalance =
-            calculateNewAccountBalance(
-                event.eventType(), category, accountType, currentAccountBalance, transactionAmount);
-
-        accountBalanceUpdates.put(account.id(), newAccountBalance);
-      }
       accountService.updateAccountBalances(accountBalanceUpdates);
     } catch (Exception e) {
       log.error("Error updating account balance for transaction create: [{}]", event, e);
@@ -140,51 +148,21 @@ public final class AccountBalanceSubscriber implements TransactionEventSubscribe
 
       // update account balance from before update transaction
       List<TransactionItemResponse.TransactionItem> transactionItems =
-              event.transactionResponseBeforeUpdate().stream()
-                      .map(TransactionResponse.Transaction::items)
-                      .flatMap(List::stream)
-                      .toList();
-
-      for (TransactionItemResponse.TransactionItem transactionItem : transactionItems) {
-        AccountResponse.Account account = transactionItem.account();
-        CategoryResponse.Category category = transactionItem.category();
-        BigDecimal transactionAmount = transactionItem.amount();
-        AccountType accountType = getPositiveNegativeAccountType(account.accountType());
-
-        BigDecimal currentAccountBalance = accountBalanceUpdates.getOrDefault(account.id(), null);
-        if (currentAccountBalance == null) {
-          currentAccountBalance = account.accountBalance();
-        }
-        BigDecimal newAccountBalance =
-                calculateNewAccountBalance(
-                        TransactionEvent.Type.DELETE, category, accountType, currentAccountBalance, transactionAmount);
-
-        accountBalanceUpdates.put(account.id(), newAccountBalance);
-      }
+          event.transactionResponseBeforeUpdate().stream()
+              .map(TransactionResponse.Transaction::items)
+              .flatMap(List::stream)
+              .toList();
+      processAccountBalanceUpdates(
+          transactionItems, TransactionEvent.Type.DELETE, accountBalanceUpdates);
 
       // update account balance from after update transaction
       transactionItems =
-              event.transactionResponse().stream()
-                      .map(TransactionResponse.Transaction::items)
-                      .flatMap(List::stream)
-                      .toList();
-
-      for (TransactionItemResponse.TransactionItem transactionItem : transactionItems) {
-        AccountResponse.Account account = transactionItem.account();
-        CategoryResponse.Category category = transactionItem.category();
-        BigDecimal transactionAmount = transactionItem.amount();
-        AccountType accountType = getPositiveNegativeAccountType(account.accountType());
-
-        BigDecimal currentAccountBalance = accountBalanceUpdates.getOrDefault(account.id(), null);
-        if (currentAccountBalance == null) {
-          currentAccountBalance = account.accountBalance();
-        }
-        BigDecimal newAccountBalance =
-                calculateNewAccountBalance(
-                        TransactionEvent.Type.CREATE, category, accountType, currentAccountBalance, transactionAmount);
-
-        accountBalanceUpdates.put(account.id(), newAccountBalance);
-      }
+          event.transactionResponse().stream()
+              .map(TransactionResponse.Transaction::items)
+              .flatMap(List::stream)
+              .toList();
+      processAccountBalanceUpdates(
+          transactionItems, TransactionEvent.Type.CREATE, accountBalanceUpdates);
 
       accountService.updateAccountBalances(accountBalanceUpdates);
     } catch (Exception e) {
@@ -201,23 +179,8 @@ public final class AccountBalanceSubscriber implements TransactionEventSubscribe
               .map(TransactionResponse.Transaction::items)
               .flatMap(List::stream)
               .toList();
+      processAccountBalanceUpdates(transactionItems, event.eventType(), accountBalanceUpdates);
 
-      for (TransactionItemResponse.TransactionItem transactionItem : transactionItems) {
-        AccountResponse.Account account = transactionItem.account();
-        CategoryResponse.Category category = transactionItem.category();
-        BigDecimal transactionAmount = transactionItem.amount();
-        AccountType accountType = getPositiveNegativeAccountType(account.accountType());
-
-        BigDecimal currentAccountBalance = accountBalanceUpdates.getOrDefault(account.id(), null);
-        if (currentAccountBalance == null) {
-          currentAccountBalance = account.accountBalance();
-        }
-        BigDecimal newAccountBalance =
-            calculateNewAccountBalance(
-                event.eventType(), category, accountType, currentAccountBalance, transactionAmount);
-
-        accountBalanceUpdates.put(account.id(), newAccountBalance);
-      }
       accountService.updateAccountBalances(accountBalanceUpdates);
     } catch (Exception e) {
       log.error("Error updating account balance for transaction delete: [{}]", event, e);
