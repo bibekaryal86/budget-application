@@ -43,7 +43,7 @@ public final class AppContext {
     CategoryTypeCache categoryTypeCache = new CategoryTypeCache();
     CategoryCache categoryCache = new CategoryCache();
 
-    DaoFactory<AccountDao> accountDaoFactory = connection -> new AccountDao(connection);
+    DaoFactory<AccountDao> accountDaoFactory = AccountDao::new;
     DaoFactory<BudgetDao> budgetDaoFactory = BudgetDao::new;
     DaoFactory<CategoryDao> categoryDaoFactory =
         connection -> new CategoryDao(connection, categoryCache);
