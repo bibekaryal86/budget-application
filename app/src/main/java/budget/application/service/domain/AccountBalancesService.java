@@ -12,6 +12,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import javax.sql.DataSource;
 import org.slf4j.Logger;
@@ -58,35 +59,20 @@ public class AccountBalancesService {
         });
   }
 
-  public void updateAccountBalances(
-      UUID accountId, String yearMonth, BigDecimal accountBalance, String notes)
+  public void updateAccountBalances(LocalDate yearMonth, String notes, Map<UUID, BigDecimal> accountBalanceUpdates)
       throws SQLException {
     log.debug(
-        "Update Account Balances: AccountId=[{}], YearMonth=[{}], AccountBalance=[{}], Notes=[{}]",
-        accountId,
+        "Update Account Balances: YearMonth=[{}], Notes=[{}], AccountBalanceUpdates={}",
         yearMonth,
-        accountBalance,
-        notes);
+        notes,
+        accountBalanceUpdates);
     transactionManager.executeVoid(
         transactionContext -> {
           AccountBalancesDao accountBalancesDao =
               accountBalancesDaoFactory.create(transactionContext.connection());
           int rowsUpdated =
-              accountBalancesDao.updateAccountBalances(accountId, yearMonth, accountBalance, notes);
+              accountBalancesDao.updateAccountBalances(yearMonth, notes, accountBalanceUpdates);
           log.debug("Updated [{}] Account Balances", rowsUpdated);
         });
-  }
-
-  public void deleteAccountBalances(List<UUID> accountIds, Connection connection)
-      throws SQLException {
-    log.info("Delete Account Balances: AccountIds=[{}]", accountIds);
-    if (connection == null) {
-      transactionManager.executeVoid(
-          transactionContext -> deleteAccountBalances(accountIds, transactionContext.connection()));
-      return;
-    }
-    AccountBalancesDao accountBalancesDao = accountBalancesDaoFactory.create(connection);
-    int rowsDeleted = accountBalancesDao.deleteAccountBalances(accountIds);
-    log.debug("Deleted [{}] Account Balances", rowsDeleted);
   }
 }

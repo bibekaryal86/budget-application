@@ -121,36 +121,41 @@ public class AccountBalancesDao extends BaseDao<AccountBalances> {
     return new ArrayList<>(accountBalanceSummaryMap.values());
   }
 
-  public int updateAccountBalances(
-      UUID accountId, String yearMonth, BigDecimal accountBalance, String notes)
-      throws SQLException {
+  public int updateAccountBalances(LocalDate yearMonth, String notes, Map<UUID, BigDecimal> accountBalanceUpdates)
+          throws SQLException {
     String sql =
-        "UPDATE account_balances "
-            + "SET account_balance = ?, "
+            "WITH data(account_id, balance) AS ("
+            + "SELECT UNNEST(?::uuid[]), UNNEST(?::numeric[]))"
+            + "UPDATE account_balances a "
+            + "SET account_balance = d.balance "
             + "notes = COALESCE(notes, '') || ? "
-            + "WHERE account_id = ? AND year_month = ?";
-    try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-      DaoUtils.bindParams(
-          preparedStatement, List.of(accountBalance, notes, accountId, yearMonth), Boolean.FALSE);
-      return preparedStatement.executeUpdate();
-    }
-  }
+            + "FROM data d "
+            + "WHERE a.account_id = d.account_id AND a.year_month = ? ";
 
-  public int deleteAccountBalances(List<UUID> accountIds) throws SQLException {
-    if (CommonUtilities.isEmpty(accountIds)) {
-      return 0;
-    }
+    boolean originalAutoCommit = connection.getAutoCommit();
+    int updatedCount = 0;
 
-    String sql =
-        "DELETE FROM "
-            + tableName()
-            + " WHERE account_id IN ("
-            + DaoUtils.placeholders(accountIds.size())
-            + ")";
+    try {
+      connection.setAutoCommit(false);
 
-    try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-      DaoUtils.bindParams(preparedStatement, accountIds, Boolean.FALSE);
-      return preparedStatement.executeUpdate();
+      UUID[] accountIds = accountBalanceUpdates.keySet().toArray(UUID[]::new);
+      BigDecimal[] balances = accountBalanceUpdates.values().toArray(BigDecimal[]::new);
+
+      try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+        preparedStatement.setArray(1, connection.createArrayOf("uuid", accountIds));
+        preparedStatement.setArray(2, connection.createArrayOf("numeric", balances));
+        preparedStatement.setObject(3, notes);
+        preparedStatement.setObject(4, yearMonth);
+        updatedCount = preparedStatement.executeUpdate();
+      }
+
+      connection.commit();
+      return updatedCount;
+    } catch (SQLException e) {
+      connection.rollback();
+      throw e;
+    } finally {
+      connection.setAutoCommit(originalAutoCommit);
     }
   }
 }
