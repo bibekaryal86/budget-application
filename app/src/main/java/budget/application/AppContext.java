@@ -22,7 +22,6 @@ import budget.application.server.handlers.CategoryHandler;
 import budget.application.server.handlers.CategoryTypeHandler;
 import budget.application.server.handlers.InsightsHandler;
 import budget.application.server.handlers.TransactionHandler;
-import budget.application.server.handlers.TransactionItemHandler;
 import budget.application.service.domain.AccountBalancesService;
 import budget.application.service.domain.AccountService;
 import budget.application.service.domain.BudgetService;
@@ -91,8 +90,6 @@ public final class AppContext {
     CategoryTypeHandler categoryTypeHandler = new CategoryTypeHandler(categoryTypeService);
     InsightsHandler insightsHandler = new InsightsHandler(insightsService);
     TransactionHandler transactionHandler = new TransactionHandler(transactionService);
-    TransactionItemHandler transactionItemHandler =
-        new TransactionItemHandler(transactionItemService);
 
     scheduleManager = new ScheduleManager(dataSource, transactionService);
     serverContext =
@@ -103,7 +100,6 @@ public final class AppContext {
             categoryTypeHandler,
             categoryHandler,
             insightsHandler,
-            transactionItemHandler,
             transactionHandler);
 
     // seed caches

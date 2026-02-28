@@ -32,12 +32,7 @@ public class InsightsRowMappers {
     @Override
     public InsightsResponse.CategoryAmount map(ResultSet resultSet) throws SQLException {
       return new InsightsResponse.CategoryAmount(
-          new CategoryResponse.Category(
-              resultSet.getObject("category_id", UUID.class),
-              new CategoryTypeResponse.CategoryType(
-                  resultSet.getObject("category_type_id", UUID.class),
-                  resultSet.getString("category_type_name")),
-              resultSet.getString("category_name")),
+              new CategoryRowMappers.CategoryRowMapperResponse().map(resultSet),
           resultSet.getBigDecimal("total_amount"));
     }
   }

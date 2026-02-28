@@ -7,7 +7,6 @@ import budget.application.server.handlers.CategoryHandler;
 import budget.application.server.handlers.CategoryTypeHandler;
 import budget.application.server.handlers.InsightsHandler;
 import budget.application.server.handlers.TransactionHandler;
-import budget.application.server.handlers.TransactionItemHandler;
 
 public final class ServerContext {
 
@@ -17,7 +16,6 @@ public final class ServerContext {
   private final CategoryTypeHandler categoryTypeHandler;
   private final CategoryHandler categoryHandler;
   private final InsightsHandler insightsHandler;
-  private final TransactionItemHandler transactionItemHandler;
   private final TransactionHandler transactionHandler;
 
   public ServerContext(
@@ -27,7 +25,6 @@ public final class ServerContext {
       CategoryTypeHandler categoryTypeHandler,
       CategoryHandler categoryHandler,
       InsightsHandler insightsHandler,
-      TransactionItemHandler transactionItemHandler,
       TransactionHandler transactionHandler) {
     this.appTestsHandler = appTestsHandler;
     this.accountHandler = accountHandler;
@@ -35,7 +32,6 @@ public final class ServerContext {
     this.categoryTypeHandler = categoryTypeHandler;
     this.categoryHandler = categoryHandler;
     this.insightsHandler = insightsHandler;
-    this.transactionItemHandler = transactionItemHandler;
     this.transactionHandler = transactionHandler;
   }
 
@@ -61,10 +57,6 @@ public final class ServerContext {
 
   public InsightsHandler getInsightsHandler() {
     return insightsHandler;
-  }
-
-  public TransactionItemHandler getTransactionItemHandler() {
-    return transactionItemHandler;
   }
 
   public TransactionHandler getTransactionHandler() {
