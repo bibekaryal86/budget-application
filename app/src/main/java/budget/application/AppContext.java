@@ -57,7 +57,7 @@ public final class AppContext {
 
     AccountService accountService = new AccountService(dataSource, accountDaoFactory);
     AccountBalancesService accountBalancesService =
-        new AccountBalancesService(dataSource, accountBalancesDaoFactory);
+        new AccountBalancesService(dataSource, accountBalancesDaoFactory, accountService);
     InsightsService insightsService = new InsightsService(dataSource, insightsDaoFactory);
     CategoryTypeService categoryTypeService =
         new CategoryTypeService(dataSource, categoryTypeDaoFactory);
@@ -91,7 +91,7 @@ public final class AppContext {
     InsightsHandler insightsHandler = new InsightsHandler(insightsService, accountBalancesService);
     TransactionHandler transactionHandler = new TransactionHandler(transactionService);
 
-    scheduleManager = new ScheduleManager(dataSource, transactionService);
+    scheduleManager = new ScheduleManager(dataSource, transactionService, accountBalancesService);
     serverContext =
         new ServerContext(
             appTestsHandler,

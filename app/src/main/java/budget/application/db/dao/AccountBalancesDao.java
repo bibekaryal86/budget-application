@@ -121,10 +121,11 @@ public class AccountBalancesDao extends BaseDao<AccountBalances> {
     return new ArrayList<>(accountBalanceSummaryMap.values());
   }
 
-  public int updateAccountBalances(LocalDate yearMonth, String notes, Map<UUID, BigDecimal> accountBalanceUpdates)
-          throws SQLException {
+  public int updateAccountBalances(
+      LocalDate yearMonth, String notes, Map<UUID, BigDecimal> accountBalanceUpdates)
+      throws SQLException {
     String sql =
-            "WITH data(account_id, balance) AS ("
+        "WITH data(account_id, balance) AS ("
             + "SELECT UNNEST(?::uuid[]), UNNEST(?::numeric[]))"
             + "UPDATE account_balances a "
             + "SET account_balance = d.balance "

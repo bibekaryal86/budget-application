@@ -15,7 +15,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -148,7 +147,8 @@ public final class AccountBalanceSubscriber implements TransactionEventSubscribe
 
       updatePreviousAccountBalances(event.transactionResponse().getFirst(), accountBalanceUpdates);
     } catch (Exception e) {
-      log.error("Error updating account balance for transaction create: TransactionEvent=[{}]", event, e);
+      log.error(
+          "Error updating account balance for transaction create: TransactionEvent=[{}]", event, e);
     }
   }
 
@@ -165,7 +165,8 @@ public final class AccountBalanceSubscriber implements TransactionEventSubscribe
       processAccountBalanceUpdates(
           transactionItems, TransactionEvent.Type.DELETE, accountBalanceUpdates);
 
-      updatePreviousAccountBalances(event.transactionResponseBeforeUpdate().getFirst(), accountBalanceUpdates);
+      updatePreviousAccountBalances(
+          event.transactionResponseBeforeUpdate().getFirst(), accountBalanceUpdates);
 
       // update account balance from after update transaction
       transactionItems =
@@ -180,7 +181,8 @@ public final class AccountBalanceSubscriber implements TransactionEventSubscribe
 
       updatePreviousAccountBalances(event.transactionResponse().getFirst(), accountBalanceUpdates);
     } catch (Exception e) {
-      log.error("Error updating account balance for transaction update: TransactionEvent=[{}]", event, e);
+      log.error(
+          "Error updating account balance for transaction update: TransactionEvent=[{}]", event, e);
     }
   }
 
@@ -197,13 +199,16 @@ public final class AccountBalanceSubscriber implements TransactionEventSubscribe
 
       accountService.updateAccountBalances(accountBalanceUpdates);
 
-      updatePreviousAccountBalances(event.transactionResponseBeforeUpdate().getFirst(), accountBalanceUpdates);
+      updatePreviousAccountBalances(
+          event.transactionResponseBeforeUpdate().getFirst(), accountBalanceUpdates);
     } catch (Exception e) {
-      log.error("Error updating account balance for transaction delete: TransactionEvent=[{}]", event, e);
+      log.error(
+          "Error updating account balance for transaction delete: TransactionEvent=[{}]", event, e);
     }
   }
 
-  private void updatePreviousAccountBalances(TransactionResponse.Transaction transaction , Map<UUID, BigDecimal> accountBalanceUpdates) {
+  private void updatePreviousAccountBalances(
+      TransactionResponse.Transaction transaction, Map<UUID, BigDecimal> accountBalanceUpdates) {
     try {
       boolean isCurrentMonthEvent = isCurrentMonthTransactionEvent(transaction.txnDate());
       if (isCurrentMonthEvent) {
@@ -211,7 +216,8 @@ public final class AccountBalanceSubscriber implements TransactionEventSubscribe
       }
 
       LocalDate yearMonth = transaction.txnDate().toLocalDate().withDayOfMonth(1);
-      accountBalancesService.updateAccountBalances(yearMonth, transaction.id().toString(), accountBalanceUpdates);
+      accountBalancesService.updateAccountBalances(
+          yearMonth, transaction.id().toString(), accountBalanceUpdates);
     } catch (Exception e) {
       log.error("Error updated previous account balances: Transaction=[{}],", transaction, e);
     }

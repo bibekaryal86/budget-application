@@ -1,5 +1,6 @@
 package budget.application.scheduler;
 
+import budget.application.service.domain.AccountBalancesService;
 import budget.application.service.domain.TransactionService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -13,8 +14,12 @@ public class ScheduleManager {
   private final ScheduledExecutorService scheduledExecutorService;
   private final DailyTransactionReconScheduler dailyTransactionReconScheduler;
   private final DatabaseHealthCheckScheduler databaseHealthCheckScheduler;
+  private final MonthlyAccountBalancesScheduler monthlyAccountBalancesScheduler;
 
-  public ScheduleManager(DataSource dataSource, TransactionService transactionService) {
+  public ScheduleManager(
+      DataSource dataSource,
+      TransactionService transactionService,
+      AccountBalancesService accountBalancesService) {
     this.scheduledExecutorService =
         Executors.newSingleThreadScheduledExecutor(
             r -> {
@@ -27,11 +32,14 @@ public class ScheduleManager {
         new DailyTransactionReconScheduler(transactionService, scheduledExecutorService);
     this.databaseHealthCheckScheduler =
         new DatabaseHealthCheckScheduler(dataSource, scheduledExecutorService);
+    this.monthlyAccountBalancesScheduler =
+        new MonthlyAccountBalancesScheduler(accountBalancesService, scheduledExecutorService);
   }
 
   public void start() {
     dailyTransactionReconScheduler.start();
     databaseHealthCheckScheduler.start();
+    monthlyAccountBalancesScheduler.start();
   }
 
   public void shutdown() {
