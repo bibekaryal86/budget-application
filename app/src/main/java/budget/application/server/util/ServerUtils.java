@@ -136,7 +136,6 @@ public class ServerUtils {
 
   public static RequestParams.CategorySummaryParams getCategorySummaryParams(
       QueryStringDecoder decoder) {
-
     LocalDate beginDate = parseDate(decoder, "beginDate");
     LocalDate endDate = parseDate(decoder, "endDate");
 
@@ -157,6 +156,26 @@ public class ServerUtils {
 
     return new RequestParams.CategorySummaryParams(
         beginDate, endDate, categoryIds, categoryTypeIds, topExpenses, totalMonths);
+  }
+
+  public static RequestParams.AccountSummaryParams getAccountSummaryParams(
+      QueryStringDecoder decoder) {
+    LocalDate beginDate = parseDate(decoder, "beginDate");
+    LocalDate endDate = parseDate(decoder, "endDate");
+
+    if (beginDate == null && endDate == null) {
+      LocalDate now = LocalDate.now();
+      beginDate = now.withDayOfMonth(1);
+      endDate = now.withDayOfMonth(now.lengthOfMonth());
+    } else if (beginDate != null && endDate == null) {
+      endDate = beginDate.withDayOfMonth(beginDate.lengthOfMonth());
+    } else if (beginDate == null && endDate != null) {
+      beginDate = endDate.withDayOfMonth(1);
+    }
+
+    List<UUID> accountIds = parseUUIDs(decoder, "accountIds");
+
+    return new RequestParams.AccountSummaryParams(beginDate, endDate, accountIds);
   }
 
   private static List<String> getParameterValues(QueryStringDecoder decoder, String paramName) {

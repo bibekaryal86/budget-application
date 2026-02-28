@@ -4,6 +4,7 @@ import budget.application.model.dto.InsightsResponse;
 import budget.application.model.dto.RequestParams;
 import budget.application.server.util.ApiPaths;
 import budget.application.server.util.ServerUtils;
+import budget.application.service.domain.AccountBalancesService;
 import budget.application.service.domain.InsightsService;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -18,9 +19,12 @@ public class InsightsHandler extends SimpleChannelInboundHandler<FullHttpRequest
   private static final Logger log = LoggerFactory.getLogger(InsightsHandler.class);
 
   private final InsightsService insightsService;
+  private final AccountBalancesService accountBalancesService;
 
-  public InsightsHandler(InsightsService insightsService) {
+  public InsightsHandler(
+      InsightsService insightsService, AccountBalancesService accountBalancesService) {
     this.insightsService = insightsService;
+    this.accountBalancesService = accountBalancesService;
   }
 
   @Override
@@ -51,6 +55,13 @@ public class InsightsHandler extends SimpleChannelInboundHandler<FullHttpRequest
       return;
     }
 
+    // READ: GET /petssvc/api/v1/insights/acc-summaries
+    if (path.equals(ApiPaths.INSIGHTS_V1_ACC_SUMMARIES) && method.equals(HttpMethod.GET)) {
+      RequestParams.AccountSummaryParams params = ServerUtils.getAccountSummaryParams(decoder);
+      handleAccountSummaries(channelHandlerContext, params);
+      return;
+    }
+
     log.info("Action Not Found: Method=[{}] Path=[{}]", method, path);
     channelHandlerContext.fireChannelRead(fullHttpRequest.retain());
   }
@@ -68,6 +79,14 @@ public class InsightsHandler extends SimpleChannelInboundHandler<FullHttpRequest
       ChannelHandlerContext channelHandlerContext, RequestParams.CategorySummaryParams params)
       throws Exception {
     InsightsResponse.CategorySummaries response = insightsService.readCategoriesSummary(params);
+    ServerUtils.sendResponse(channelHandlerContext, HttpResponseStatus.OK, response);
+  }
+
+  // READ ACC SUMMARIES
+  private void handleAccountSummaries(
+      ChannelHandlerContext channelHandlerContext, RequestParams.AccountSummaryParams params)
+      throws Exception {
+    InsightsResponse.AccountSummaries response = accountBalancesService.readAccountBalances(params);
     ServerUtils.sendResponse(channelHandlerContext, HttpResponseStatus.OK, response);
   }
 }

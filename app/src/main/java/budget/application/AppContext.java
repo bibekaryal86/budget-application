@@ -88,7 +88,7 @@ public final class AppContext {
     BudgetHandler budgetHandler = new BudgetHandler(budgetService);
     CategoryHandler categoryHandler = new CategoryHandler(categoryService);
     CategoryTypeHandler categoryTypeHandler = new CategoryTypeHandler(categoryTypeService);
-    InsightsHandler insightsHandler = new InsightsHandler(insightsService);
+    InsightsHandler insightsHandler = new InsightsHandler(insightsService, accountBalancesService);
     TransactionHandler transactionHandler = new TransactionHandler(transactionService);
 
     scheduleManager = new ScheduleManager(dataSource, transactionService);

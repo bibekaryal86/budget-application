@@ -41,7 +41,7 @@ CREATE TABLE account (
 CREATE TABLE account_balances (
    id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
    account_id      UUID NOT NULL REFERENCES account(id) ON DELETE CASCADE,
-   year_month      VARCHAR(7) NOT NULL,
+   year_month      DATE NOT NULL,
    account_balance NUMERIC(12, 2) NOT NULL,
    notes           TEXT,
    created_at      TIMESTAMP NOT NULL DEFAULT NOW(),

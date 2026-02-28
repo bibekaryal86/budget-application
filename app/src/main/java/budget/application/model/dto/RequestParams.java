@@ -26,4 +26,7 @@ public record RequestParams() {
       List<UUID> categoryTypeIds,
       int topExpenses,
       int totalMonths) {}
+
+  public record AccountSummaryParams(
+      LocalDate beginDate, LocalDate endDate, List<UUID> accountIds) {}
 }

@@ -1,8 +1,6 @@
 package budget.application.db.mapper;
 
 import budget.application.model.dto.BudgetResponse;
-import budget.application.model.dto.CategoryResponse;
-import budget.application.model.dto.CategoryTypeResponse;
 import budget.application.model.entity.Budget;
 import java.sql.ResultSet;
 import java.sql.SQLException;

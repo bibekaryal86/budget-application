@@ -30,4 +30,5 @@ public class ApiPaths {
   public static final String INSIGHTS_V1 = BASE_V1 + "/insights";
   public static final String INSIGHTS_V1_CF_SUMMARIES = INSIGHTS_V1 + "/cf-summaries";
   public static final String INSIGHTS_V1_CAT_SUMMARIES = INSIGHTS_V1 + "/cat-summaries";
+  public static final String INSIGHTS_V1_ACC_SUMMARIES = INSIGHTS_V1 + "/acc-summaries";
 }
