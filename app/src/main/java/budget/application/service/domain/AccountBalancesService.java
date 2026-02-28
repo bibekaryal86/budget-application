@@ -2,7 +2,9 @@ package budget.application.service.domain;
 
 import budget.application.db.dao.AccountBalancesDao;
 import budget.application.db.dao.DaoFactory;
+import budget.application.db.util.DaoUtils;
 import budget.application.db.util.TransactionManager;
+import budget.application.model.dto.AccountResponse;
 import budget.application.model.dto.InsightsResponse;
 import budget.application.model.dto.RequestParams;
 import budget.application.model.entity.Account;
@@ -64,19 +66,27 @@ public class AccountBalancesService {
   public InsightsResponse.AccountSummaries readAccountBalances(
       RequestParams.AccountSummaryParams requestParams) throws SQLException {
     log.debug("Read Account Balances: RequestParams=[{}]", requestParams);
+    LocalDate beginDate = requestParams.beginDate();
+    LocalDate endDate = requestParams.endDate();
+    List<UUID> accountIds = requestParams.accountIds();
 
-    return transactionManager.execute(
-        transactionContext -> {
-          AccountBalancesDao accountBalancesDao =
-              accountBalancesDaoFactory.create(transactionContext.connection());
-          LocalDate beginDate = requestParams.beginDate();
-          LocalDate endDate = requestParams.endDate();
-          List<UUID> accountIds = requestParams.accountIds();
-          List<InsightsResponse.AccountSummary> accountBalanceSummaries =
-              accountBalancesDao.readAccountBalances(beginDate, endDate, accountIds);
-          return new InsightsResponse.AccountSummaries(
-              accountBalanceSummaries, ResponseMetadata.emptyResponseMetadata());
-        });
+    AccountResponse accountResponse = accountService.read(accountIds);
+    InsightsResponse.AccountSummary currentMonth =
+        new InsightsResponse.AccountSummary(
+            DaoUtils.getYearMonth(LocalDate.now()), accountResponse.data());
+
+    List<InsightsResponse.AccountSummary> accountBalanceSummaries =
+        transactionManager.execute(
+            transactionContext -> {
+              AccountBalancesDao accountBalancesDao =
+                  accountBalancesDaoFactory.create(transactionContext.connection());
+
+              return accountBalancesDao.readAccountBalances(beginDate, endDate, accountIds);
+            });
+
+    accountBalanceSummaries.addFirst(currentMonth);
+    return new InsightsResponse.AccountSummaries(
+        accountBalanceSummaries, ResponseMetadata.emptyResponseMetadata());
   }
 
   public void updateAccountBalances(
