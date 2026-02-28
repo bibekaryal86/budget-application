@@ -1,5 +1,7 @@
 # budget-service
 
+fix daos/mapper to reuse existing mappers
+
 A streamlined, lightweight personal finance tracker built with a focus on high performance and zero framework overhead.
 This application provides a robust backend for managing expenses and income through a structured category system.
 

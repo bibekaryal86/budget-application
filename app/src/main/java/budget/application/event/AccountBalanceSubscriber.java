@@ -6,6 +6,7 @@ import budget.application.model.dto.AccountResponse;
 import budget.application.model.dto.CategoryResponse;
 import budget.application.model.dto.TransactionItemResponse;
 import budget.application.model.dto.TransactionResponse;
+import budget.application.service.domain.AccountBalancesService;
 import budget.application.service.domain.AccountService;
 import java.math.BigDecimal;
 import java.util.HashMap;
@@ -24,9 +25,12 @@ public final class AccountBalanceSubscriber implements TransactionEventSubscribe
   }
 
   private final AccountService accountService;
+  private final AccountBalancesService accountBalancesService;
 
-  public AccountBalanceSubscriber(AccountService accountService) {
+  public AccountBalanceSubscriber(
+      AccountService accountService, AccountBalancesService accountBalancesService) {
     this.accountService = accountService;
+    this.accountBalancesService = accountBalancesService;
   }
 
   @Override

@@ -17,4 +17,10 @@ public record InsightsResponse() {
   public record CategorySummary(String yearMonth, List<CategoryAmount> categoryAmounts) {}
 
   public record CategoryAmount(CategoryResponse.Category category, BigDecimal amount) {}
+
+  public record AccountBalancesSummaries(
+      List<AccountBalanceSummary> data, ResponseMetadata metadata) {}
+
+  public record AccountBalanceSummary(
+      String yearMonth, List<AccountResponse.Account> accountBalances) {}
 }

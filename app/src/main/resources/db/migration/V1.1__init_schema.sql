@@ -35,7 +35,22 @@ CREATE TABLE account (
 );
 
 -- ============================================
--- 4. Transactions (Income + Expense)
+-- 4. Account
+-- ============================================
+
+CREATE TABLE account_balances (
+   id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+   account_id      UUID NOT NULL REFERENCES account(id) ON DELETE CASCADE,
+   year_month      VARCHAR(7) NOT NULL,
+   account_balance NUMERIC(12, 2) NOT NULL,
+   notes           TEXT,
+   created_at      TIMESTAMP NOT NULL DEFAULT NOW(),
+   updated_at      TIMESTAMP NOT NULL DEFAULT NOW(),
+   UNIQUE (account_id, year_month)
+);
+
+-- ============================================
+-- 5. Transactions (Income + Expense)
 -- ============================================
 CREATE TABLE transaction (
     id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -47,7 +62,7 @@ CREATE TABLE transaction (
 );
 
 -- ============================================
--- 5. Transaction Items (Line Items)
+-- 6. Transaction Items (Line Items)
 -- ============================================
 CREATE TABLE transaction_item (
     id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -60,7 +75,7 @@ CREATE TABLE transaction_item (
 );
 
 -- ============================================
--- 5. Budget
+-- 7. Budget
 -- ============================================
 CREATE TABLE budget
 (
