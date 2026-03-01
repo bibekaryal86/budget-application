@@ -125,13 +125,14 @@ public class AccountBalancesDao extends BaseDao<AccountBalances> {
       LocalDate yearMonth, String notes, Map<UUID, BigDecimal> accountBalanceUpdates)
       throws SQLException {
     String sql =
-        "WITH data(account_id, balance) AS ("
-            + "SELECT UNNEST(?::uuid[]), UNNEST(?::numeric[]))"
-            + "UPDATE account_balances a "
-            + "SET account_balance = d.balance "
-            + "notes = COALESCE(notes, '') || ? "
-            + "FROM data d "
-            + "WHERE a.account_id = d.account_id AND a.year_month = ? ";
+            "WITH data(account_id, balance) AS ("
+              + "SELECT * FROM UNNEST(?::uuid[], ?::numeric[])) "
+              + "UPDATE account_balances a "
+              + "SET account_balance = d.balance, "
+              + "notes = COALESCE(a.notes, '') || ? "
+              + "FROM data d "
+              + "WHERE a.account_id = d.account_id "
+              + "AND a.year_month = ? ";
 
     boolean originalAutoCommit = connection.getAutoCommit();
     int updatedCount = 0;
