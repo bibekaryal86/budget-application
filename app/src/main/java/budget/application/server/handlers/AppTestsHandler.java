@@ -1,5 +1,6 @@
 package budget.application.server.handlers;
 
+import budget.application.scheduler.ScheduleManager;
 import budget.application.server.util.ApiPaths;
 import budget.application.server.util.ServerUtils;
 import io.netty.channel.ChannelHandlerContext;
@@ -13,6 +14,12 @@ import org.slf4j.LoggerFactory;
 
 public class AppTestsHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
   private static final Logger log = LoggerFactory.getLogger(AppTestsHandler.class);
+
+  private final ScheduleManager scheduleManager;
+
+  public AppTestsHandler(ScheduleManager scheduleManager) {
+    this.scheduleManager = scheduleManager;
+  }
 
   @Override
   protected void channelRead0(
@@ -33,6 +40,12 @@ public class AppTestsHandler extends SimpleChannelInboundHandler<FullHttpRequest
       return;
     }
 
+    // PING: GET /petssvc/tests/schedulers
+    if (path.equals(ApiPaths.APP_TESTS_SCHEDULERS) && method.equals(HttpMethod.GET)) {
+      handleSchedulers(channelHandlerContext);
+      return;
+    }
+
     log.info("Action Not Found: Method=[{}] Path=[{}]", method, path);
     channelHandlerContext.fireChannelRead(fullHttpRequest.retain());
   }
@@ -40,6 +53,12 @@ public class AppTestsHandler extends SimpleChannelInboundHandler<FullHttpRequest
   // TESTS PING
   private void handlePing(ChannelHandlerContext channelHandlerContext) {
     Map<String, String> response = Map.of("ping", "successful");
+    ServerUtils.sendResponse(channelHandlerContext, HttpResponseStatus.OK, response);
+  }
+
+  // SCHEDULERS STATUS
+  private void handleSchedulers(ChannelHandlerContext channelHandlerContext) {
+    Map<String, Object> response = scheduleManager.getSchedulerStatus();
     ServerUtils.sendResponse(channelHandlerContext, HttpResponseStatus.OK, response);
   }
 }

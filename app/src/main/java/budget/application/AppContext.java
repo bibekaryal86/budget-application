@@ -84,7 +84,6 @@ public final class AppContext {
             transactionEventBus);
 
     AccountHandler accountHandler = new AccountHandler(accountService);
-    AppTestsHandler appTestsHandler = new AppTestsHandler();
     BudgetHandler budgetHandler = new BudgetHandler(budgetService);
     CategoryHandler categoryHandler = new CategoryHandler(categoryService);
     CategoryTypeHandler categoryTypeHandler = new CategoryTypeHandler(categoryTypeService);
@@ -92,6 +91,9 @@ public final class AppContext {
     TransactionHandler transactionHandler = new TransactionHandler(transactionService);
 
     scheduleManager = new ScheduleManager(dataSource, transactionService, accountBalancesService);
+
+    AppTestsHandler appTestsHandler = new AppTestsHandler(scheduleManager);
+
     serverContext =
         new ServerContext(
             appTestsHandler,

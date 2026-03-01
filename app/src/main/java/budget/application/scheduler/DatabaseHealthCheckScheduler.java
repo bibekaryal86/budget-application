@@ -33,12 +33,12 @@ public class DatabaseHealthCheckScheduler {
     try {
       run();
     } catch (Exception ex) {
-      log.error("DatabaseHealthCheck failed...", ex);
+      log.error("Database Health Check Scheduler failed...", ex);
     }
   }
 
   private void run() {
-    log.info("Running database health check...");
+    log.info("Database Health Check Scheduler Run..");
     databaseHealthCheck.check();
   }
 }

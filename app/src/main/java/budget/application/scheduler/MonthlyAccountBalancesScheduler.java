@@ -6,7 +6,9 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +19,7 @@ public class MonthlyAccountBalancesScheduler {
 
   private final ScheduledExecutorService scheduledExecutorService;
   private final AccountBalancesService accountBalancesService;
+  private ScheduledFuture<?> scheduledFuture;
 
   public MonthlyAccountBalancesScheduler(
       AccountBalancesService accountBalancesService,
@@ -31,28 +34,28 @@ public class MonthlyAccountBalancesScheduler {
 
   private void scheduleNextRun() {
     long delayMillis = computeDelayToNextEndOfMonth(LocalTime.of(23, 0));
+    log.info("Scheduling monthly account balances scheduler in {} ms", delayMillis);
 
-    log.info("Scheduling end-of-month reconciliation in {} ms", delayMillis);
-
-    scheduledExecutorService.schedule(
-        () -> {
-          runSafe();
-          scheduleNextRun();
-        },
-        delayMillis,
-        TimeUnit.MILLISECONDS);
+    scheduledFuture =
+        scheduledExecutorService.schedule(
+            () -> {
+              runSafe();
+              scheduleNextRun();
+            },
+            delayMillis,
+            TimeUnit.MILLISECONDS);
   }
 
   private void runSafe() {
     try {
       run();
     } catch (Exception ex) {
-      log.error("End-of-month account balance failed", ex);
+      log.error("Monthly Account Balances Scheduler failed", ex);
     }
   }
 
   private void run() throws SQLException {
-    log.info("Running end-of-month account balances job...");
+    log.info("Running Monthly Account Balances job...");
     accountBalancesService.createAccountBalances();
   }
 
@@ -70,5 +73,19 @@ public class MonthlyAccountBalancesScheduler {
     }
 
     return Duration.between(now, nextRun).toMillis();
+  }
+
+  public LocalDateTime getNextRunTime() {
+    if (scheduledFuture == null || scheduledFuture.isCancelled()) {
+      return null;
+    }
+
+    long delayMillis = scheduledFuture.getDelay(TimeUnit.MILLISECONDS);
+
+    if (delayMillis < 0) {
+      return LocalDateTime.now();
+    }
+
+    return LocalDateTime.now().plus(delayMillis, ChronoUnit.MILLIS);
   }
 }
