@@ -80,7 +80,7 @@ public class MonthlyAccountBalancesScheduler {
       nextRun = endOfMonth.atTime(runAt);
     }
 
-    return Duration.between(now, nextRun).toMillis();
+    return Duration.between(now.toLocalDateTime(), nextRun).toMillis();
   }
 
   public LocalDateTime getNextRunTime() {

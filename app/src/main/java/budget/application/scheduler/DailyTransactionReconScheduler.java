@@ -68,7 +68,7 @@ public class DailyTransactionReconScheduler {
     if (nextRun.isBefore(now.toLocalDateTime())) {
       nextRun = nextRun.plusDays(1);
     }
-    return Duration.between(now, nextRun).toMillis();
+    return Duration.between(now.toLocalDateTime(), nextRun).toMillis();
   }
 
   public LocalDateTime getNextRunTime() {

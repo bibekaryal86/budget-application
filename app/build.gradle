@@ -84,6 +84,10 @@ jar {
         attributes "Main-Class": "budget.application.Main"
     }
 
+    exclude 'META-INF/*.SF'
+    exclude 'META-INF/*.DSA'
+    exclude 'META-INF/*.RSA'
+
     from {
         configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
     }
