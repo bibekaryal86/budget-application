@@ -13,6 +13,7 @@ public class Constants {
   public static final boolean IS_PRODUCTION;
 
   public static final String ENV_SERVER_PORT = "PORT";
+  public static final String ENV_TIME_ZONE = "TZ";
   public static final String SPRING_PROFILES_ACTIVE = "SPRING_PROFILES_ACTIVE";
   public static final String ENV_SELF_USERNAME = "SELF_USERNAME";
   public static final String ENV_SELF_PASSWORD = "SELF_PASSWORD";
@@ -34,6 +35,7 @@ public class Constants {
   public static final List<String> ENV_KEY_NAMES =
       List.of(
           ENV_SERVER_PORT,
+          ENV_TIME_ZONE,
           SPRING_PROFILES_ACTIVE,
           ENV_SELF_USERNAME,
           ENV_SELF_PASSWORD,
@@ -56,6 +58,7 @@ public class Constants {
   public static final String THIS_APP_NAME = "petssvc";
   public static final String THIS_APP_NAME_ENV_DETAILS = "petsservice";
   public static final String ENV_PORT_DEFAULT = "8101";
+  public static final String ENV_TIME_ZONE_DEFAULT = "America/Denver";
   public static final String PRODUCTION_ENV = "production";
   public static final String TESTING_ENV = "test_mode";
 

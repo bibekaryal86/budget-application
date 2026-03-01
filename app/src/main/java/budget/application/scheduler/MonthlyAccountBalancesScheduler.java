@@ -1,11 +1,15 @@
 package budget.application.scheduler;
 
+import budget.application.common.Constants;
 import budget.application.service.domain.AccountBalancesService;
+import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 import java.sql.SQLException;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -33,7 +37,12 @@ public class MonthlyAccountBalancesScheduler {
   }
 
   private void scheduleNextRun() {
-    long delayMillis = computeDelayToNextEndOfMonth(LocalTime.of(23, 0));
+    ZonedDateTime now =
+        ZonedDateTime.now(
+            ZoneId.of(
+                CommonUtilities.getSystemEnvProperty(
+                    Constants.ENV_TIME_ZONE, Constants.ENV_TIME_ZONE_DEFAULT)));
+    long delayMillis = computeDelayToNextEndOfMonth(now, LocalTime.of(23, 0));
     log.info("Scheduling monthly account balances scheduler in {} ms", delayMillis);
 
     scheduledFuture =
@@ -59,14 +68,13 @@ public class MonthlyAccountBalancesScheduler {
     accountBalancesService.createAccountBalances();
   }
 
-  private long computeDelayToNextEndOfMonth(LocalTime runAt) {
-    LocalDateTime now = LocalDateTime.now();
+  private long computeDelayToNextEndOfMonth(ZonedDateTime now, LocalTime runAt) {
     LocalDate today = now.toLocalDate();
     LocalDate endOfMonth = today.withDayOfMonth(today.lengthOfMonth());
     LocalDateTime nextRun = endOfMonth.atTime(runAt);
 
     // If we've already passed this month's run time, schedule next month
-    if (nextRun.isBefore(now)) {
+    if (nextRun.isBefore(now.toLocalDateTime())) {
       LocalDate nextMonth = today.plusMonths(1);
       endOfMonth = nextMonth.withDayOfMonth(nextMonth.lengthOfMonth());
       nextRun = endOfMonth.atTime(runAt);
