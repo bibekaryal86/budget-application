@@ -5,6 +5,9 @@
  * For more details on building Java & JVM projects, please refer to https://docs.gradle.org/9.1.0/userguide/building_java_projects.html in the Gradle documentation.
  * This project uses @Incubating APIs which are subject to change.
  */
+import org.yaml.snakeyaml.Yaml
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
 
 buildscript {
     dependencies {
@@ -20,6 +23,9 @@ plugins {
     id 'com.diffplug.spotless' version '8.1.0'
     id 'org.flywaydb.flyway' version '11.20.0'
 }
+
+def yamlProperties = loadAppCredentialsEnvVariables()
+def isGithubActions = System.getenv('CI') == 'true'
 
 java {
     sourceCompatibility = JavaVersion.VERSION_25
@@ -83,6 +89,39 @@ jar {
     }
 }
 
+tasks.register('copyJarToGcp') {
+    def jarFileName = jar.archiveFileName.get()
+    def rootDir = project.rootDir
+    def buildDir = layout.buildDirectory.get().asFile
+    def skipForCI = isGithubActions
+
+    onlyIf {
+        !skipForCI
+    }
+
+    doLast {
+        def sourceFile = new File(buildDir, "libs/${jarFileName}")
+        def gcpDir = new File(rootDir, "gcp")
+        def destFile = new File(gcpDir, jarFileName)
+
+        if (sourceFile.exists()) {
+            if (!gcpDir.exists()) {
+                gcpDir.mkdirs()
+            }
+            Files.copy(
+                sourceFile.toPath(),
+                destFile.toPath(),
+                StandardCopyOption.REPLACE_EXISTING
+            )
+            println "Copied ${jarFileName} to gcp folder"
+        } else {
+            println "Source JAR not found, skipping copy"
+        }
+    }
+}
+
+jar.finalizedBy(copyJarToGcp)
+
 spotless {
     java {
         removeUnusedImports()
@@ -91,8 +130,6 @@ spotless {
 }
 
 // everything below is for local development only
-import org.yaml.snakeyaml.Yaml
-
 def loadAppCredentialsEnvVariables() {
     def file = file('../gcp/app-credentials.yaml')
     if (file.exists()) {
@@ -112,9 +149,6 @@ def loadAppCredentialsEnvVariables() {
         return new Properties()
     }
 }
-
-def yamlProperties = loadAppCredentialsEnvVariables()
-def isGithubActions = System.getenv('CI') == 'true'
 
 flyway {
     locations = ['classpath:db/migration']
