@@ -11,6 +11,7 @@ import budget.application.model.dto.PaginationRequest;
 import budget.application.model.dto.PaginationResponse;
 import budget.application.model.dto.RequestParams;
 import budget.application.model.dto.TransactionItemRequest;
+import budget.application.model.dto.TransactionItemResponse;
 import budget.application.model.dto.TransactionRequest;
 import budget.application.model.dto.TransactionResponse;
 import budget.application.model.entity.Account;
@@ -157,6 +158,10 @@ public class TransactionService {
               merchants, ResponseMetadata.emptyResponseMetadata());
         });
   }
+
+    public TransactionItemResponse.TransactionItemTags readTransactionItemTags() throws SQLException {
+      return transactionItemService.readTransactionItemTags();
+    }
 
   public TransactionResponse update(UUID id, TransactionRequest transactionRequest)
       throws SQLException {

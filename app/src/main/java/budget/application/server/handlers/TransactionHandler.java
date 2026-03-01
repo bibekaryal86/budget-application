@@ -2,6 +2,7 @@ package budget.application.server.handlers;
 
 import budget.application.model.dto.PaginationRequest;
 import budget.application.model.dto.RequestParams;
+import budget.application.model.dto.TransactionItemResponse;
 import budget.application.model.dto.TransactionRequest;
 import budget.application.model.dto.TransactionResponse;
 import budget.application.server.util.ApiPaths;
@@ -53,6 +54,12 @@ public class TransactionHandler extends SimpleChannelInboundHandler<FullHttpRequ
       return;
     }
 
+    // READ: GET /petssvc/api/v1/transactions/tags
+    if (path.equals(ApiPaths.TRANSACTIONS_V1_WITH_TAGS) && method.equals(HttpMethod.GET)) {
+      handleReadTags(channelHandlerContext);
+      return;
+    }
+
     // READ ALL: GET /petssvc/api/v1/transactions
     if (path.equals(ApiPaths.TRANSACTIONS_V1) && method.equals(HttpMethod.GET)) {
       RequestParams.TransactionParams params = ServerUtils.getTransactionParams(decoder);
@@ -100,6 +107,13 @@ public class TransactionHandler extends SimpleChannelInboundHandler<FullHttpRequ
   private void handleReadMerchants(ChannelHandlerContext channelHandlerContext) throws Exception {
     TransactionResponse.TransactionMerchants response =
         transactionService.readTransactionMerchants();
+    ServerUtils.sendResponse(channelHandlerContext, HttpResponseStatus.OK, response);
+  }
+
+  // READ TAGS
+  private void handleReadTags(ChannelHandlerContext channelHandlerContext) throws Exception {
+    TransactionItemResponse.TransactionItemTags response =
+            transactionService.readTransactionItemTags();
     ServerUtils.sendResponse(channelHandlerContext, HttpResponseStatus.OK, response);
   }
 

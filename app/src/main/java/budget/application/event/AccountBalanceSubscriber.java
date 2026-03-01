@@ -57,7 +57,7 @@ public final class AccountBalanceSubscriber implements TransactionEventSubscribe
   }
 
   private boolean isIncomeTransaction(CategoryResponse.Category category) {
-    return Constants.CATEGORY_TYPE_TRANSFER_NAME.equals(category.categoryType().name());
+    return Constants.CATEGORY_TYPE_INCOME_NAME.equals(category.categoryType().name());
   }
 
   private boolean isTransferInTransaction(CategoryResponse.Category category) {
