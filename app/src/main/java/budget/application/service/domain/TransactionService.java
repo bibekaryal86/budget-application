@@ -159,9 +159,9 @@ public class TransactionService {
         });
   }
 
-    public TransactionItemResponse.TransactionItemTags readTransactionItemTags() throws SQLException {
-      return transactionItemService.readTransactionItemTags();
-    }
+  public TransactionItemResponse.TransactionItemTags readTransactionItemTags() throws SQLException {
+    return transactionItemService.readTransactionItemTags();
+  }
 
   public TransactionResponse update(UUID id, TransactionRequest transactionRequest)
       throws SQLException {

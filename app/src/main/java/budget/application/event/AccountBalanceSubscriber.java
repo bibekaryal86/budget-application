@@ -22,8 +22,8 @@ public final class AccountBalanceSubscriber implements TransactionEventSubscribe
   private static final Logger log = LoggerFactory.getLogger(AccountBalanceSubscriber.class);
 
   public enum AccountType {
-    POSITIVE,
-    NEGATIVE
+    ASSET,
+    DEBT
   }
 
   private final AccountService accountService;
@@ -48,9 +48,9 @@ public final class AccountBalanceSubscriber implements TransactionEventSubscribe
   private AccountType getPositiveNegativeAccountType(String accountType) {
     if (Constants.ASSET_ACCOUNT_TYPES.contains(accountType)
         || Constants.INVEST_ACCOUNT_TYPES.contains(accountType)) {
-      return AccountType.POSITIVE;
+      return AccountType.ASSET;
     } else if (Constants.DEBT_ACCOUNT_TYPES.contains(accountType)) {
-      return AccountType.NEGATIVE;
+      return AccountType.DEBT;
     } else {
       throw new Exceptions.NotFoundException("Account", "Type");
     }
@@ -90,14 +90,14 @@ public final class AccountBalanceSubscriber implements TransactionEventSubscribe
     BigDecimal delta = BigDecimal.ZERO;
 
     switch (accountType) {
-      case AccountType.POSITIVE:
+      case AccountType.ASSET:
         if (isIncomeTransaction || isTransferInTransaction) {
           delta = transactionAmount;
         } else if (isExpenseTransaction || isTransferOutTransaction) {
           delta = transactionAmount.negate();
         }
         break;
-      case AccountType.NEGATIVE:
+      case AccountType.DEBT:
         if (isIncomeTransaction || isTransferInTransaction) {
           delta = transactionAmount.negate();
         } else if (isExpenseTransaction || isTransferOutTransaction) {

@@ -112,7 +112,9 @@ public class AccountBalancesDao extends BaseDao<AccountBalances> {
           accountBalanceSummaryMap
               .computeIfAbsent(
                   yearMonthStr,
-                  k -> new InsightsResponse.AccountSummary(yearMonthStr, new ArrayList<>()))
+                  k ->
+                      new InsightsResponse.AccountSummary(
+                          yearMonthStr, Map.of(), new ArrayList<>()))
               .accounts()
               .add(accountWithBalance);
         }
@@ -125,7 +127,7 @@ public class AccountBalancesDao extends BaseDao<AccountBalances> {
       LocalDate yearMonth, String notes, Map<UUID, BigDecimal> accountBalanceUpdates)
       throws SQLException {
     String sql =
-            """
+        """
                 WITH data(account_id, balance) AS (
                   SELECT * FROM UNNEST(?::uuid[], ?::numeric[]))
                   UPDATE account_balances a

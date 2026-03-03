@@ -113,7 +113,7 @@ public class TransactionHandler extends SimpleChannelInboundHandler<FullHttpRequ
   // READ TAGS
   private void handleReadTags(ChannelHandlerContext channelHandlerContext) throws Exception {
     TransactionItemResponse.TransactionItemTags response =
-            transactionService.readTransactionItemTags();
+        transactionService.readTransactionItemTags();
     ServerUtils.sendResponse(channelHandlerContext, HttpResponseStatus.OK, response);
   }
 

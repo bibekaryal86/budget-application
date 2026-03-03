@@ -2,7 +2,6 @@ package budget.application.service.domain;
 
 import budget.application.db.dao.AccountBalancesDao;
 import budget.application.db.dao.DaoFactory;
-import budget.application.db.util.DaoUtils;
 import budget.application.db.util.TransactionManager;
 import budget.application.model.dto.AccountResponse;
 import budget.application.model.dto.InsightsResponse;
@@ -72,8 +71,7 @@ public class AccountBalancesService {
 
     AccountResponse accountResponse = accountService.read(accountIds);
     InsightsResponse.AccountSummary currentMonth =
-        new InsightsResponse.AccountSummary(
-            DaoUtils.getYearMonth(LocalDate.now()), accountResponse.data());
+        new InsightsResponse.AccountSummary("CURRENT", Map.of(), accountResponse.data());
 
     List<InsightsResponse.AccountSummary> accountBalanceSummaries =
         transactionManager.execute(

@@ -3,6 +3,7 @@ package budget.application.model.dto;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseMetadata;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 public record InsightsResponse() {
   public record CashFlowSummaries(List<CashFlowSummary> data, ResponseMetadata metadata) {}
@@ -20,5 +21,6 @@ public record InsightsResponse() {
 
   public record AccountSummaries(List<AccountSummary> data, ResponseMetadata metadata) {}
 
-  public record AccountSummary(String yearMonth, List<AccountResponse.Account> accounts) {}
+  public record AccountSummary(
+      String yearMonth, Map<String, BigDecimal> netWorth, List<AccountResponse.Account> accounts) {}
 }
