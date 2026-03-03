@@ -44,7 +44,7 @@ public record InsightsResponse() {
       Map<String, BigDecimal> calculatedNetWorth =
           Map.of(
               "ASSETS", assets,
-              "DEBT", debts,
+              "DEBTS", debts,
               "NET WORTH", assets.subtract(debts));
 
       return new AccountSummary(yearMonth, calculatedNetWorth, accounts);
