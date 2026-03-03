@@ -45,7 +45,7 @@ public record InsightsResponse() {
           Map.of(
               "ASSETS", assets,
               "DEBTS", debts,
-              "NET WORTH", assets.subtract(debts));
+              "WORTH", assets.subtract(debts));
 
       return new AccountSummary(yearMonth, calculatedNetWorth, accounts);
     }
