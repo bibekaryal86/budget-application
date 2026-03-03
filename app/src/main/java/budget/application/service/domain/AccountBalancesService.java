@@ -84,7 +84,7 @@ public class AccountBalancesService {
 
     accountBalanceSummaries.addFirst(currentMonth);
     return new InsightsResponse.AccountSummaries(
-        accountBalanceSummaries, ResponseMetadata.emptyResponseMetadata());
+        calculateNetWorth(accountBalanceSummaries), ResponseMetadata.emptyResponseMetadata());
   }
 
   public void updateAccountBalances(
@@ -103,5 +103,15 @@ public class AccountBalancesService {
               accountBalancesDao.updateAccountBalances(yearMonth, notes, accountBalanceUpdates);
           log.debug("Updated [{}] Account Balances", rowsUpdated);
         });
+  }
+
+  private List<InsightsResponse.AccountSummary> calculateNetWorth(
+      List<InsightsResponse.AccountSummary> accountSummaries) {
+    return accountSummaries.stream()
+        .map(
+            summary ->
+                InsightsResponse.AccountSummary.withNetWorth(
+                    summary.yearMonth(), summary.accounts()))
+        .toList();
   }
 }
