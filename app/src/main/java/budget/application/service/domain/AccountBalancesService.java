@@ -65,7 +65,7 @@ public class AccountBalancesService {
   public InsightsResponse.AccountSummaries readAccountBalances(
       RequestParams.AccountSummaryParams requestParams) throws SQLException {
     log.debug("Read Account Balances: RequestParams=[{}]", requestParams);
-    LocalDate beginDate = requestParams.beginDate();
+    LocalDate beginDate = requestParams.beginDate().minusMonths(requestParams.totalMonths());
     LocalDate endDate = requestParams.endDate();
     List<UUID> accountIds = requestParams.accountIds();
 

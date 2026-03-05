@@ -28,5 +28,5 @@ public record RequestParams() {
       int totalMonths) {}
 
   public record AccountSummaryParams(
-      LocalDate beginDate, LocalDate endDate, List<UUID> accountIds) {}
+      LocalDate beginDate, LocalDate endDate, List<UUID> accountIds, int totalMonths) {}
 }

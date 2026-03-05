@@ -174,8 +174,9 @@ public class ServerUtils {
     }
 
     List<UUID> accountIds = parseUUIDs(decoder, "accountIds");
+    int totalMonths = parseInt(decoder, "totalMonths");
 
-    return new RequestParams.AccountSummaryParams(beginDate, endDate, accountIds);
+    return new RequestParams.AccountSummaryParams(beginDate, endDate, accountIds, totalMonths);
   }
 
   private static List<String> getParameterValues(QueryStringDecoder decoder, String paramName) {
