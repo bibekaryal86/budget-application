@@ -97,6 +97,7 @@ public class AccountBalancesDao extends BaseDao<AccountBalances> {
                 INNER JOIN account a on ab.account_id = a.id
             WHERE
                 ab.year_month BETWEEN ? AND ? AND (? = FALSE OR ab.account_id = ANY(?))
+            ORDER BY ab.year_month ASC
        """;
 
     Map<String, InsightsResponse.AccountSummary> accountBalanceSummaryMap = new LinkedHashMap<>();

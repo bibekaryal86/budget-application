@@ -82,7 +82,7 @@ public class AccountBalancesService {
               return accountBalancesDao.readAccountBalances(beginDate, endDate, accountIds);
             });
 
-    accountBalanceSummaries.addFirst(currentMonth);
+    accountBalanceSummaries.addLast(currentMonth);
     return new InsightsResponse.AccountSummaries(
         calculateNetWorth(accountBalanceSummaries), ResponseMetadata.emptyResponseMetadata());
   }

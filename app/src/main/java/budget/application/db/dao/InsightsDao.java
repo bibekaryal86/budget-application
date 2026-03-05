@@ -71,7 +71,7 @@ public class InsightsDao {
               LEFT JOIN category_type ct
                   ON c.category_type_id = ct.id
               GROUP BY di.interval_start, di.interval_end
-              ORDER BY di.interval_start DESC;
+              ORDER BY di.interval_start ASC;
           """;
 
     List<Object> params = new ArrayList<>();
