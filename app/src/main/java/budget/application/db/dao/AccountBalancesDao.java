@@ -58,7 +58,7 @@ public class AccountBalancesDao extends BaseDao<AccountBalances> {
 
   @Override
   protected String orderByClause() {
-    return "year_month DESC";
+    return "year_month ASC";
   }
 
   public void createAccountBalances(List<AccountBalances> accountBalances) throws SQLException {
