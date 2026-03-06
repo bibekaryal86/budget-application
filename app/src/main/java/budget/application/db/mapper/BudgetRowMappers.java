@@ -1,8 +1,6 @@
 package budget.application.db.mapper;
 
 import budget.application.model.dto.BudgetResponse;
-import budget.application.model.dto.CategoryResponse;
-import budget.application.model.dto.CategoryTypeResponse;
 import budget.application.model.entity.Budget;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -30,12 +28,7 @@ public class BudgetRowMappers {
     public BudgetResponse.Budget map(ResultSet resultSet) throws SQLException {
       return new BudgetResponse.Budget(
           resultSet.getObject("budget_id", UUID.class),
-          new CategoryResponse.Category(
-              resultSet.getObject("category_id", UUID.class),
-              new CategoryTypeResponse.CategoryType(
-                  resultSet.getObject("category_type_id", UUID.class),
-                  resultSet.getString("category_type_name")),
-              resultSet.getString("category_name")),
+          new CategoryRowMappers.CategoryRowMapperResponse().map(resultSet),
           resultSet.getInt("budget_month"),
           resultSet.getInt("budget_year"),
           resultSet.getBigDecimal("budget_amount"),

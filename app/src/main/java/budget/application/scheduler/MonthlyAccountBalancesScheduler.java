@@ -1,10 +1,11 @@
 package budget.application.scheduler;
 
 import budget.application.common.Constants;
-import budget.application.service.domain.TransactionService;
+import budget.application.service.domain.AccountBalancesService;
 import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 import java.sql.SQLException;
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
@@ -16,58 +17,69 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class DailyTransactionReconScheduler {
-  private static final Logger log = LoggerFactory.getLogger(DailyTransactionReconScheduler.class);
+public class MonthlyAccountBalancesScheduler {
+
+  private static final Logger log = LoggerFactory.getLogger(MonthlyAccountBalancesScheduler.class);
 
   private final ScheduledExecutorService scheduledExecutorService;
-  private final TransactionService transactionService;
+  private final AccountBalancesService accountBalancesService;
   private ScheduledFuture<?> scheduledFuture;
 
-  public DailyTransactionReconScheduler(
-      TransactionService transactionService, ScheduledExecutorService scheduledExecutorService) {
-    this.transactionService = transactionService;
+  public MonthlyAccountBalancesScheduler(
+      AccountBalancesService accountBalancesService,
+      ScheduledExecutorService scheduledExecutorService) {
+    this.accountBalancesService = accountBalancesService;
     this.scheduledExecutorService = scheduledExecutorService;
   }
 
   public void start() {
+    scheduleNextRun();
+  }
+
+  private void scheduleNextRun() {
     ZonedDateTime now =
         ZonedDateTime.now(
             ZoneId.of(
                 CommonUtilities.getSystemEnvProperty(
                     Constants.ENV_TIME_ZONE, Constants.ENV_TIME_ZONE_DEFAULT)));
-    LocalTime runAt = LocalTime.of(2, 0);
-    log.info("Starting daily transaction recon scheduler at [{}]", runAt);
-    long initialDelayMillis = computeInitialDelayMillis(now, runAt);
-    long periodMillis = Duration.ofDays(1).toMillis();
+    long delayMillis = computeDelayToNextEndOfMonth(now, LocalTime.of(23, 0));
+    log.info("Scheduling monthly account balances scheduler in {} ms", delayMillis);
 
     scheduledFuture =
-        scheduledExecutorService.scheduleAtFixedRate(
-            this::runSafe, initialDelayMillis, periodMillis, TimeUnit.MILLISECONDS);
+        scheduledExecutorService.schedule(
+            () -> {
+              runSafe();
+              scheduleNextRun();
+            },
+            delayMillis,
+            TimeUnit.MILLISECONDS);
   }
 
   private void runSafe() {
     try {
       run();
     } catch (Exception ex) {
-      log.error("Daily Transaction Recon Scheduler failed...", ex);
+      log.error("Monthly Account Balances Scheduler failed", ex);
     }
   }
 
   private void run() throws SQLException {
-    log.info("Running daily transaction reconciliation...");
-    transactionService.reconcileAll();
+    log.info("Running Monthly Account Balances job...");
+    accountBalancesService.createAccountBalances();
   }
 
-  private long computeInitialDelayMillis(ZonedDateTime now, LocalTime runAt) {
-    LocalDateTime nextRun =
-        now.toLocalDateTime()
-            .withHour(runAt.getHour())
-            .withMinute(runAt.getMinute())
-            .withSecond(0)
-            .withNano(0);
+  private long computeDelayToNextEndOfMonth(ZonedDateTime now, LocalTime runAt) {
+    LocalDate today = now.toLocalDate();
+    LocalDate endOfMonth = today.withDayOfMonth(today.lengthOfMonth());
+    LocalDateTime nextRun = endOfMonth.atTime(runAt);
+
+    // If we've already passed this month's run time, schedule next month
     if (nextRun.isBefore(now.toLocalDateTime())) {
-      nextRun = nextRun.plusDays(1);
+      LocalDate nextMonth = today.plusMonths(1);
+      endOfMonth = nextMonth.withDayOfMonth(nextMonth.lengthOfMonth());
+      nextRun = endOfMonth.atTime(runAt);
     }
+
     return Duration.between(now.toLocalDateTime(), nextRun).toMillis();
   }
 

@@ -7,7 +7,6 @@ import budget.application.server.handlers.CategoryHandler;
 import budget.application.server.handlers.CategoryTypeHandler;
 import budget.application.server.handlers.InsightsHandler;
 import budget.application.server.handlers.TransactionHandler;
-import budget.application.server.handlers.TransactionItemHandler;
 import budget.application.server.util.ApiPaths;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -24,7 +23,6 @@ public class ServerRouter extends SimpleChannelInboundHandler<FullHttpRequest> {
   private final CategoryTypeHandler categoryTypeHandler;
   private final CategoryHandler categoryHandler;
   private final InsightsHandler insightsHandler;
-  private final TransactionItemHandler transactionItemHandler;
   private final TransactionHandler transactionHandler;
 
   public ServerRouter(ServerContext serverContext) {
@@ -34,7 +32,6 @@ public class ServerRouter extends SimpleChannelInboundHandler<FullHttpRequest> {
     this.categoryTypeHandler = serverContext.getCategoryTypeHandler();
     this.categoryHandler = serverContext.getCategoryHandler();
     this.insightsHandler = serverContext.getInsightsHandler();
-    this.transactionItemHandler = serverContext.getTransactionItemHandler();
     this.transactionHandler = serverContext.getTransactionHandler();
   }
 
@@ -83,12 +80,6 @@ public class ServerRouter extends SimpleChannelInboundHandler<FullHttpRequest> {
     if (path.startsWith(ApiPaths.TRANSACTIONS_V1)) {
       log.info("Routing to TransactionHandler: [{}]", path);
       transactionHandler.channelRead(channelHandlerContext, fullHttpRequest.retain());
-      return;
-    }
-
-    if (path.startsWith(ApiPaths.TRANSACTION_ITEMS_V1)) {
-      log.info("Routing to TransactionItemHandler: [{}]", path);
-      transactionItemHandler.channelRead(channelHandlerContext, fullHttpRequest.retain());
       return;
     }
 

@@ -2,6 +2,7 @@ package budget.application;
 
 import budget.application.cache.CategoryCache;
 import budget.application.cache.CategoryTypeCache;
+import budget.application.db.dao.AccountBalancesDao;
 import budget.application.db.dao.AccountDao;
 import budget.application.db.dao.BudgetDao;
 import budget.application.db.dao.CategoryDao;
@@ -21,7 +22,7 @@ import budget.application.server.handlers.CategoryHandler;
 import budget.application.server.handlers.CategoryTypeHandler;
 import budget.application.server.handlers.InsightsHandler;
 import budget.application.server.handlers.TransactionHandler;
-import budget.application.server.handlers.TransactionItemHandler;
+import budget.application.service.domain.AccountBalancesService;
 import budget.application.service.domain.AccountService;
 import budget.application.service.domain.BudgetService;
 import budget.application.service.domain.CategoryService;
@@ -44,6 +45,7 @@ public final class AppContext {
     CategoryCache categoryCache = new CategoryCache();
 
     DaoFactory<AccountDao> accountDaoFactory = AccountDao::new;
+    DaoFactory<AccountBalancesDao> accountBalancesDaoFactory = AccountBalancesDao::new;
     DaoFactory<BudgetDao> budgetDaoFactory = BudgetDao::new;
     DaoFactory<CategoryDao> categoryDaoFactory =
         connection -> new CategoryDao(connection, categoryCache);
@@ -54,6 +56,8 @@ public final class AppContext {
     DaoFactory<TransactionItemDao> transactionItemDaoFactory = TransactionItemDao::new;
 
     AccountService accountService = new AccountService(dataSource, accountDaoFactory);
+    AccountBalancesService accountBalancesService =
+        new AccountBalancesService(dataSource, accountBalancesDaoFactory, accountService);
     InsightsService insightsService = new InsightsService(dataSource, insightsDaoFactory);
     CategoryTypeService categoryTypeService =
         new CategoryTypeService(dataSource, categoryTypeDaoFactory);
@@ -65,7 +69,8 @@ public final class AppContext {
             dataSource, transactionItemDaoFactory, categoryService, accountService);
 
     TransactionEventBus transactionEventBus = new TransactionEventBus();
-    transactionEventBus.subscribe(new AccountBalanceSubscriber(accountService));
+    transactionEventBus.subscribe(
+        new AccountBalanceSubscriber(accountService, accountBalancesService));
 
     TransactionService transactionService =
         new TransactionService(
@@ -79,16 +84,16 @@ public final class AppContext {
             transactionEventBus);
 
     AccountHandler accountHandler = new AccountHandler(accountService);
-    AppTestsHandler appTestsHandler = new AppTestsHandler();
     BudgetHandler budgetHandler = new BudgetHandler(budgetService);
     CategoryHandler categoryHandler = new CategoryHandler(categoryService);
     CategoryTypeHandler categoryTypeHandler = new CategoryTypeHandler(categoryTypeService);
-    InsightsHandler insightsHandler = new InsightsHandler(insightsService);
+    InsightsHandler insightsHandler = new InsightsHandler(insightsService, accountBalancesService);
     TransactionHandler transactionHandler = new TransactionHandler(transactionService);
-    TransactionItemHandler transactionItemHandler =
-        new TransactionItemHandler(transactionItemService);
 
-    scheduleManager = new ScheduleManager(dataSource, transactionService);
+    scheduleManager = new ScheduleManager(dataSource, transactionService, accountBalancesService);
+
+    AppTestsHandler appTestsHandler = new AppTestsHandler(scheduleManager);
+
     serverContext =
         new ServerContext(
             appTestsHandler,
@@ -97,7 +102,6 @@ public final class AppContext {
             categoryTypeHandler,
             categoryHandler,
             insightsHandler,
-            transactionItemHandler,
             transactionHandler);
 
     // seed caches

@@ -6,8 +6,11 @@ import budget.application.model.dto.AccountResponse;
 import budget.application.model.dto.CategoryResponse;
 import budget.application.model.dto.TransactionItemResponse;
 import budget.application.model.dto.TransactionResponse;
+import budget.application.service.domain.AccountBalancesService;
 import budget.application.service.domain.AccountService;
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,14 +22,17 @@ public final class AccountBalanceSubscriber implements TransactionEventSubscribe
   private static final Logger log = LoggerFactory.getLogger(AccountBalanceSubscriber.class);
 
   public enum AccountType {
-    POSITIVE,
-    NEGATIVE
+    ASSET,
+    DEBT
   }
 
   private final AccountService accountService;
+  private final AccountBalancesService accountBalancesService;
 
-  public AccountBalanceSubscriber(AccountService accountService) {
+  public AccountBalanceSubscriber(
+      AccountService accountService, AccountBalancesService accountBalancesService) {
     this.accountService = accountService;
+    this.accountBalancesService = accountBalancesService;
   }
 
   @Override
@@ -42,16 +48,16 @@ public final class AccountBalanceSubscriber implements TransactionEventSubscribe
   private AccountType getPositiveNegativeAccountType(String accountType) {
     if (Constants.ASSET_ACCOUNT_TYPES.contains(accountType)
         || Constants.INVEST_ACCOUNT_TYPES.contains(accountType)) {
-      return AccountType.POSITIVE;
+      return AccountType.ASSET;
     } else if (Constants.DEBT_ACCOUNT_TYPES.contains(accountType)) {
-      return AccountType.NEGATIVE;
+      return AccountType.DEBT;
     } else {
       throw new Exceptions.NotFoundException("Account", "Type");
     }
   }
 
   private boolean isIncomeTransaction(CategoryResponse.Category category) {
-    return Constants.CATEGORY_TYPE_TRANSFER_NAME.equals(category.categoryType().name());
+    return Constants.CATEGORY_TYPE_INCOME_NAME.equals(category.categoryType().name());
   }
 
   private boolean isTransferInTransaction(CategoryResponse.Category category) {
@@ -70,7 +76,7 @@ public final class AccountBalanceSubscriber implements TransactionEventSubscribe
         && !isTransferOutTransaction(category);
   }
 
-  public BigDecimal calculateNewAccountBalance(
+  private BigDecimal calculateNewAccountBalance(
       TransactionEvent.Type eventType,
       CategoryResponse.Category category,
       AccountType accountType,
@@ -84,14 +90,14 @@ public final class AccountBalanceSubscriber implements TransactionEventSubscribe
     BigDecimal delta = BigDecimal.ZERO;
 
     switch (accountType) {
-      case AccountType.POSITIVE:
+      case AccountType.ASSET:
         if (isIncomeTransaction || isTransferInTransaction) {
           delta = transactionAmount;
         } else if (isExpenseTransaction || isTransferOutTransaction) {
           delta = transactionAmount.negate();
         }
         break;
-      case AccountType.NEGATIVE:
+      case AccountType.DEBT:
         if (isIncomeTransaction || isTransferInTransaction) {
           delta = transactionAmount.negate();
         } else if (isExpenseTransaction || isTransferOutTransaction) {
@@ -129,7 +135,7 @@ public final class AccountBalanceSubscriber implements TransactionEventSubscribe
     }
   }
 
-  public void updateAccountBalanceOnCreate(TransactionEvent event) {
+  private void updateAccountBalanceOnCreate(TransactionEvent event) {
     try {
       Map<UUID, BigDecimal> accountBalanceUpdates = new HashMap<>();
 
@@ -138,12 +144,15 @@ public final class AccountBalanceSubscriber implements TransactionEventSubscribe
       processAccountBalanceUpdates(transactionItems, event.eventType(), accountBalanceUpdates);
 
       accountService.updateAccountBalances(accountBalanceUpdates);
+
+      updatePreviousAccountBalances(event.transactionResponse().getFirst(), accountBalanceUpdates);
     } catch (Exception e) {
-      log.error("Error updating account balance for transaction create: [{}]", event, e);
+      log.error(
+          "Error updating account balance for transaction create: TransactionEvent=[{}]", event, e);
     }
   }
 
-  public void updateAccountBalanceOnUpdate(TransactionEvent event) {
+  private void updateAccountBalanceOnUpdate(TransactionEvent event) {
     try {
       Map<UUID, BigDecimal> accountBalanceUpdates = new HashMap<>();
 
@@ -156,6 +165,9 @@ public final class AccountBalanceSubscriber implements TransactionEventSubscribe
       processAccountBalanceUpdates(
           transactionItems, TransactionEvent.Type.DELETE, accountBalanceUpdates);
 
+      updatePreviousAccountBalances(
+          event.transactionResponseBeforeUpdate().getFirst(), accountBalanceUpdates);
+
       // update account balance from after update transaction
       transactionItems =
           event.transactionResponse().stream()
@@ -166,12 +178,15 @@ public final class AccountBalanceSubscriber implements TransactionEventSubscribe
           transactionItems, TransactionEvent.Type.CREATE, accountBalanceUpdates);
 
       accountService.updateAccountBalances(accountBalanceUpdates);
+
+      updatePreviousAccountBalances(event.transactionResponse().getFirst(), accountBalanceUpdates);
     } catch (Exception e) {
-      log.error("Error updating account balance for transaction update: [{}]", event, e);
+      log.error(
+          "Error updating account balance for transaction update: TransactionEvent=[{}]", event, e);
     }
   }
 
-  public void updateAccountBalanceOnDelete(TransactionEvent event) {
+  private void updateAccountBalanceOnDelete(TransactionEvent event) {
     try {
       Map<UUID, BigDecimal> accountBalanceUpdates = new HashMap<>();
 
@@ -183,8 +198,32 @@ public final class AccountBalanceSubscriber implements TransactionEventSubscribe
       processAccountBalanceUpdates(transactionItems, event.eventType(), accountBalanceUpdates);
 
       accountService.updateAccountBalances(accountBalanceUpdates);
+
+      updatePreviousAccountBalances(
+          event.transactionResponseBeforeUpdate().getFirst(), accountBalanceUpdates);
     } catch (Exception e) {
-      log.error("Error updating account balance for transaction delete: [{}]", event, e);
+      log.error(
+          "Error updating account balance for transaction delete: TransactionEvent=[{}]", event, e);
     }
+  }
+
+  private void updatePreviousAccountBalances(
+      TransactionResponse.Transaction transaction, Map<UUID, BigDecimal> accountBalanceUpdates) {
+    try {
+      boolean isCurrentMonthEvent = isCurrentMonthTransactionEvent(transaction.txnDate());
+      if (isCurrentMonthEvent) {
+        return;
+      }
+
+      LocalDate yearMonth = transaction.txnDate().toLocalDate().withDayOfMonth(1);
+      accountBalancesService.updateAccountBalances(
+          yearMonth, transaction.id().toString(), accountBalanceUpdates);
+    } catch (Exception e) {
+      log.error("Error updated previous account balances: Transaction=[{}],", transaction, e);
+    }
+  }
+
+  private boolean isCurrentMonthTransactionEvent(LocalDateTime date) {
+    return date.getMonthValue() == LocalDate.now().getMonthValue();
   }
 }

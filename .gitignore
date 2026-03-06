@@ -14,4 +14,4 @@ gcp/*.jar
 gcp/app-credentials.yaml
 
 # Ignore data
-app/src/main/resources/db/migration/V1.3__accounts_data.sql
+app/src/main/resources/db/migration/_V1.3__accounts_data.sql

@@ -1,14 +1,11 @@
 package budget.application.db.mapper;
 
 import budget.application.db.util.DaoUtils;
-import budget.application.model.dto.CategoryResponse;
-import budget.application.model.dto.CategoryTypeResponse;
 import budget.application.model.dto.InsightsResponse;
 import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
-import java.util.UUID;
 
 public class InsightsRowMappers {
 
@@ -32,12 +29,7 @@ public class InsightsRowMappers {
     @Override
     public InsightsResponse.CategoryAmount map(ResultSet resultSet) throws SQLException {
       return new InsightsResponse.CategoryAmount(
-          new CategoryResponse.Category(
-              resultSet.getObject("category_id", UUID.class),
-              new CategoryTypeResponse.CategoryType(
-                  resultSet.getObject("category_type_id", UUID.class),
-                  resultSet.getString("category_type_name")),
-              resultSet.getString("category_name")),
+          new CategoryRowMappers.CategoryRowMapperResponse().map(resultSet),
           resultSet.getBigDecimal("total_amount"));
     }
   }

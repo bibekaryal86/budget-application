@@ -84,8 +84,7 @@ public class AccountDao extends BaseDao<Account> {
             + "UPDATE account a "
             + "SET account_balance = d.balance "
             + "FROM data d "
-            + "WHERE a.id = d.id "
-            + "RETURNING a.*";
+            + "WHERE a.id = d.id ";
 
     boolean originalAutoCommit = connection.getAutoCommit();
     int updatedCount = 0;
