@@ -80,7 +80,6 @@ public final class AppContext {
             transactionItemService,
             categoryService,
             categoryTypeService,
-            accountService,
             transactionEventBus);
 
     AccountHandler accountHandler = new AccountHandler(accountService);
