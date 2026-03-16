@@ -14,7 +14,6 @@ import budget.application.model.dto.TransactionItemRequest;
 import budget.application.model.dto.TransactionItemResponse;
 import budget.application.model.dto.TransactionRequest;
 import budget.application.model.dto.TransactionResponse;
-import budget.application.model.entity.Account;
 import budget.application.model.entity.Category;
 import budget.application.model.entity.CategoryType;
 import budget.application.model.entity.Transaction;
@@ -46,7 +45,6 @@ public class TransactionService {
   private final TransactionItemService transactionItemService;
   private final CategoryService categoryService;
   private final CategoryTypeService categoryTypeService;
-  private final AccountService accountService;
   private final TransactionEventBus transactionEventBus;
 
   public TransactionService(
@@ -56,7 +54,6 @@ public class TransactionService {
       TransactionItemService transactionItemService,
       CategoryService categoryService,
       CategoryTypeService categoryTypeService,
-      AccountService accountService,
       TransactionEventBus transactionEventBus) {
     this.transactionManager = new TransactionManager(dataSource);
     this.email = email;
@@ -64,7 +61,6 @@ public class TransactionService {
     this.transactionItemService = transactionItemService;
     this.categoryService = categoryService;
     this.categoryTypeService = categoryTypeService;
-    this.accountService = accountService;
     this.transactionEventBus = transactionEventBus;
   }
 
@@ -410,15 +406,6 @@ public class TransactionService {
         categories.stream().map(Category::categoryTypeId).collect(Collectors.toSet()).stream()
             .toList();
     List<CategoryType> categoryTypes = categoryTypeService.readNoEx(categoryTypeIds, connection);
-    List<UUID> accountIds =
-        CommonUtilities.isEmpty(transactionRequest.items())
-            ? List.of()
-            : transactionRequest.items().stream()
-                .map(TransactionItemRequest::accountId)
-                .collect(Collectors.toSet())
-                .stream()
-                .toList();
-    List<Account> accounts = accountService.readNoEx(accountIds, connection);
 
     if (CommonUtilities.isEmpty(categories) || (categories.size() != categoryIds.size())) {
       throw new Exceptions.BadRequestException("Category does not exist...");
@@ -433,18 +420,41 @@ public class TransactionService {
         categoryTypes.stream().map(CategoryType::name).collect(Collectors.toSet());
 
     if (categoryTypeNames.contains(Constants.CATEGORY_TYPE_TRANSFER_NAME)) {
-      if (transactionRequest.items().size() != 2) {
+      if (transactionRequest.items().size() % 2 != 0) {
         throw new Exceptions.BadRequestException(
-            "Transfer transaction must have exactly 2 items...");
+            "Transfer transaction must have even number of items...");
       }
-      if (transactionRequest
-              .items()
-              .getFirst()
-              .amount()
-              .compareTo(transactionRequest.items().getLast().amount())
-          != 0) {
+
+      long transferInCount = 0;
+      long transferOutCount = 0;
+      BigDecimal transferInSum = BigDecimal.ZERO;
+      BigDecimal transferOutSum = BigDecimal.ZERO;
+
+      for (TransactionItemRequest item : transactionRequest.items()) {
+        Category category =
+            categories.stream()
+                .filter(c -> c.id().equals(item.categoryId()))
+                .findFirst()
+                .orElse(null);
+        if (category != null) {
+          if (Constants.CATEGORY_TRANSFER_IN.equals(category.name())) {
+            transferInCount++;
+            transferInSum = transferInSum.add(item.amount());
+          } else if (Constants.CATEGORY_TRANSFER_OUT.equals(category.name())) {
+            transferOutCount++;
+            transferOutSum = transferOutSum.add(item.amount());
+          }
+        }
+      }
+
+      if (transferInCount != transferOutCount) {
         throw new Exceptions.BadRequestException(
-            "Transfer transaction items must have same amount...");
+            "Transfer transaction must have equal number of TRANSFER IN and TRANSFER OUT items...");
+      }
+
+      if (transferInSum.compareTo(transferOutSum) != 0) {
+        throw new Exceptions.BadRequestException(
+            "Transfer transaction TRANSFER IN and TRANSFER OUT amounts must be equal...");
       }
     }
 
