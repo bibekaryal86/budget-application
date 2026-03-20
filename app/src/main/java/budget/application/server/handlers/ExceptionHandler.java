@@ -40,7 +40,7 @@ public class ExceptionHandler extends ChannelInboundHandlerAdapter {
       if (cause.getMessage().contains("duplicate key value violates unique constraint")) {
         return HttpResponseStatus.BAD_REQUEST;
       }
-      if (cause.getMessage().contains("violates foreign key constraint")) {
+      if (cause.getMessage().contains("violates RESTRICT setting of foreign key constraint")) {
         return HttpResponseStatus.BAD_REQUEST;
       }
     }
