@@ -162,6 +162,6 @@ public class CategoryTypeHandlerTest extends IntegrationBaseTest {
             .getResponseMetadata()
             .responseStatusInfo()
             .errMsg()
-            .contains("is still referenced from table"));
+            .contains("is referenced from table \"category\""));
   }
 }
