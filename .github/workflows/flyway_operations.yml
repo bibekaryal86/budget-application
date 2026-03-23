@@ -70,5 +70,5 @@ jobs:
             -url=jdbc:postgresql://${{ steps.db.outputs.host }}:6543/${{ steps.db.outputs.db }} \
             -user=${{ steps.db.outputs.user }} \
             -password=${{ steps.db.outputs.pass }} \
-            -schema=${{ steps.db.outputs.schema }} \
+            -schemas=${{ steps.db.outputs.schema }} \
             $CMD
