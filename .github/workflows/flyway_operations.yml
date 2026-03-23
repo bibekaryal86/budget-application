@@ -40,16 +40,18 @@ jobs:
             echo "user=${{ secrets.DB_USERNAME }}" >> $GITHUB_OUTPUT
             echo "pass=${{ secrets.DB_PASSWORD }}" >> $GITHUB_OUTPUT
             echo "db=${{ secrets.DB_DBNAME }}" >> $GITHUB_OUTPUT
+            echo "schema=${{ secrets.DB_SCHEMAS }}" >> $GITHUB_OUTPUT
           else
             echo "host=${{ secrets.DB_HOST_SANDBOX }}" >> $GITHUB_OUTPUT
             echo "user=${{ secrets.DB_USERNAME_SANDBOX }}" >> $GITHUB_OUTPUT
             echo "pass=${{ secrets.DB_PASSWORD_SANDBOX }}" >> $GITHUB_OUTPUT
             echo "db=${{ secrets.DB_DBNAME_SANDBOX }}" >> $GITHUB_OUTPUT
+            echo "schema=${{ secrets.DB_SCHEMAS_SANDBOX }}" >> $GITHUB_OUTPUT
           fi
 
       - name: Test Database Connection
         run: |
-          pg_isready -h ${{ steps.db.outputs.host }} -p 5432 -U ${{ steps.db.outputs.user }} -d ${{ steps.db.outputs.db }}
+          pg_isready -h ${{ steps.db.outputs.host }} -p 6543 -U ${{ steps.db.outputs.user }} -d ${{ steps.db.outputs.db }}
 
       - name: Run Flyway Command
         run: |
@@ -65,7 +67,8 @@ jobs:
           docker run --rm \
             -v ${{ github.workspace }}/app/src/main/resources/db/migration:/flyway/sql \
             flyway/flyway:11.9.1 \
-            -url=jdbc:postgresql://${{ steps.db.outputs.host }}:5432/${{ steps.db.outputs.db }} \
+            -url=jdbc:postgresql://${{ steps.db.outputs.host }}:6543/${{ steps.db.outputs.db }} \
             -user=${{ steps.db.outputs.user }} \
             -password=${{ steps.db.outputs.pass }} \
+            -schema=${{ steps.db.outputs.schema }} \
             $CMD
