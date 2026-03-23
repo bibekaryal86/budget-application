@@ -13,6 +13,7 @@ public final class DataSourceFactory {
   private static final String dbName;
   private static final String dbUser;
   private static final String dbPassword;
+  private static final String dbSchema;
 
   static {
     if (Constants.IS_PRODUCTION) {
@@ -20,14 +21,17 @@ public final class DataSourceFactory {
       dbName = CommonUtilities.getSystemEnvProperty(Constants.ENV_DB_NAME_PROD);
       dbUser = CommonUtilities.getSystemEnvProperty(Constants.ENV_DB_USERNAME_PROD);
       dbPassword = CommonUtilities.getSystemEnvProperty(Constants.ENV_DB_PASSWORD_PROD);
+      dbSchema = CommonUtilities.getSystemEnvProperty(Constants.ENV_DB_SCHEMA_PROD);
     } else {
       dbHost = CommonUtilities.getSystemEnvProperty(Constants.ENV_DB_HOST_SANDBOX);
       dbName = CommonUtilities.getSystemEnvProperty(Constants.ENV_DB_NAME_SANDBOX);
       dbUser = CommonUtilities.getSystemEnvProperty(Constants.ENV_DB_USERNAME_SANDBOX);
       dbPassword = CommonUtilities.getSystemEnvProperty(Constants.ENV_DB_PASSWORD_SANDBOX);
+      dbSchema = CommonUtilities.getSystemEnvProperty(Constants.ENV_DB_SCHEMA_SANDBOX);
     }
 
-    jdbcUrl = String.format("jdbc:postgresql://%s:5432/%s", dbHost, dbName);
+    jdbcUrl =
+        String.format("jdbc:postgresql://%s:5432/%s?currentSchema=%s", dbHost, dbName, dbSchema);
   }
 
   private DataSourceFactory() {}

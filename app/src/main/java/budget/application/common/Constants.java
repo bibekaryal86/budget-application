@@ -21,10 +21,12 @@ public class Constants {
   public static final String ENV_DB_NAME_PROD = "DB_NAME_PROD";
   public static final String ENV_DB_USERNAME_PROD = "DB_USERNAME_PROD";
   public static final String ENV_DB_PASSWORD_PROD = "DB_PASSWORD_PROD";
+  public static final String ENV_DB_SCHEMA_PROD = "DB_SCHEMA_PROD";
   public static final String ENV_DB_HOST_SANDBOX = "DB_HOST_SANDBOX";
   public static final String ENV_DB_NAME_SANDBOX = "DB_NAME_SANDBOX";
   public static final String ENV_DB_USERNAME_SANDBOX = "DB_USERNAME_SANDBOX";
   public static final String ENV_DB_PASSWORD_SANDBOX = "DB_PASSWORD_SANDBOX";
+  public static final String ENV_DB_SCHEMA_SANDBOX = "DB_SCHEMA_SANDBOX";
   public static final String ENV_ENVSVC_BASE_URL = "ENVSVC_BASE_URL";
   public static final String ENV_ENVSVC_USERNAME = "ENVSVC_USR";
   public static final String ENV_ENVSVC_PASSWORD = "ENVSVC_PWD";
@@ -47,13 +49,19 @@ public class Constants {
           ENV_ENVSVC_PASSWORD,
           ENV_RECON_EMAIL_TO);
   public static final List<String> ENV_KEY_NAMES_PROD =
-      List.of(ENV_DB_HOST_PROD, ENV_DB_NAME_PROD, ENV_DB_USERNAME_PROD, ENV_DB_PASSWORD_PROD);
+      List.of(
+          ENV_DB_HOST_PROD,
+          ENV_DB_NAME_PROD,
+          ENV_DB_USERNAME_PROD,
+          ENV_DB_PASSWORD_PROD,
+          ENV_DB_SCHEMA_PROD);
   public static final List<String> ENV_KEY_NAMES_SANDBOX =
       List.of(
           ENV_DB_HOST_SANDBOX,
           ENV_DB_NAME_SANDBOX,
           ENV_DB_USERNAME_SANDBOX,
-          ENV_DB_PASSWORD_SANDBOX);
+          ENV_DB_PASSWORD_SANDBOX,
+          ENV_DB_SCHEMA_SANDBOX);
 
   public static final String THIS_APP_NAME = "petssvc";
   public static final String THIS_APP_NAME_ENV_DETAILS = "petsservice";

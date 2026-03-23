@@ -156,7 +156,7 @@ def loadAppCredentialsEnvVariables() {
 
 flyway {
     locations = ['classpath:db/migration']
-    schemas = ['public']
+    schemas = [yamlProperties.getProperty('DB_SCHEMA_SANDBOX')]
 
     // for local development, use SANDBOX DB
     def db_host = yamlProperties.getProperty('DB_HOST_SANDBOX')
