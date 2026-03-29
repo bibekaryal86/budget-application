@@ -114,9 +114,16 @@ public final class AccountBalanceSubscriber implements TransactionEventSubscribe
   }
 
   private void processAccountBalanceUpdates(
-      List<TransactionItemResponse.TransactionItem> transactionItems,
+      String mdcRequestId,
       TransactionEvent.Type eventType,
+      List<TransactionItemResponse.TransactionItem> transactionItems,
       Map<UUID, BigDecimal> accountBalanceUpdates) {
+    log.info(
+        "[{}] Process account balance updates: EventType=[{}], TransactionItems={}",
+        mdcRequestId,
+        eventType,
+        transactionItems);
+
     for (TransactionItemResponse.TransactionItem transactionItem : transactionItems) {
       AccountResponse.Account account = transactionItem.account();
       CategoryResponse.Category category = transactionItem.category();
@@ -141,9 +148,10 @@ public final class AccountBalanceSubscriber implements TransactionEventSubscribe
 
       List<TransactionItemResponse.TransactionItem> transactionItems =
           event.transactionResponse().getFirst().items();
-      processAccountBalanceUpdates(transactionItems, event.eventType(), accountBalanceUpdates);
+      processAccountBalanceUpdates(
+          event.mdcRequestId(), event.eventType(), transactionItems, accountBalanceUpdates);
 
-      accountService.updateAccountBalances(accountBalanceUpdates);
+      accountService.updateAccountBalances(event.mdcRequestId(), accountBalanceUpdates);
 
       updatePreviousAccountBalances(event.transactionResponse().getFirst(), accountBalanceUpdates);
     } catch (Exception e) {
@@ -163,7 +171,10 @@ public final class AccountBalanceSubscriber implements TransactionEventSubscribe
               .flatMap(List::stream)
               .toList();
       processAccountBalanceUpdates(
-          transactionItems, TransactionEvent.Type.DELETE, accountBalanceUpdates);
+          event.mdcRequestId(),
+          TransactionEvent.Type.DELETE,
+          transactionItems,
+          accountBalanceUpdates);
 
       updatePreviousAccountBalances(
           event.transactionResponseBeforeUpdate().getFirst(), accountBalanceUpdates);
@@ -175,9 +186,12 @@ public final class AccountBalanceSubscriber implements TransactionEventSubscribe
               .flatMap(List::stream)
               .toList();
       processAccountBalanceUpdates(
-          transactionItems, TransactionEvent.Type.CREATE, accountBalanceUpdates);
+          event.mdcRequestId(),
+          TransactionEvent.Type.CREATE,
+          transactionItems,
+          accountBalanceUpdates);
 
-      accountService.updateAccountBalances(accountBalanceUpdates);
+      accountService.updateAccountBalances(event.mdcRequestId(), accountBalanceUpdates);
 
       updatePreviousAccountBalances(event.transactionResponse().getFirst(), accountBalanceUpdates);
     } catch (Exception e) {
@@ -195,9 +209,10 @@ public final class AccountBalanceSubscriber implements TransactionEventSubscribe
               .map(TransactionResponse.Transaction::items)
               .flatMap(List::stream)
               .toList();
-      processAccountBalanceUpdates(transactionItems, event.eventType(), accountBalanceUpdates);
+      processAccountBalanceUpdates(
+          event.mdcRequestId(), event.eventType(), transactionItems, accountBalanceUpdates);
 
-      accountService.updateAccountBalances(accountBalanceUpdates);
+      accountService.updateAccountBalances(event.mdcRequestId(), accountBalanceUpdates);
 
       updatePreviousAccountBalances(
           event.transactionResponseBeforeUpdate().getFirst(), accountBalanceUpdates);
