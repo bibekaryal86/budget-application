@@ -35,6 +35,7 @@ import java.util.stream.Collectors;
 import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 public class TransactionService {
   private static final Logger log = LoggerFactory.getLogger(TransactionService.class);
@@ -104,7 +105,11 @@ public class TransactionService {
 
     // publish transaction event
     transactionEventBus.publish(
-        new TransactionEvent(TransactionEvent.Type.CREATE, transactionResponse.data(), List.of()));
+        new TransactionEvent(
+            MDC.get("requestId"),
+            TransactionEvent.Type.CREATE,
+            transactionResponse.data(),
+            List.of()));
     return transactionResponse;
   }
 
@@ -221,6 +226,7 @@ public class TransactionService {
 
     transactionEventBus.publish(
         new TransactionEvent(
+            MDC.get("requestId"),
             TransactionEvent.Type.UPDATE,
             transactionResponse.data(),
             transactionResponseBeforeUpdate.data()));
@@ -268,7 +274,10 @@ public class TransactionService {
 
     transactionEventBus.publish(
         new TransactionEvent(
-            TransactionEvent.Type.DELETE, List.of(), transactionResponseBeforeUpdate.data()));
+            MDC.get("requestId"),
+            TransactionEvent.Type.DELETE,
+            List.of(),
+            transactionResponseBeforeUpdate.data()));
     return transactionResponse;
   }
 

@@ -164,14 +164,17 @@ public class AccountService {
         });
   }
 
-  public void updateAccountBalances(Map<UUID, BigDecimal> accountBalanceUpdates)
-      throws SQLException {
-    log.debug("Update account balance: AccountBalanceUpdates={}", accountBalanceUpdates);
+  public void updateAccountBalances(
+      String mdcRequestId, Map<UUID, BigDecimal> accountBalanceUpdates) throws SQLException {
+    log.info(
+        "[{}] Update account balance: AccountBalanceUpdates={}",
+        mdcRequestId,
+        accountBalanceUpdates);
     transactionManager.executeVoid(
         transactionContext -> {
           AccountDao accountDao = accountDaoFactory.create(transactionContext.connection());
           int rowsUpdated = accountDao.updateAccountBalances(accountBalanceUpdates);
-          log.debug("Updated [{}] account balances", rowsUpdated);
+          log.info("[{}] Updated [{}] account balances", mdcRequestId, rowsUpdated);
         });
   }
 
