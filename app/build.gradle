@@ -12,7 +12,7 @@ import java.nio.file.StandardCopyOption
 buildscript {
     dependencies {
         classpath 'org.yaml:snakeyaml:2.6'
-        classpath 'org.postgresql:postgresql:42.7.10'
+        classpath 'org.postgresql:postgresql:42.7.11'
         classpath 'org.flywaydb:flyway-database-postgresql:12.4.0'
     }
 }
@@ -45,11 +45,11 @@ dependencies {
     // others
     implementation 'io.netty:netty-all:4.2.12.Final'
 
-    implementation 'org.slf4j:slf4j-api:2.0.17'
+    implementation 'org.slf4j:slf4j-api:2.0.18'
     implementation 'ch.qos.logback:logback-classic:1.5.32'
     implementation 'com.zaxxer:HikariCP:7.0.2'
 
-    runtimeOnly 'org.postgresql:postgresql:42.7.10'
+    runtimeOnly 'org.postgresql:postgresql:42.7.11'
     runtimeOnly 'org.flywaydb:flyway-database-postgresql:12.4.0'
 
     testImplementation 'org.junit.jupiter:junit-jupiter-api:6.0.3'
