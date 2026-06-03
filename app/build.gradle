@@ -41,7 +41,7 @@ repositories {
 
 dependencies {
     // from personal library
-    implementation 'io.github.bibekaryal86:shdsvc:1.0.12'
+    implementation 'io.github.bibekaryal86:shdsvc:1.0.13'
     // others
     implementation 'io.netty:netty-all:4.2.13.Final'
 
