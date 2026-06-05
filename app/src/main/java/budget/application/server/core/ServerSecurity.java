@@ -18,12 +18,11 @@ public class ServerSecurity extends ChannelDuplexHandler {
   public void channelRead(final ChannelHandlerContext channelHandlerContext, final Object object)
       throws Exception {
     if (object instanceof FullHttpRequest fullHttpRequest) {
-      final String requestId = channelHandlerContext.channel().attr(Constants.REQUEST_ID).get();
       final String requestUri = fullHttpRequest.uri();
 
       final boolean isNoAuth = isNoAuthCheck(requestUri);
       if (isNoAuth) {
-        log.debug("[{}] No Auth Request...", requestId);
+        log.debug("No Auth Request: [{}]", requestUri);
         super.channelRead(channelHandlerContext, fullHttpRequest);
         return;
       }
@@ -35,15 +34,14 @@ public class ServerSecurity extends ChannelDuplexHandler {
 
       if (CommonUtilities.isEmpty(authHeader)) {
         ResponseWithMetadata response =
-            ServerUtils.getResponseWithMetadata(
-                String.format("[%s] Not Authenticated...", requestId));
+            ServerUtils.getResponseWithMetadata("Not Authenticated...");
         ServerUtils.sendResponse(channelHandlerContext, HttpResponseStatus.UNAUTHORIZED, response);
         return;
       }
 
       if (!isBasicAuthenticated(authHeader)) {
         ResponseWithMetadata response =
-            ServerUtils.getResponseWithMetadata(String.format("[%s] Not Authorized...", requestId));
+            ServerUtils.getResponseWithMetadata("Not Authorized...");
         ServerUtils.sendResponse(channelHandlerContext, HttpResponseStatus.UNAUTHORIZED, response);
         return;
       }
