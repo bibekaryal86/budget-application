@@ -43,7 +43,7 @@ dependencies {
     // from personal library
     implementation 'io.github.bibekaryal86:shdsvc:1.0.13'
     // others
-    implementation 'io.netty:netty-all:4.2.13.Final'
+    implementation 'io.netty:netty-all:4.2.15.Final'
 
     implementation 'org.slf4j:slf4j-api:2.0.18'
     implementation 'ch.qos.logback:logback-classic:1.5.34'
