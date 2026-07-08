@@ -33,15 +33,13 @@ public class ServerSecurity extends ChannelDuplexHandler {
       }
 
       if (CommonUtilities.isEmpty(authHeader)) {
-        ResponseWithMetadata response =
-            ServerUtils.getResponseWithMetadata("Not Authenticated...");
+        ResponseWithMetadata response = ServerUtils.getResponseWithMetadata("Not Authenticated...");
         ServerUtils.sendResponse(channelHandlerContext, HttpResponseStatus.UNAUTHORIZED, response);
         return;
       }
 
       if (!isBasicAuthenticated(authHeader)) {
-        ResponseWithMetadata response =
-            ServerUtils.getResponseWithMetadata("Not Authorized...");
+        ResponseWithMetadata response = ServerUtils.getResponseWithMetadata("Not Authorized...");
         ServerUtils.sendResponse(channelHandlerContext, HttpResponseStatus.UNAUTHORIZED, response);
         return;
       }
