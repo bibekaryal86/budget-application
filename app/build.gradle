@@ -21,7 +21,7 @@ plugins {
     id 'application'
     id 'java'
     id 'com.diffplug.spotless' version '8.9.0'
-    id 'org.flywaydb.flyway' version '13.0.0'
+    id 'org.flywaydb.flyway' version '13.1.0'
 }
 
 def yamlProperties = loadAppCredentialsEnvVariables()
@@ -46,7 +46,7 @@ dependencies {
     implementation 'io.netty:netty-all:4.2.16.Final'
 
     implementation 'org.slf4j:slf4j-api:2.0.18'
-    implementation 'ch.qos.logback:logback-classic:1.5.37'
+    implementation 'ch.qos.logback:logback-classic:1.6.1'
     implementation 'com.zaxxer:HikariCP:7.1.0'
 
     runtimeOnly 'org.postgresql:postgresql:42.7.13'
