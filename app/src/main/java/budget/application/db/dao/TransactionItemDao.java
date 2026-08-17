@@ -10,7 +10,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -43,11 +42,8 @@ public class TransactionItemDao extends BaseDao<TransactionItem> {
         transactionItem.categoryId(),
         transactionItem.accountId(),
         transactionItem.amount(),
-        switch (transactionItem.tags()) {
-          case null -> Collections.emptyList();
-          case List<String> tags -> tags.stream().map(String::toUpperCase).toList();
-        },
-        transactionItem.notes().toUpperCase());
+        transactionItem.tags(),
+        transactionItem.notes());
   }
 
   @Override
@@ -61,11 +57,8 @@ public class TransactionItemDao extends BaseDao<TransactionItem> {
         transactionItem.categoryId(),
         transactionItem.accountId(),
         transactionItem.amount(),
-        switch (transactionItem.tags()) {
-          case null -> Collections.emptyList();
-          case List<String> tags -> tags.stream().map(String::toUpperCase).toList();
-        },
-        transactionItem.notes().toUpperCase());
+        transactionItem.tags(),
+        transactionItem.notes());
   }
 
   @Override

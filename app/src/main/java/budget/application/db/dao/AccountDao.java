@@ -30,8 +30,7 @@ public class AccountDao extends BaseDao<Account> {
 
   @Override
   protected List<Object> insertValues(Account account) {
-    return List.of(
-        account.name().toUpperCase(), account.accountType(), account.bankName(), account.status());
+    return List.of(account.name(), account.accountType(), account.bankName(), account.status());
   }
 
   @Override
@@ -41,8 +40,7 @@ public class AccountDao extends BaseDao<Account> {
 
   @Override
   protected List<Object> updateValues(Account account) {
-    return List.of(
-        account.name().toUpperCase(), account.accountType(), account.bankName(), account.status());
+    return List.of(account.name(), account.accountType(), account.bankName(), account.status());
   }
 
   @Override

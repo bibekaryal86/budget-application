@@ -5,6 +5,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -20,6 +21,10 @@ public class DaoUtils {
       switch (param) {
         case null -> {
           stmt.setNull(idx, Types.NULL);
+          continue;
+        }
+        case String s -> {
+          stmt.setString(idx, updateString(s));
           continue;
         }
         case Array array -> {
@@ -52,7 +57,7 @@ public class DaoUtils {
 
           if (first instanceof String) {
             String[] arr = list.toArray(String[]::new);
-            stmt.setArray(idx, stmt.getConnection().createArrayOf("text", arr));
+            stmt.setArray(idx, stmt.getConnection().createArrayOf("text", updateStrings(arr)));
             continue;
           }
 
@@ -73,5 +78,15 @@ public class DaoUtils {
 
   public static String getYearMonth(LocalDate date) {
     return String.format("%02d/%02d", date.getYear() % 100, date.getMonthValue());
+  }
+
+  private static String updateString(String value) {
+    return value == null ? null : value.toUpperCase().trim();
+  }
+
+  private static String[] updateStrings(String[] values) {
+    return values == null
+        ? null
+        : Arrays.stream(values).map(DaoUtils::updateString).toArray(String[]::new);
   }
 }

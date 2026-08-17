@@ -18,12 +18,12 @@ public class AccountHandlerTest extends IntegrationBaseTest {
   @Test
   void testAccounts() throws Exception {
     // CREATE
-    AccountRequest req = new AccountRequest("Name Test", "CASH", "Bank Test", "ACTIVE");
+    AccountRequest req = new AccountRequest(" Name Test ", "CASH", "Bank Test", "ACTIVE");
     HttpResponse<String> resp = httpPost(ApiPaths.ACCOUNTS_V1, JsonUtils.toJson(req), Boolean.TRUE);
     Assertions.assertEquals(201, resp.statusCode());
     AccountResponse response = JsonUtils.fromJson(resp.body(), AccountResponse.class);
     Assertions.assertEquals(1, response.data().size());
-    Assertions.assertEquals(req.name().toUpperCase(), response.data().getFirst().name());
+    Assertions.assertEquals(req.name().toUpperCase().trim(), response.data().getFirst().name());
     Assertions.assertEquals(new BigDecimal("0.00"), response.data().getFirst().accountBalance());
     Assertions.assertEquals(
         ResponseMetadataUtils.defaultInsertResponseMetadata(), response.metadata());
@@ -42,12 +42,12 @@ public class AccountHandlerTest extends IntegrationBaseTest {
     Assertions.assertEquals(1, response.data().size());
 
     // UPDATE
-    req = new AccountRequest("Name Updated", "CASH", "Bank Updated ", "ACTIVE");
+    req = new AccountRequest(" Name Updated ", "CASH", "Bank Updated ", "ACTIVE");
     resp = httpPut(ApiPaths.ACCOUNTS_V1_WITH_ID + id, JsonUtils.toJson(req), Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());
     response = JsonUtils.fromJson(resp.body(), AccountResponse.class);
     Assertions.assertEquals(1, response.data().size());
-    Assertions.assertEquals(req.name().toUpperCase(), response.data().getFirst().name());
+    Assertions.assertEquals(req.name().toUpperCase().trim(), response.data().getFirst().name());
     Assertions.assertEquals(new BigDecimal("0.00"), response.data().getFirst().accountBalance());
     Assertions.assertEquals(
         ResponseMetadataUtils.defaultUpdateResponseMetadata(), response.metadata());

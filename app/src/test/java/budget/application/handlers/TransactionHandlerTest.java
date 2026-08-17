@@ -3,6 +3,7 @@ package budget.application.handlers;
 import budget.application.IntegrationBaseTest;
 import budget.application.common.Constants;
 import budget.application.model.dto.TransactionItemRequest;
+import budget.application.model.dto.TransactionItemResponse;
 import budget.application.model.dto.TransactionRequest;
 import budget.application.model.dto.TransactionResponse;
 import budget.application.server.util.ApiPaths;
@@ -42,7 +43,12 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
             "",
             List.of(
                 new TransactionItemRequest(
-                    null, TEST_ID, TEST_ID, new BigDecimal("50.00"), List.of(), "Test Note 1"),
+                    null,
+                    TEST_ID,
+                    TEST_ID,
+                    new BigDecimal("50.00"),
+                    List.of(" Test Tag 1 "),
+                    " Test Note 1 "),
                 new TransactionItemRequest(
                     null, TEST_ID, TEST_ID, new BigDecimal("50.00"), List.of(), "Test Note 2")));
     HttpResponse<String> resp =
@@ -56,6 +62,13 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
         ResponseMetadataUtils.defaultInsertResponseMetadata(), response.metadata());
     final String id = response.data().getFirst().id().toString();
 
+    TransactionItemResponse.TransactionItem item =
+        response.data().getFirst().items().stream()
+            .filter(i -> i.notes().equals("TEST NOTE 1"))
+            .findFirst()
+            .orElse(null);
+    Assertions.assertNotNull(item);
+    Assertions.assertEquals(List.of("TEST TAG 1"), item.tags());
     // READ ALL
     resp = httpGet(ApiPaths.TRANSACTIONS_V1, Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());
@@ -81,7 +94,12 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
                 new TransactionItemRequest(
                     null, TEST_ID, TEST_ID, new BigDecimal("50.00"), List.of(), "Test Note 1"),
                 new TransactionItemRequest(
-                    null, TEST_ID, TEST_ID, new BigDecimal("50.00"), List.of(), "Test Note 2")));
+                    null,
+                    TEST_ID,
+                    TEST_ID,
+                    new BigDecimal("50.00"),
+                    List.of(" Test Tag 2 "),
+                    " Test Note 2 ")));
     resp = httpPut(ApiPaths.TRANSACTIONS_V1_WITH_ID + id, JsonUtils.toJson(req), Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());
     response = JsonUtils.fromJson(resp.body(), TransactionResponse.class);
@@ -90,6 +108,14 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
     Assertions.assertEquals(req.merchant().toUpperCase(), response.data().getFirst().merchant());
     Assertions.assertEquals(
         ResponseMetadataUtils.defaultUpdateResponseMetadata(), response.metadata());
+
+    item =
+        response.data().getFirst().items().stream()
+            .filter(i -> i.notes().equals("TEST NOTE 2"))
+            .findFirst()
+            .orElse(null);
+    Assertions.assertNotNull(item);
+    Assertions.assertEquals(List.of("TEST TAG 2"), item.tags());
 
     // DELETE
     resp = httpDelete(ApiPaths.TRANSACTIONS_V1_WITH_ID + id, Boolean.TRUE);

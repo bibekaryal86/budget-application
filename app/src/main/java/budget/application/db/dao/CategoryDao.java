@@ -36,7 +36,7 @@ public class CategoryDao extends BaseDao<Category> {
 
   @Override
   protected List<Object> insertValues(Category category) {
-    return List.of(category.categoryTypeId(), category.name().toUpperCase());
+    return List.of(category.categoryTypeId(), category.name());
   }
 
   @Override
@@ -46,7 +46,7 @@ public class CategoryDao extends BaseDao<Category> {
 
   @Override
   protected List<Object> updateValues(Category category) {
-    return List.of(category.categoryTypeId(), category.name().toUpperCase());
+    return List.of(category.categoryTypeId(), category.name());
   }
 
   @Override
