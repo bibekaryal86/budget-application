@@ -61,6 +61,9 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
         req.merchant().toUpperCase(), response.data().transactions().getFirst().merchant());
     Assertions.assertEquals(
         ResponseMetadataUtils.defaultInsertResponseMetadata(), response.metadata());
+    Assertions.assertNull(response.data().cashFlowAmounts());
+    Assertions.assertNull(response.data().categoryAmounts());
+    Assertions.assertNull(response.data().accountAmounts());
     final String id = response.data().transactions().getFirst().id().toString();
 
     TransactionItemResponse.TransactionItem item =
@@ -75,6 +78,9 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
     Assertions.assertEquals(200, resp.statusCode());
     response = JsonUtils.fromJson(resp.body(), TransactionResponse.class);
     Assertions.assertEquals(2, response.data().transactions().size());
+    Assertions.assertNotNull(response.data().cashFlowAmounts());
+    Assertions.assertEquals(1, response.data().categoryAmounts().size());
+    Assertions.assertEquals(1, response.data().accountAmounts().size());
 
     // READ ONE
     resp = httpGet(ApiPaths.TRANSACTIONS_V1_WITH_ID + id, Boolean.TRUE);
@@ -84,6 +90,9 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
     Assertions.assertEquals(id, response.data().transactions().getFirst().id().toString());
     Assertions.assertEquals(
         req.merchant().toUpperCase(), response.data().transactions().getFirst().merchant());
+    Assertions.assertNull(response.data().cashFlowAmounts());
+    Assertions.assertNull(response.data().categoryAmounts());
+    Assertions.assertNull(response.data().accountAmounts());
 
     // UPDATE
     req =
@@ -111,6 +120,9 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
         req.merchant().toUpperCase(), response.data().transactions().getFirst().merchant());
     Assertions.assertEquals(
         ResponseMetadataUtils.defaultUpdateResponseMetadata(), response.metadata());
+    Assertions.assertNull(response.data().cashFlowAmounts());
+    Assertions.assertNull(response.data().categoryAmounts());
+    Assertions.assertNull(response.data().accountAmounts());
 
     item =
         response.data().transactions().getFirst().items().stream()
@@ -127,6 +139,9 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
     Assertions.assertEquals(0, response.data().transactions().size());
     Assertions.assertEquals(
         ResponseMetadataUtils.defaultDeleteResponseMetadata(1), response.metadata());
+    Assertions.assertNull(response.data().cashFlowAmounts());
+    Assertions.assertNull(response.data().categoryAmounts());
+    Assertions.assertNull(response.data().accountAmounts());
 
     resp = httpGet(ApiPaths.TRANSACTIONS_V1_WITH_ID + id, Boolean.TRUE);
     Assertions.assertEquals(404, resp.statusCode());
@@ -169,6 +184,7 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
     testDataHelper.insertTransactionItem(tiId2, tId1, cId2, 50, List.of("TAG THREE", "TAG FOUR"));
     testDataHelper.insertTransactionItem(tiId3, tId2, cId2, 200, List.of("TAG FIVE", "TAG ONE"));
 
+    // TODO add check for insights
     HttpResponse<String> resp = httpGet(ApiPaths.TRANSACTIONS_V1, Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());
     TransactionResponse response = JsonUtils.fromJson(resp.body(), TransactionResponse.class);
