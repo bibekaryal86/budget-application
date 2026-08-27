@@ -7,6 +7,7 @@ import budget.application.db.dao.TransactionDao;
 import budget.application.db.util.TransactionManager;
 import budget.application.event.TransactionEvent;
 import budget.application.event.TransactionEventBus;
+import budget.application.model.dto.InsightsResponse;
 import budget.application.model.dto.PaginationRequest;
 import budget.application.model.dto.PaginationResponse;
 import budget.application.model.dto.RequestParams;
@@ -29,8 +30,10 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.sql.DataSource;
 import org.slf4j.Logger;
@@ -139,16 +142,17 @@ public class TransactionService {
                 "Transaction", transactionIds.getFirst().toString());
           }
 
+          TransactionResponse.TransactionInsightsResponse responseData =
+              transactionIds.size() == 1
+                  ? new TransactionResponse.TransactionInsightsResponse(
+                      transactionPaginationResponse.items(), null, null, null)
+                  : getTransactionInsights(transactionPaginationResponse.items());
           ResponseMetadata responseMetadata =
               new ResponseMetadata(
                   ResponseMetadata.emptyResponseStatusInfo(),
                   ResponseMetadata.emptyResponseCrudInfo(),
                   transactionPaginationResponse.pageInfo());
-          // TODO: add insights
-          return new TransactionResponse(
-              new TransactionResponse.TransactionInsightsResponse(
-                  transactionPaginationResponse.items(), null, null, null),
-              responseMetadata);
+          return new TransactionResponse(responseData, responseMetadata);
         });
   }
 
@@ -487,5 +491,71 @@ public class TransactionService {
                 categoryTypeName));
       }
     }
+  }
+
+  private TransactionResponse.TransactionInsightsResponse getTransactionInsights(
+      List<TransactionResponse.Transaction> transactions) {
+    return new TransactionResponse.TransactionInsightsResponse(
+        transactions,
+        getCashFlowAmounts(transactions),
+        getCategoryAmounts(transactions),
+        getAccountAmounts(transactions));
+  }
+
+  private InsightsResponse.CashFlowAmounts getCashFlowAmounts(
+      List<TransactionResponse.Transaction> transactions) {
+    List<TransactionItemResponse.TransactionItem> allItems =
+        transactions.stream().flatMap(txn -> txn.items().stream()).toList();
+    BigDecimal incomes = sumByCategoryType(allItems, "INCOME"::equals);
+    BigDecimal savings = sumByCategoryType(allItems, "SAVINGS"::equals);
+    BigDecimal expenses =
+        sumByCategoryType(
+            allItems, name -> !Set.of("INCOME", "SAVINGS", "TRANSFER").contains(name));
+    BigDecimal balance = incomes.subtract(expenses).subtract(savings);
+    return new InsightsResponse.CashFlowAmounts(incomes, expenses, savings, balance);
+  }
+
+  private BigDecimal sumByCategoryType(
+      List<TransactionItemResponse.TransactionItem> items, Predicate<String> matcher) {
+    return items.stream()
+        .filter(item -> matcher.test(item.category().categoryType().name()))
+        .map(TransactionItemResponse.TransactionItem::amount)
+        .reduce(BigDecimal.ZERO, BigDecimal::add);
+  }
+
+  private List<InsightsResponse.CategoryAmount> getCategoryAmounts(
+      List<TransactionResponse.Transaction> transactions) {
+    Map<UUID, List<TransactionItemResponse.TransactionItem>> groupByCategory =
+        transactions.stream()
+            .flatMap(txn -> txn.items().stream())
+            .collect(Collectors.groupingBy(item -> item.category().id()));
+
+    return groupByCategory.values().stream()
+        .map(
+            items ->
+                new InsightsResponse.CategoryAmount(
+                    items.getFirst().category(),
+                    items.stream()
+                        .map(TransactionItemResponse.TransactionItem::amount)
+                        .reduce(BigDecimal.ZERO, BigDecimal::add)))
+        .toList();
+  }
+
+  private List<InsightsResponse.AccountAmount> getAccountAmounts(
+      List<TransactionResponse.Transaction> transactions) {
+    Map<UUID, List<TransactionItemResponse.TransactionItem>> groupByAccounts =
+        transactions.stream()
+            .flatMap(txn -> txn.items().stream())
+            .collect(Collectors.groupingBy(item -> item.account().id()));
+
+    return groupByAccounts.values().stream()
+        .map(
+            items ->
+                new InsightsResponse.AccountAmount(
+                    items.getFirst().account(),
+                    items.stream()
+                        .map(TransactionItemResponse.TransactionItem::amount)
+                        .reduce(BigDecimal.ZERO, BigDecimal::add)))
+        .toList();
   }
 }
