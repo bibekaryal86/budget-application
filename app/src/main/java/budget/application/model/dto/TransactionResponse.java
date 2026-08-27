@@ -9,9 +9,9 @@ import java.util.UUID;
 public record TransactionResponse(TransactionInsightsResponse data, ResponseMetadata metadata) {
   public record TransactionInsightsResponse(
       List<Transaction> transactions,
-      List<InsightsResponse.CashFlowSummary> cashFlowSummaries,
-      List<InsightsResponse.CategorySummary> categorySummaries,
-      List<InsightsResponse.AccountSummary> accountSummaries) {}
+      InsightsResponse.CashFlowAmounts cashFlowAmounts,
+      List<InsightsResponse.CategoryAmount> categoryAmounts,
+      List<InsightsResponse.AccountAmount> accountAmounts) {}
 
   public record Transaction(
       UUID id,

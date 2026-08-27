@@ -101,7 +101,7 @@ public class TransactionService {
                   transactionDao.readTransactions(List.of(transactionId), null, null).items();
               return new TransactionResponse(
                   new TransactionResponse.TransactionInsightsResponse(
-                      transactions, List.of(), List.of(), List.of()),
+                      transactions, null, null, null),
                   ResponseMetadataUtils.defaultInsertResponseMetadata());
             });
 
@@ -147,7 +147,7 @@ public class TransactionService {
           // TODO: add insights
           return new TransactionResponse(
               new TransactionResponse.TransactionInsightsResponse(
-                  transactionPaginationResponse.items(), List.of(), List.of(), List.of()),
+                  transactionPaginationResponse.items(), null, null, null),
               responseMetadata);
         });
   }
@@ -182,7 +182,7 @@ public class TransactionService {
                   transactionDao.readTransactions(List.of(id), null, null).items();
               return new TransactionResponse(
                   new TransactionResponse.TransactionInsightsResponse(
-                      transactions, List.of(), List.of(), List.of()),
+                      transactions, null, null, null),
                   ResponseMetadataUtils.defaultUpdateResponseMetadata());
             });
 
@@ -229,7 +229,7 @@ public class TransactionService {
                   transactionDao.readTransactions(List.of(id), null, null).items();
               return new TransactionResponse(
                   new TransactionResponse.TransactionInsightsResponse(
-                      transactions, List.of(), List.of(), List.of()),
+                      transactions, null, null, null),
                   ResponseMetadataUtils.defaultUpdateResponseMetadata());
             });
 
@@ -254,7 +254,7 @@ public class TransactionService {
                   transactionDao.readTransactions(ids, null, null).items();
               return new TransactionResponse(
                   new TransactionResponse.TransactionInsightsResponse(
-                      transactions, List.of(), List.of(), List.of()),
+                      transactions, null, null, null),
                   ResponseMetadataUtils.defaultUpdateResponseMetadata());
             });
 
@@ -280,8 +280,7 @@ public class TransactionService {
               int deleteCount = transactionDao.delete(ids);
               log.info("Deleted transactions: Ids=[{}], DeleteCount=[{}]", ids, deleteCount);
               return new TransactionResponse(
-                  new TransactionResponse.TransactionInsightsResponse(
-                      List.of(), List.of(), List.of(), List.of()),
+                  new TransactionResponse.TransactionInsightsResponse(List.of(), null, null, null),
                   ResponseMetadataUtils.defaultDeleteResponseMetadata(deleteCount));
             });
 

@@ -50,4 +50,6 @@ public record InsightsResponse() {
       return new AccountSummary(yearMonth, calculatedNetWorth, accounts);
     }
   }
+
+  public record AccountAmount(AccountResponse.Account account, BigDecimal amount) {}
 }
