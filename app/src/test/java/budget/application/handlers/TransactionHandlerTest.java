@@ -55,15 +55,16 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
         httpPost(ApiPaths.TRANSACTIONS_V1, JsonUtils.toJson(req), Boolean.TRUE);
     Assertions.assertEquals(201, resp.statusCode());
     TransactionResponse response = JsonUtils.fromJson(resp.body(), TransactionResponse.class);
-    Assertions.assertEquals(1, response.data().size());
-    Assertions.assertEquals(2, response.data().getFirst().items().size());
-    Assertions.assertEquals(req.merchant().toUpperCase(), response.data().getFirst().merchant());
+    Assertions.assertEquals(1, response.data().transactions().size());
+    Assertions.assertEquals(2, response.data().transactions().getFirst().items().size());
+    Assertions.assertEquals(
+        req.merchant().toUpperCase(), response.data().transactions().getFirst().merchant());
     Assertions.assertEquals(
         ResponseMetadataUtils.defaultInsertResponseMetadata(), response.metadata());
-    final String id = response.data().getFirst().id().toString();
+    final String id = response.data().transactions().getFirst().id().toString();
 
     TransactionItemResponse.TransactionItem item =
-        response.data().getFirst().items().stream()
+        response.data().transactions().getFirst().items().stream()
             .filter(i -> i.notes().equals("TEST NOTE 1"))
             .findFirst()
             .orElse(null);
@@ -73,15 +74,16 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
     resp = httpGet(ApiPaths.TRANSACTIONS_V1, Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());
     response = JsonUtils.fromJson(resp.body(), TransactionResponse.class);
-    Assertions.assertEquals(2, response.data().size());
+    Assertions.assertEquals(2, response.data().transactions().size());
 
     // READ ONE
     resp = httpGet(ApiPaths.TRANSACTIONS_V1_WITH_ID + id, Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());
     response = JsonUtils.fromJson(resp.body(), TransactionResponse.class);
-    Assertions.assertEquals(1, response.data().size());
-    Assertions.assertEquals(id, response.data().getFirst().id().toString());
-    Assertions.assertEquals(req.merchant().toUpperCase(), response.data().getFirst().merchant());
+    Assertions.assertEquals(1, response.data().transactions().size());
+    Assertions.assertEquals(id, response.data().transactions().getFirst().id().toString());
+    Assertions.assertEquals(
+        req.merchant().toUpperCase(), response.data().transactions().getFirst().merchant());
 
     // UPDATE
     req =
@@ -103,14 +105,15 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
     resp = httpPut(ApiPaths.TRANSACTIONS_V1_WITH_ID + id, JsonUtils.toJson(req), Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());
     response = JsonUtils.fromJson(resp.body(), TransactionResponse.class);
-    Assertions.assertEquals(1, response.data().size());
-    Assertions.assertEquals(2, response.data().getFirst().items().size());
-    Assertions.assertEquals(req.merchant().toUpperCase(), response.data().getFirst().merchant());
+    Assertions.assertEquals(1, response.data().transactions().size());
+    Assertions.assertEquals(2, response.data().transactions().getFirst().items().size());
+    Assertions.assertEquals(
+        req.merchant().toUpperCase(), response.data().transactions().getFirst().merchant());
     Assertions.assertEquals(
         ResponseMetadataUtils.defaultUpdateResponseMetadata(), response.metadata());
 
     item =
-        response.data().getFirst().items().stream()
+        response.data().transactions().getFirst().items().stream()
             .filter(i -> i.notes().equals("TEST NOTE 2"))
             .findFirst()
             .orElse(null);
@@ -121,7 +124,7 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
     resp = httpDelete(ApiPaths.TRANSACTIONS_V1_WITH_ID + id, Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());
     response = JsonUtils.fromJson(resp.body(), TransactionResponse.class);
-    Assertions.assertEquals(0, response.data().size());
+    Assertions.assertEquals(0, response.data().transactions().size());
     Assertions.assertEquals(
         ResponseMetadataUtils.defaultDeleteResponseMetadata(1), response.metadata());
 
@@ -169,7 +172,7 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
     HttpResponse<String> resp = httpGet(ApiPaths.TRANSACTIONS_V1, Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());
     TransactionResponse response = JsonUtils.fromJson(resp.body(), TransactionResponse.class);
-    Assertions.assertEquals(4, response.data().size());
+    Assertions.assertEquals(4, response.data().transactions().size());
     Assertions.assertNotNull(response.metadata().responsePageInfo());
     Assertions.assertEquals(
         new ResponseMetadata.ResponsePageInfo(
@@ -181,22 +184,22 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
             ApiPaths.TRANSACTIONS_V1 + "?categoryTypeIds=" + TEST_ID + "," + ctId1, Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());
     response = JsonUtils.fromJson(resp.body(), TransactionResponse.class);
-    Assertions.assertEquals(3, response.data().size());
+    Assertions.assertEquals(3, response.data().transactions().size());
 
     resp = httpGet(ApiPaths.TRANSACTIONS_V1 + "?merchants=TEST%20MERCHANT", Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());
     response = JsonUtils.fromJson(resp.body(), TransactionResponse.class);
-    Assertions.assertEquals(1, response.data().size());
+    Assertions.assertEquals(1, response.data().transactions().size());
 
     resp = httpGet(ApiPaths.TRANSACTIONS_V1 + "?categoryIds=" + TEST_ID + "," + cId2, Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());
     response = JsonUtils.fromJson(resp.body(), TransactionResponse.class);
-    Assertions.assertEquals(3, response.data().size());
+    Assertions.assertEquals(3, response.data().transactions().size());
 
     resp = httpGet(ApiPaths.TRANSACTIONS_V1 + "?tags=TAG%20ONE,TAG%20THREE", Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());
     response = JsonUtils.fromJson(resp.body(), TransactionResponse.class);
-    Assertions.assertEquals(2, response.data().size());
+    Assertions.assertEquals(2, response.data().transactions().size());
 
     LocalDate beginDate = LocalDate.of(2025, 1, 1);
     LocalDate endDate = LocalDateTime.now().toLocalDate();
@@ -220,7 +223,7 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
             Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());
     response = JsonUtils.fromJson(resp.body(), TransactionResponse.class);
-    Assertions.assertEquals(1, response.data().size());
+    Assertions.assertEquals(1, response.data().transactions().size());
   }
 
   @Test

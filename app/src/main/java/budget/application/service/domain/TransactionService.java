@@ -100,7 +100,9 @@ public class TransactionService {
               List<TransactionResponse.Transaction> transactions =
                   transactionDao.readTransactions(List.of(transactionId), null, null).items();
               return new TransactionResponse(
-                  transactions, ResponseMetadataUtils.defaultInsertResponseMetadata());
+                  new TransactionResponse.TransactionInsightsResponse(
+                      transactions, List.of(), List.of(), List.of()),
+                  ResponseMetadataUtils.defaultInsertResponseMetadata());
             });
 
     // publish transaction event
@@ -108,7 +110,7 @@ public class TransactionService {
         new TransactionEvent(
             MDC.get("requestId"),
             TransactionEvent.Type.CREATE,
-            transactionResponse.data(),
+            transactionResponse.data().transactions(),
             List.of()));
     return transactionResponse;
   }
@@ -142,8 +144,11 @@ public class TransactionService {
                   ResponseMetadata.emptyResponseStatusInfo(),
                   ResponseMetadata.emptyResponseCrudInfo(),
                   transactionPaginationResponse.pageInfo());
-
-          return new TransactionResponse(transactionPaginationResponse.items(), responseMetadata);
+          // TODO: add insights
+          return new TransactionResponse(
+              new TransactionResponse.TransactionInsightsResponse(
+                  transactionPaginationResponse.items(), List.of(), List.of(), List.of()),
+              responseMetadata);
         });
   }
 
@@ -176,7 +181,9 @@ public class TransactionService {
               List<TransactionResponse.Transaction> transactions =
                   transactionDao.readTransactions(List.of(id), null, null).items();
               return new TransactionResponse(
-                  transactions, ResponseMetadataUtils.defaultUpdateResponseMetadata());
+                  new TransactionResponse.TransactionInsightsResponse(
+                      transactions, List.of(), List.of(), List.of()),
+                  ResponseMetadataUtils.defaultUpdateResponseMetadata());
             });
 
     TransactionResponse transactionResponse =
@@ -221,15 +228,17 @@ public class TransactionService {
               List<TransactionResponse.Transaction> transactions =
                   transactionDao.readTransactions(List.of(id), null, null).items();
               return new TransactionResponse(
-                  transactions, ResponseMetadataUtils.defaultUpdateResponseMetadata());
+                  new TransactionResponse.TransactionInsightsResponse(
+                      transactions, List.of(), List.of(), List.of()),
+                  ResponseMetadataUtils.defaultUpdateResponseMetadata());
             });
 
     transactionEventBus.publish(
         new TransactionEvent(
             MDC.get("requestId"),
             TransactionEvent.Type.UPDATE,
-            transactionResponse.data(),
-            transactionResponseBeforeUpdate.data()));
+            transactionResponse.data().transactions(),
+            transactionResponseBeforeUpdate.data().transactions()));
     return transactionResponse;
   }
 
@@ -244,7 +253,9 @@ public class TransactionService {
               List<TransactionResponse.Transaction> transactions =
                   transactionDao.readTransactions(ids, null, null).items();
               return new TransactionResponse(
-                  transactions, ResponseMetadataUtils.defaultUpdateResponseMetadata());
+                  new TransactionResponse.TransactionInsightsResponse(
+                      transactions, List.of(), List.of(), List.of()),
+                  ResponseMetadataUtils.defaultUpdateResponseMetadata());
             });
 
     TransactionResponse transactionResponse =
@@ -269,7 +280,9 @@ public class TransactionService {
               int deleteCount = transactionDao.delete(ids);
               log.info("Deleted transactions: Ids=[{}], DeleteCount=[{}]", ids, deleteCount);
               return new TransactionResponse(
-                  List.of(), ResponseMetadataUtils.defaultDeleteResponseMetadata(deleteCount));
+                  new TransactionResponse.TransactionInsightsResponse(
+                      List.of(), List.of(), List.of(), List.of()),
+                  ResponseMetadataUtils.defaultDeleteResponseMetadata(deleteCount));
             });
 
     transactionEventBus.publish(
@@ -277,7 +290,7 @@ public class TransactionService {
             MDC.get("requestId"),
             TransactionEvent.Type.DELETE,
             List.of(),
-            transactionResponseBeforeUpdate.data()));
+            transactionResponseBeforeUpdate.data().transactions()));
     return transactionResponse;
   }
 

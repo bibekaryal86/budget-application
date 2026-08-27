@@ -6,7 +6,13 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-public record TransactionResponse(List<Transaction> data, ResponseMetadata metadata) {
+public record TransactionResponse(TransactionInsightsResponse data, ResponseMetadata metadata) {
+  public record TransactionInsightsResponse(
+      List<Transaction> transactions,
+      List<InsightsResponse.CashFlowSummary> cashFlowSummaries,
+      List<InsightsResponse.CategorySummary> categorySummaries,
+      List<InsightsResponse.AccountSummary> accountSummaries) {}
+
   public record Transaction(
       UUID id,
       LocalDateTime txnDate,
