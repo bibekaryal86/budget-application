@@ -189,6 +189,9 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
     Assertions.assertEquals(200, resp.statusCode());
     TransactionResponse response = JsonUtils.fromJson(resp.body(), TransactionResponse.class);
     Assertions.assertEquals(4, response.data().transactions().size());
+    Assertions.assertNotNull(response.data().cashFlowAmounts());
+    Assertions.assertEquals(3, response.data().categoryAmounts().size());
+    Assertions.assertEquals(1, response.data().accountAmounts().size());
     Assertions.assertNotNull(response.metadata().responsePageInfo());
     Assertions.assertEquals(
         new ResponseMetadata.ResponsePageInfo(
@@ -201,21 +204,33 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
     Assertions.assertEquals(200, resp.statusCode());
     response = JsonUtils.fromJson(resp.body(), TransactionResponse.class);
     Assertions.assertEquals(3, response.data().transactions().size());
+    Assertions.assertNotNull(response.data().cashFlowAmounts());
+    Assertions.assertEquals(3, response.data().categoryAmounts().size());
+    Assertions.assertEquals(1, response.data().accountAmounts().size());
 
     resp = httpGet(ApiPaths.TRANSACTIONS_V1 + "?merchants=TEST%20MERCHANT", Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());
     response = JsonUtils.fromJson(resp.body(), TransactionResponse.class);
     Assertions.assertEquals(1, response.data().transactions().size());
+    Assertions.assertNotNull(response.data().cashFlowAmounts());
+    Assertions.assertEquals(1, response.data().categoryAmounts().size());
+    Assertions.assertEquals(1, response.data().accountAmounts().size());
 
     resp = httpGet(ApiPaths.TRANSACTIONS_V1 + "?categoryIds=" + TEST_ID + "," + cId2, Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());
     response = JsonUtils.fromJson(resp.body(), TransactionResponse.class);
     Assertions.assertEquals(3, response.data().transactions().size());
+    Assertions.assertNotNull(response.data().cashFlowAmounts());
+    Assertions.assertEquals(2, response.data().categoryAmounts().size());
+    Assertions.assertEquals(1, response.data().accountAmounts().size());
 
     resp = httpGet(ApiPaths.TRANSACTIONS_V1 + "?tags=TAG%20ONE,TAG%20THREE", Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());
     response = JsonUtils.fromJson(resp.body(), TransactionResponse.class);
     Assertions.assertEquals(2, response.data().transactions().size());
+    Assertions.assertNotNull(response.data().cashFlowAmounts());
+    Assertions.assertEquals(2, response.data().categoryAmounts().size());
+    Assertions.assertEquals(1, response.data().accountAmounts().size());
 
     LocalDate beginDate = LocalDate.of(2025, 1, 1);
     LocalDate endDate = LocalDateTime.now().toLocalDate();
@@ -240,6 +255,9 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
     Assertions.assertEquals(200, resp.statusCode());
     response = JsonUtils.fromJson(resp.body(), TransactionResponse.class);
     Assertions.assertEquals(1, response.data().transactions().size());
+    Assertions.assertNotNull(response.data().cashFlowAmounts());
+    Assertions.assertEquals(1, response.data().categoryAmounts().size());
+    Assertions.assertEquals(1, response.data().accountAmounts().size());
   }
 
   @Test

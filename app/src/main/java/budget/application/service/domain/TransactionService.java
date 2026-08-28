@@ -538,6 +538,7 @@ public class TransactionService {
                     items.stream()
                         .map(TransactionItemResponse.TransactionItem::amount)
                         .reduce(BigDecimal.ZERO, BigDecimal::add)))
+        .filter(categoryAmount -> categoryAmount.amount().compareTo(BigDecimal.ZERO) != 0)
         .toList();
   }
 
@@ -556,6 +557,7 @@ public class TransactionService {
                     items.stream()
                         .map(TransactionItemResponse.TransactionItem::amount)
                         .reduce(BigDecimal.ZERO, BigDecimal::add)))
+        .filter(accountAmount -> accountAmount.amount().compareTo(BigDecimal.ZERO) != 0)
         .toList();
   }
 }
