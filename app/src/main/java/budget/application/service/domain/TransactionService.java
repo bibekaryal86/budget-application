@@ -506,11 +506,11 @@ public class TransactionService {
       List<TransactionResponse.Transaction> transactions) {
     List<TransactionItemResponse.TransactionItem> allItems =
         transactions.stream().flatMap(txn -> txn.items().stream()).toList();
-    BigDecimal incomes = sumByCategoryType(allItems, "INCOME"::equals);
-    BigDecimal savings = sumByCategoryType(allItems, "SAVINGS"::equals);
+    BigDecimal incomes = sumByCategoryType(allItems, Constants.CATEGORY_TYPE_INCOME_NAME::equals);
+    BigDecimal savings = sumByCategoryType(allItems, Constants.CATEGORY_TYPE_SAVINGS_NAME::equals);
     BigDecimal expenses =
         sumByCategoryType(
-            allItems, name -> !Set.of("INCOME", "SAVINGS", "TRANSFER").contains(name));
+            allItems, name -> !Constants.NO_EXPENSE_CATEGORY_TYPES.contains(name));
     BigDecimal balance = incomes.subtract(expenses).subtract(savings);
     return new InsightsResponse.CashFlowAmounts(incomes, expenses, savings, balance);
   }
