@@ -509,8 +509,7 @@ public class TransactionService {
     BigDecimal incomes = sumByCategoryType(allItems, Constants.CATEGORY_TYPE_INCOME_NAME::equals);
     BigDecimal savings = sumByCategoryType(allItems, Constants.CATEGORY_TYPE_SAVINGS_NAME::equals);
     BigDecimal expenses =
-        sumByCategoryType(
-            allItems, name -> !Constants.NO_EXPENSE_CATEGORY_TYPES.contains(name));
+        sumByCategoryType(allItems, name -> !Constants.NO_EXPENSE_CATEGORY_TYPES.contains(name));
     BigDecimal balance = incomes.subtract(expenses).subtract(savings);
     return new InsightsResponse.CashFlowAmounts(incomes, expenses, savings, balance);
   }
