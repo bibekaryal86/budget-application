@@ -3,7 +3,6 @@ package budget.application.handlers;
 import budget.application.IntegrationBaseTest;
 import budget.application.model.dto.BudgetRequest;
 import budget.application.model.dto.BudgetResponse;
-import budget.application.model.dto.TransactionResponse;
 import budget.application.server.util.ApiPaths;
 import budget.application.server.util.JsonUtils;
 import budget.application.service.util.ResponseMetadataUtils;
@@ -232,7 +231,7 @@ public class BudgetHandlerTest extends IntegrationBaseTest {
 
     HttpResponse<String> resp = httpGet(ApiPaths.BUDGETS_V1, Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());
-    TransactionResponse response = JsonUtils.fromJson(resp.body(), TransactionResponse.class);
+    BudgetResponse response = JsonUtils.fromJson(resp.body(), BudgetResponse.class);
     Assertions.assertEquals(4, response.data().size());
 
     resp =
@@ -240,24 +239,24 @@ public class BudgetHandlerTest extends IntegrationBaseTest {
             ApiPaths.BUDGETS_V1 + "?categoryIds=" + TEST_ID + "," + cId2 + "," + cId3,
             Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());
-    response = JsonUtils.fromJson(resp.body(), TransactionResponse.class);
+    response = JsonUtils.fromJson(resp.body(), BudgetResponse.class);
     Assertions.assertEquals(2, response.data().size());
 
     // returns all 4 because year is not provided
     resp = httpGet(ApiPaths.BUDGETS_V1 + "?budgetMonth=7", Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());
-    response = JsonUtils.fromJson(resp.body(), TransactionResponse.class);
+    response = JsonUtils.fromJson(resp.body(), BudgetResponse.class);
     Assertions.assertEquals(4, response.data().size());
 
     // returns all 4 because month is not provided
     resp = httpGet(ApiPaths.BUDGETS_V1 + "?budgetYear=2025", Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());
-    response = JsonUtils.fromJson(resp.body(), TransactionResponse.class);
+    response = JsonUtils.fromJson(resp.body(), BudgetResponse.class);
     Assertions.assertEquals(4, response.data().size());
 
     resp = httpGet(ApiPaths.BUDGETS_V1 + "?budgetMonth=7&budgetYear=2025", Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());
-    response = JsonUtils.fromJson(resp.body(), TransactionResponse.class);
+    response = JsonUtils.fromJson(resp.body(), BudgetResponse.class);
     Assertions.assertEquals(3, response.data().size());
 
     resp =
@@ -271,7 +270,7 @@ public class BudgetHandlerTest extends IntegrationBaseTest {
                 + "&budgetYear=2025",
             Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());
-    response = JsonUtils.fromJson(resp.body(), TransactionResponse.class);
+    response = JsonUtils.fromJson(resp.body(), BudgetResponse.class);
     Assertions.assertEquals(1, response.data().size());
   }
 }
