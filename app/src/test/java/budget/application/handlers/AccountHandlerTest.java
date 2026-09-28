@@ -26,6 +26,7 @@ public class AccountHandlerTest extends IntegrationBaseTest {
     Assertions.assertEquals(req.name().toUpperCase().trim(), response.data().getFirst().name());
     Assertions.assertEquals(new BigDecimal("0.00"), response.data().getFirst().accountBalance());
     Assertions.assertEquals(ResponseUtils.defaultInsertResponseMetadata(), response.metadata());
+    Assertions.assertTrue(response.data().getFirst().accountBalanceHistories().isEmpty());
     final String id = response.data().getFirst().id().toString();
 
     // READ ALL
