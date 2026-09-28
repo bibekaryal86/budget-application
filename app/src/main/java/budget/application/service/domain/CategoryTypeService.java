@@ -50,11 +50,6 @@ public class CategoryTypeService {
         });
   }
 
-  public List<CategoryType> readNoEx(List<UUID> ids, Connection connection) {
-    CategoryTypeDao categoryTypeDao = categoryTypeDaoFactory.create(connection);
-    return categoryTypeDao.readNoEx(ids);
-  }
-
   public CategoryTypeResponse read(List<UUID> ids) throws SQLException {
     log.debug("Read category types: Ids=[{}]", ids);
 

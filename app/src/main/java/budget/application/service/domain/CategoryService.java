@@ -54,11 +54,6 @@ public class CategoryService {
         });
   }
 
-  public List<Category> readNoEx(List<UUID> ids, Connection connection) {
-    CategoryDao categoryDao = categoryDaoFactory.create(connection);
-    return categoryDao.readNoEx(ids);
-  }
-
   public CategoryResponse read(List<UUID> categoryIds) throws SQLException {
     log.debug("Read categories: CategoryIds=[{}]", categoryIds);
 

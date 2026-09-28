@@ -65,11 +65,6 @@ public class AccountService {
         });
   }
 
-  public List<Account> readNoEx(List<UUID> ids, Connection connection) {
-    AccountDao accountDao = accountDaoFactory.create(connection);
-    return accountDao.readNoEx(ids);
-  }
-
   public AccountResponse read(List<UUID> ids) throws SQLException {
     log.debug("Read accounts: Ids={}", ids);
     return transactionManager.execute(
