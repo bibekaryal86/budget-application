@@ -124,6 +124,68 @@ public class AccountBalancesDao extends BaseDao<AccountBalances> {
     return new ArrayList<>(accountBalanceSummaryMap.values());
   }
 
+  public Map<UUID, List<AccountResponse.AccountBalanceHistory>> readAccountBalancesHistory(
+      List<UUID> accountIds) throws SQLException {
+    LocalDate currentDate = LocalDate.now();
+    LocalDate beginDate = currentDate.withDayOfMonth(1).minusMonths(6);
+    LocalDate endDate = currentDate.withDayOfMonth(1).plusMonths(1);
+
+    log.debug(
+        "Read account balances history: CurrentDate=[{}], BeginDate=[{}], EndDate=[{}], AccountIds=[{}]",
+        currentDate,
+        beginDate,
+        endDate,
+        accountIds);
+
+    List<Object> params = new ArrayList<>();
+    params.add(beginDate);
+    params.add(endDate);
+
+    boolean hasAccountIds = !CommonUtilities.isEmpty(accountIds);
+    params.add(hasAccountIds);
+    params.add(hasAccountIds ? accountIds.toArray(new UUID[0]) : null);
+
+    String sql =
+        """
+                SELECT
+                  ab.account_id,
+                  ab.year_month,
+                  ab.account_balance
+                FROM
+                  account_balances ab
+                WHERE
+                  ab.year_month >= ?
+                  AND ab.year_month < ?
+                  AND (? = FALSE OR ab.account_id = ANY(?))
+                ORDER BY
+                  ab.account_id ASC,
+                  ab.year_month ASC
+            """;
+
+    Map<UUID, List<AccountResponse.AccountBalanceHistory>> accountBalanceHistoryMap =
+        new LinkedHashMap<>();
+
+    try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+      DaoUtils.bindParams(preparedStatement, params, Boolean.TRUE);
+
+      try (ResultSet resultSet = preparedStatement.executeQuery()) {
+        while (resultSet.next()) {
+          UUID accountId = resultSet.getObject("account_id", UUID.class);
+          LocalDate yearMonth = resultSet.getObject("year_month", LocalDate.class);
+          BigDecimal balance = resultSet.getBigDecimal("account_balance");
+
+          accountBalanceHistoryMap
+              .computeIfAbsent(accountId, k -> new ArrayList<>())
+              .add(
+                  new AccountResponse.AccountBalanceHistory(
+                      DaoUtils.getYearMonth(yearMonth), balance));
+        }
+      }
+    }
+
+    return accountBalanceHistoryMap;
+  }
+
   public int updateAccountBalances(
       LocalDate yearMonth, String notes, Map<UUID, BigDecimal> accountBalanceUpdates)
       throws SQLException {

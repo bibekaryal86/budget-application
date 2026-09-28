@@ -83,7 +83,7 @@ public class AccountBalancesService {
               List<Account> accounts = accountDao.read(accountIds);
               AccountResponse accountResponse =
                   ResponseUtils.getAccountResponse(
-                      accounts, ResponseMetadata.emptyResponseMetadata());
+                      accounts, Map.of(), ResponseMetadata.emptyResponseMetadata());
               InsightsResponse.AccountSummary currentMonth =
                   new InsightsResponse.AccountSummary(
                       DaoUtils.getYearMonth(LocalDate.now()), Map.of(), accountResponse.data());

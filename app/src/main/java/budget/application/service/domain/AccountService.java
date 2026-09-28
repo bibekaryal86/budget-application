@@ -2,6 +2,7 @@ package budget.application.service.domain;
 
 import budget.application.common.Constants;
 import budget.application.common.Exceptions;
+import budget.application.db.dao.AccountBalancesDao;
 import budget.application.db.dao.AccountDao;
 import budget.application.db.dao.DaoFactory;
 import budget.application.db.util.TransactionManager;
@@ -25,10 +26,15 @@ public class AccountService {
 
   private final TransactionManager transactionManager;
   private final DaoFactory<AccountDao> accountDaoFactory;
+  private final DaoFactory<AccountBalancesDao> accountBalancesDaoFactory;
 
-  public AccountService(DataSource dataSource, DaoFactory<AccountDao> accountDaoFactory) {
+  public AccountService(
+      DataSource dataSource,
+      DaoFactory<AccountDao> accountDaoFactory,
+      DaoFactory<AccountBalancesDao> accountBalancesDaoFactory) {
     this.transactionManager = new TransactionManager(dataSource);
     this.accountDaoFactory = accountDaoFactory;
+    this.accountBalancesDaoFactory = accountBalancesDaoFactory;
   }
 
   public AccountResponse create(AccountRequest accountRequest) throws SQLException {
@@ -50,17 +56,8 @@ public class AccountService {
                   null);
           Account accountOut = accountDao.create(accountIn);
           log.debug("Created account: Id=[{}]", accountOut.id());
-          AccountResponse.Account account =
-              new AccountResponse.Account(
-                  accountOut.id(),
-                  accountOut.name(),
-                  accountOut.accountType(),
-                  accountOut.bankName(),
-                  accountOut.accountBalance(),
-                  accountOut.status());
-
-          return new AccountResponse(
-              List.of(account), ResponseUtils.defaultInsertResponseMetadata());
+          return ResponseUtils.getAccountResponse(
+              List.of(accountOut), Map.of(), ResponseUtils.defaultInsertResponseMetadata());
         });
   }
 
@@ -75,8 +72,13 @@ public class AccountService {
             throw new Exceptions.NotFoundException("Account", ids.getFirst().toString());
           }
 
+          AccountBalancesDao accountBalancesDao =
+              accountBalancesDaoFactory.create(transactionContext.connection());
+          Map<UUID, List<AccountResponse.AccountBalanceHistory>> accountBalanceHistoryMap =
+              accountBalancesDao.readAccountBalancesHistory(ids);
+
           return ResponseUtils.getAccountResponse(
-              accountList, ResponseMetadata.emptyResponseMetadata());
+              accountList, accountBalanceHistoryMap, ResponseMetadata.emptyResponseMetadata());
         });
   }
 
@@ -115,16 +117,16 @@ public class AccountService {
                   null,
                   null);
           Account accountOut = accountDao.update(accountIn);
-          AccountResponse.Account account =
-              new AccountResponse.Account(
-                  accountOut.id(),
-                  accountOut.name(),
-                  accountOut.accountType(),
-                  accountOut.bankName(),
-                  accountOut.accountBalance(),
-                  accountOut.status());
-          return new AccountResponse(
-              List.of(account), ResponseUtils.defaultUpdateResponseMetadata());
+
+          AccountBalancesDao accountBalancesDao =
+              accountBalancesDaoFactory.create(transactionContext.connection());
+          Map<UUID, List<AccountResponse.AccountBalanceHistory>> accountBalanceHistory =
+              accountBalancesDao.readAccountBalancesHistory(List.of(id));
+
+          return ResponseUtils.getAccountResponse(
+              List.of(accountOut),
+              accountBalanceHistory,
+              ResponseUtils.defaultUpdateResponseMetadata());
         });
   }
 

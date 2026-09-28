@@ -5,7 +5,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- 1. Category Types
 -- ============================================
 CREATE TABLE category_type (
-                               id          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+                               id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                                name        VARCHAR(100) NOT NULL UNIQUE
 );
 
@@ -13,7 +13,7 @@ CREATE TABLE category_type (
 -- 2. Categories
 -- ============================================
 CREATE TABLE category (
-                          id               UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+                          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                           category_type_id UUID NOT NULL REFERENCES category_type(id) ON DELETE RESTRICT,
                           name             VARCHAR(100) NOT NULL,
                           UNIQUE (category_type_id, name)
@@ -24,7 +24,7 @@ CREATE TABLE category (
 -- ============================================
 
 CREATE TABLE account (
-                         id          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+                         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                          name        VARCHAR(100) NOT NULL UNIQUE,
                          account_type VARCHAR(10) NOT NULL CHECK (account_type IN ('CASH', 'CREDIT', 'LOAN', 'CHECKING', 'SAVINGS', 'INVESTMENT', 'OTHER')),
                          bank_name   VARCHAR(100) NOT NULL,
@@ -35,10 +35,26 @@ CREATE TABLE account (
 );
 
 -- ============================================
--- 4. Transactions (Income + Expense)
+-- 4. Account
+-- ============================================
+
+CREATE TABLE account_balances
+(
+    id              UUID PRIMARY KEY        DEFAULT gen_random_uuid(),
+    account_id      UUID           NOT NULL REFERENCES account (id) ON DELETE CASCADE,
+    year_month      DATE           NOT NULL,
+    account_balance NUMERIC(12, 2) NOT NULL,
+    notes           TEXT,
+    created_at      TIMESTAMP      NOT NULL DEFAULT NOW(),
+    updated_at      TIMESTAMP      NOT NULL DEFAULT NOW(),
+    UNIQUE (account_id, year_month)
+);
+
+-- ============================================
+-- 5. Transactions (Income + Expense)
 -- ============================================
 CREATE TABLE transaction (
-                             id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+                             id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                              txn_date        TIMESTAMP NOT NULL,
                              merchant        VARCHAR(255) NOT NULL,
                              total_amount    NUMERIC(12, 2) NOT NULL CHECK (total_amount >= 0),
@@ -47,10 +63,10 @@ CREATE TABLE transaction (
 );
 
 -- ============================================
--- 5. Transaction Items (Line Items)
+-- 6. Transaction Items (Line Items)
 -- ============================================
 CREATE TABLE transaction_item (
-                                  id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+                                  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                                   transaction_id  UUID NOT NULL REFERENCES transaction(id) ON DELETE CASCADE,
                                   category_id     UUID NOT NULL REFERENCES category(id) ON DELETE RESTRICT,
                                   account_id      UUID NOT NULL REFERENCES account(id) ON DELETE RESTRICT,
@@ -60,11 +76,11 @@ CREATE TABLE transaction_item (
 );
 
 -- ============================================
--- 5. Budget
+-- 7. Budget
 -- ============================================
 CREATE TABLE budget
 (
-    id           UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     category_id     UUID NOT NULL REFERENCES category(id) ON DELETE CASCADE,
     budget_month INTEGER        NOT NULL CHECK (budget_month >= 1 AND budget_month <= 12),
     budget_year  INTEGER        NOT NULL CHECK (budget_year >= 1900),

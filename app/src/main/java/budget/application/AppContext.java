@@ -55,7 +55,8 @@ public final class AppContext {
     DaoFactory<TransactionDao> transactionDaoFactory = TransactionDao::new;
     DaoFactory<TransactionItemDao> transactionItemDaoFactory = TransactionItemDao::new;
 
-    AccountService accountService = new AccountService(dataSource, accountDaoFactory);
+    AccountService accountService =
+        new AccountService(dataSource, accountDaoFactory, accountBalancesDaoFactory);
     AccountBalancesService accountBalancesService =
         new AccountBalancesService(dataSource, accountBalancesDaoFactory, accountDaoFactory);
     InsightsService insightsService = new InsightsService(dataSource, insightsDaoFactory);

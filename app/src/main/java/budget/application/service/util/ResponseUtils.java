@@ -6,6 +6,8 @@ import io.github.bibekaryal86.shdsvc.dtos.ResponseMetadata;
 import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 public class ResponseUtils {
   private ResponseUtils() {}
@@ -47,7 +49,9 @@ public class ResponseUtils {
   }
 
   public static AccountResponse getAccountResponse(
-      List<Account> accountList, ResponseMetadata responseMetadata) {
+      List<Account> accountList,
+      Map<UUID, List<AccountResponse.AccountBalanceHistory>> accountBalanceHistory,
+      ResponseMetadata responseMetadata) {
     List<AccountResponse.Account> accounts =
         accountList.stream()
             .map(
@@ -58,7 +62,8 @@ public class ResponseUtils {
                         account.accountType(),
                         account.bankName(),
                         account.accountBalance(),
-                        account.status()))
+                        account.status(),
+                        accountBalanceHistory.getOrDefault(account.id(), List.of())))
             .sorted(Comparator.comparing(AccountResponse.Account::bankName))
             .toList();
     return new AccountResponse(accounts, responseMetadata);
