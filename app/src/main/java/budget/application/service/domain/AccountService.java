@@ -5,6 +5,7 @@ import budget.application.common.Exceptions;
 import budget.application.db.dao.AccountBalancesDao;
 import budget.application.db.dao.AccountDao;
 import budget.application.db.dao.DaoFactory;
+import budget.application.db.util.DaoUtils;
 import budget.application.db.util.TransactionManager;
 import budget.application.model.dto.AccountRequest;
 import budget.application.model.dto.AccountResponse;
@@ -14,6 +15,8 @@ import io.github.bibekaryal86.shdsvc.dtos.ResponseMetadata;
 import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 import java.math.BigDecimal;
 import java.sql.SQLException;
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -77,6 +80,15 @@ public class AccountService {
           Map<UUID, List<AccountResponse.AccountBalanceHistory>> accountBalanceHistoryMap =
               accountBalancesDao.readAccountBalancesHistory(ids);
 
+          String currentYearMonth = DaoUtils.getYearMonth(LocalDate.now());
+          for (Account account : accountList) {
+            accountBalanceHistoryMap
+                .computeIfAbsent(account.id(), _ -> new ArrayList<>())
+                .add(
+                    new AccountResponse.AccountBalanceHistory(
+                        currentYearMonth, account.accountBalance()));
+          }
+
           return ResponseUtils.getAccountResponse(
               accountList, accountBalanceHistoryMap, ResponseMetadata.emptyResponseMetadata());
         });
@@ -122,6 +134,13 @@ public class AccountService {
               accountBalancesDaoFactory.create(transactionContext.connection());
           Map<UUID, List<AccountResponse.AccountBalanceHistory>> accountBalanceHistory =
               accountBalancesDao.readAccountBalancesHistory(List.of(id));
+
+          // add current month account balance history to the end of the list
+          accountBalanceHistory
+              .computeIfAbsent(id, k -> new ArrayList<>())
+              .add(
+                  new AccountResponse.AccountBalanceHistory(
+                      DaoUtils.getYearMonth(LocalDate.now()), accountOut.accountBalance()));
 
           return ResponseUtils.getAccountResponse(
               List.of(accountOut),
