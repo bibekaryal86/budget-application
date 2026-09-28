@@ -57,16 +57,17 @@ public final class AppContext {
 
     AccountService accountService = new AccountService(dataSource, accountDaoFactory);
     AccountBalancesService accountBalancesService =
-        new AccountBalancesService(dataSource, accountBalancesDaoFactory, accountService);
+        new AccountBalancesService(dataSource, accountBalancesDaoFactory, accountDaoFactory);
     InsightsService insightsService = new InsightsService(dataSource, insightsDaoFactory);
     CategoryTypeService categoryTypeService =
         new CategoryTypeService(dataSource, categoryTypeDaoFactory);
     CategoryService categoryService =
-        new CategoryService(dataSource, categoryDaoFactory, categoryTypeService);
-    BudgetService budgetService = new BudgetService(dataSource, budgetDaoFactory, categoryService);
+        new CategoryService(dataSource, categoryDaoFactory, categoryTypeDaoFactory);
+    BudgetService budgetService =
+        new BudgetService(dataSource, budgetDaoFactory, categoryDaoFactory);
     TransactionItemService transactionItemService =
         new TransactionItemService(
-            dataSource, transactionItemDaoFactory, categoryService, accountService);
+            dataSource, transactionItemDaoFactory, categoryDaoFactory, accountDaoFactory);
 
     TransactionEventBus transactionEventBus = new TransactionEventBus();
     transactionEventBus.subscribe(
@@ -78,8 +79,8 @@ public final class AppContext {
             email,
             transactionDaoFactory,
             transactionItemService,
-            categoryService,
-            categoryTypeService,
+            categoryDaoFactory,
+            categoryTypeDaoFactory,
             transactionEventBus);
 
     AccountHandler accountHandler = new AccountHandler(accountService);

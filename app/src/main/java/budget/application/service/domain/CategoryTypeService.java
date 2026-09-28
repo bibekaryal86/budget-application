@@ -7,7 +7,7 @@ import budget.application.db.util.TransactionManager;
 import budget.application.model.dto.CategoryTypeRequest;
 import budget.application.model.dto.CategoryTypeResponse;
 import budget.application.model.entity.CategoryType;
-import budget.application.service.util.ResponseMetadataUtils;
+import budget.application.service.util.ResponseUtils;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseMetadata;
 import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 import java.sql.Connection;
@@ -46,7 +46,7 @@ public class CategoryTypeService {
               new CategoryTypeResponse.CategoryType(id, categoryTypeIn.name().toUpperCase());
 
           return new CategoryTypeResponse(
-              List.of(categoryType), ResponseMetadataUtils.defaultInsertResponseMetadata());
+              List.of(categoryType), ResponseUtils.defaultInsertResponseMetadata());
         });
   }
 
@@ -99,7 +99,7 @@ public class CategoryTypeService {
               new CategoryTypeResponse.CategoryType(id, categoryTypeIn.name().toUpperCase());
 
           return new CategoryTypeResponse(
-              List.of(categoryType), ResponseMetadataUtils.defaultUpdateResponseMetadata());
+              List.of(categoryType), ResponseUtils.defaultUpdateResponseMetadata());
         });
   }
 
@@ -119,7 +119,7 @@ public class CategoryTypeService {
           int deleteCount = categoryTypeDao.delete(ids);
 
           return new CategoryTypeResponse(
-              List.of(), ResponseMetadataUtils.defaultDeleteResponseMetadata(deleteCount));
+              List.of(), ResponseUtils.defaultDeleteResponseMetadata(deleteCount));
         });
   }
 

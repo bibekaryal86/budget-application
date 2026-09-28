@@ -8,13 +8,12 @@ import budget.application.db.util.TransactionManager;
 import budget.application.model.dto.AccountRequest;
 import budget.application.model.dto.AccountResponse;
 import budget.application.model.entity.Account;
-import budget.application.service.util.ResponseMetadataUtils;
+import budget.application.service.util.ResponseUtils;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseMetadata;
 import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -62,7 +61,7 @@ public class AccountService {
                   accountOut.status());
 
           return new AccountResponse(
-              List.of(account), ResponseMetadataUtils.defaultInsertResponseMetadata());
+              List.of(account), ResponseUtils.defaultInsertResponseMetadata());
         });
   }
 
@@ -77,25 +76,13 @@ public class AccountService {
         transactionContext -> {
           AccountDao accountDao = accountDaoFactory.create(transactionContext.connection());
           List<Account> accountList = accountDao.read(ids);
+
           if (ids.size() == 1 && accountList.isEmpty()) {
             throw new Exceptions.NotFoundException("Account", ids.getFirst().toString());
           }
 
-          List<AccountResponse.Account> accounts =
-              accountList.stream()
-                  .map(
-                      account ->
-                          new AccountResponse.Account(
-                              account.id(),
-                              account.name(),
-                              account.accountType(),
-                              account.bankName(),
-                              account.accountBalance(),
-                              account.status()))
-                  .sorted(Comparator.comparing(AccountResponse.Account::bankName))
-                  .toList();
-
-          return new AccountResponse(accounts, ResponseMetadata.emptyResponseMetadata());
+          return ResponseUtils.getAccountResponse(
+              accountList, ResponseMetadata.emptyResponseMetadata());
         });
   }
 
@@ -143,7 +130,7 @@ public class AccountService {
                   accountOut.accountBalance(),
                   accountOut.status());
           return new AccountResponse(
-              List.of(account), ResponseMetadataUtils.defaultUpdateResponseMetadata());
+              List.of(account), ResponseUtils.defaultUpdateResponseMetadata());
         });
   }
 
@@ -160,7 +147,7 @@ public class AccountService {
 
           int deleteCount = accountDao.delete(ids);
           return new AccountResponse(
-              List.of(), ResponseMetadataUtils.defaultDeleteResponseMetadata(deleteCount));
+              List.of(), ResponseUtils.defaultDeleteResponseMetadata(deleteCount));
         });
   }
 

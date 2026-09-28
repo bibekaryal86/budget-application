@@ -2,6 +2,8 @@ package budget.application.service.domain;
 
 import budget.application.common.Constants;
 import budget.application.common.Exceptions;
+import budget.application.db.dao.CategoryDao;
+import budget.application.db.dao.CategoryTypeDao;
 import budget.application.db.dao.DaoFactory;
 import budget.application.db.dao.TransactionDao;
 import budget.application.db.util.TransactionManager;
@@ -19,7 +21,7 @@ import budget.application.model.entity.Category;
 import budget.application.model.entity.CategoryType;
 import budget.application.model.entity.Transaction;
 import budget.application.model.entity.TransactionItem;
-import budget.application.service.util.ResponseMetadataUtils;
+import budget.application.service.util.ResponseUtils;
 import io.github.bibekaryal86.shdsvc.Email;
 import io.github.bibekaryal86.shdsvc.dtos.EmailRequest;
 import io.github.bibekaryal86.shdsvc.dtos.EmailResponse;
@@ -47,8 +49,8 @@ public class TransactionService {
   private final Email email;
   private final DaoFactory<TransactionDao> transactionDaoFactory;
   private final TransactionItemService transactionItemService;
-  private final CategoryService categoryService;
-  private final CategoryTypeService categoryTypeService;
+  private final DaoFactory<CategoryDao> categoryDaoFactory;
+  private final DaoFactory<CategoryTypeDao> categoryTypeDaoFactory;
   private final TransactionEventBus transactionEventBus;
 
   public TransactionService(
@@ -56,15 +58,15 @@ public class TransactionService {
       Email email,
       DaoFactory<TransactionDao> transactionDaoFactory,
       TransactionItemService transactionItemService,
-      CategoryService categoryService,
-      CategoryTypeService categoryTypeService,
+      DaoFactory<CategoryDao> categoryDaoFactory,
+      DaoFactory<CategoryTypeDao> categoryTypeDaoFactory,
       TransactionEventBus transactionEventBus) {
     this.transactionManager = new TransactionManager(dataSource);
     this.email = email;
     this.transactionDaoFactory = transactionDaoFactory;
     this.transactionItemService = transactionItemService;
-    this.categoryService = categoryService;
-    this.categoryTypeService = categoryTypeService;
+    this.categoryDaoFactory = categoryDaoFactory;
+    this.categoryTypeDaoFactory = categoryTypeDaoFactory;
     this.transactionEventBus = transactionEventBus;
   }
 
@@ -105,7 +107,7 @@ public class TransactionService {
               return new TransactionResponse(
                   new TransactionResponse.TransactionInsightsResponse(
                       transactions, null, null, null),
-                  ResponseMetadataUtils.defaultInsertResponseMetadata());
+                  ResponseUtils.defaultInsertResponseMetadata());
             });
 
     // publish transaction event
@@ -187,7 +189,7 @@ public class TransactionService {
               return new TransactionResponse(
                   new TransactionResponse.TransactionInsightsResponse(
                       transactions, null, null, null),
-                  ResponseMetadataUtils.defaultUpdateResponseMetadata());
+                  ResponseUtils.defaultUpdateResponseMetadata());
             });
 
     TransactionResponse transactionResponse =
@@ -234,7 +236,7 @@ public class TransactionService {
               return new TransactionResponse(
                   new TransactionResponse.TransactionInsightsResponse(
                       transactions, null, null, null),
-                  ResponseMetadataUtils.defaultUpdateResponseMetadata());
+                  ResponseUtils.defaultUpdateResponseMetadata());
             });
 
     transactionEventBus.publish(
@@ -259,7 +261,7 @@ public class TransactionService {
               return new TransactionResponse(
                   new TransactionResponse.TransactionInsightsResponse(
                       transactions, null, null, null),
-                  ResponseMetadataUtils.defaultUpdateResponseMetadata());
+                  ResponseUtils.defaultUpdateResponseMetadata());
             });
 
     TransactionResponse transactionResponse =
@@ -285,7 +287,7 @@ public class TransactionService {
               log.info("Deleted transactions: Ids=[{}], DeleteCount=[{}]", ids, deleteCount);
               return new TransactionResponse(
                   new TransactionResponse.TransactionInsightsResponse(List.of(), null, null, null),
-                  ResponseMetadataUtils.defaultDeleteResponseMetadata(deleteCount));
+                  ResponseUtils.defaultDeleteResponseMetadata(deleteCount));
             });
 
     transactionEventBus.publish(
@@ -418,6 +420,9 @@ public class TransactionService {
       throw new Exceptions.BadRequestException("Total amount does not match sum of items...");
     }
 
+    CategoryDao categoryDao = categoryDaoFactory.create(connection);
+    CategoryTypeDao categoryTypeDao = categoryTypeDaoFactory.create(connection);
+
     List<UUID> categoryIds =
         CommonUtilities.isEmpty(transactionRequest.items())
             ? List.of()
@@ -426,11 +431,11 @@ public class TransactionService {
                 .collect(Collectors.toSet())
                 .stream()
                 .toList();
-    List<Category> categories = categoryService.readNoEx(categoryIds, connection);
+    List<Category> categories = categoryDao.readNoEx(categoryIds);
     List<UUID> categoryTypeIds =
         categories.stream().map(Category::categoryTypeId).collect(Collectors.toSet()).stream()
             .toList();
-    List<CategoryType> categoryTypes = categoryTypeService.readNoEx(categoryTypeIds, connection);
+    List<CategoryType> categoryTypes = categoryTypeDao.readNoEx(categoryTypeIds);
 
     if (CommonUtilities.isEmpty(categories) || (categories.size() != categoryIds.size())) {
       throw new Exceptions.BadRequestException("Category does not exist...");

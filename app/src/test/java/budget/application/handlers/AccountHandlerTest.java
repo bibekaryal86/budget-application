@@ -5,7 +5,7 @@ import budget.application.model.dto.AccountRequest;
 import budget.application.model.dto.AccountResponse;
 import budget.application.server.util.ApiPaths;
 import budget.application.server.util.JsonUtils;
-import budget.application.service.util.ResponseMetadataUtils;
+import budget.application.service.util.ResponseUtils;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseWithMetadata;
 import java.math.BigDecimal;
 import java.net.http.HttpResponse;
@@ -25,8 +25,7 @@ public class AccountHandlerTest extends IntegrationBaseTest {
     Assertions.assertEquals(1, response.data().size());
     Assertions.assertEquals(req.name().toUpperCase().trim(), response.data().getFirst().name());
     Assertions.assertEquals(new BigDecimal("0.00"), response.data().getFirst().accountBalance());
-    Assertions.assertEquals(
-        ResponseMetadataUtils.defaultInsertResponseMetadata(), response.metadata());
+    Assertions.assertEquals(ResponseUtils.defaultInsertResponseMetadata(), response.metadata());
     final String id = response.data().getFirst().id().toString();
 
     // READ ALL
@@ -49,16 +48,14 @@ public class AccountHandlerTest extends IntegrationBaseTest {
     Assertions.assertEquals(1, response.data().size());
     Assertions.assertEquals(req.name().toUpperCase().trim(), response.data().getFirst().name());
     Assertions.assertEquals(new BigDecimal("0.00"), response.data().getFirst().accountBalance());
-    Assertions.assertEquals(
-        ResponseMetadataUtils.defaultUpdateResponseMetadata(), response.metadata());
+    Assertions.assertEquals(ResponseUtils.defaultUpdateResponseMetadata(), response.metadata());
 
     // DELETE
     resp = httpDelete(ApiPaths.ACCOUNTS_V1_WITH_ID + id, Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());
     response = JsonUtils.fromJson(resp.body(), AccountResponse.class);
     Assertions.assertEquals(0, response.data().size());
-    Assertions.assertEquals(
-        ResponseMetadataUtils.defaultDeleteResponseMetadata(1), response.metadata());
+    Assertions.assertEquals(ResponseUtils.defaultDeleteResponseMetadata(1), response.metadata());
 
     resp = httpGet(ApiPaths.ACCOUNTS_V1_WITH_ID + id, Boolean.TRUE);
     Assertions.assertEquals(404, resp.statusCode());

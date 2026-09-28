@@ -8,7 +8,7 @@ import budget.application.model.dto.TransactionRequest;
 import budget.application.model.dto.TransactionResponse;
 import budget.application.server.util.ApiPaths;
 import budget.application.server.util.JsonUtils;
-import budget.application.service.util.ResponseMetadataUtils;
+import budget.application.service.util.ResponseUtils;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseMetadata;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseWithMetadata;
 import java.math.BigDecimal;
@@ -59,8 +59,7 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
     Assertions.assertEquals(2, response.data().transactions().getFirst().items().size());
     Assertions.assertEquals(
         req.merchant().toUpperCase(), response.data().transactions().getFirst().merchant());
-    Assertions.assertEquals(
-        ResponseMetadataUtils.defaultInsertResponseMetadata(), response.metadata());
+    Assertions.assertEquals(ResponseUtils.defaultInsertResponseMetadata(), response.metadata());
     Assertions.assertNull(response.data().cashFlowAmounts());
     Assertions.assertNull(response.data().categoryAmounts());
     Assertions.assertNull(response.data().accountAmounts());
@@ -118,8 +117,7 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
     Assertions.assertEquals(2, response.data().transactions().getFirst().items().size());
     Assertions.assertEquals(
         req.merchant().toUpperCase(), response.data().transactions().getFirst().merchant());
-    Assertions.assertEquals(
-        ResponseMetadataUtils.defaultUpdateResponseMetadata(), response.metadata());
+    Assertions.assertEquals(ResponseUtils.defaultUpdateResponseMetadata(), response.metadata());
     Assertions.assertNull(response.data().cashFlowAmounts());
     Assertions.assertNull(response.data().categoryAmounts());
     Assertions.assertNull(response.data().accountAmounts());
@@ -137,8 +135,7 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
     Assertions.assertEquals(200, resp.statusCode());
     response = JsonUtils.fromJson(resp.body(), TransactionResponse.class);
     Assertions.assertEquals(0, response.data().transactions().size());
-    Assertions.assertEquals(
-        ResponseMetadataUtils.defaultDeleteResponseMetadata(1), response.metadata());
+    Assertions.assertEquals(ResponseUtils.defaultDeleteResponseMetadata(1), response.metadata());
     Assertions.assertNull(response.data().cashFlowAmounts());
     Assertions.assertNull(response.data().categoryAmounts());
     Assertions.assertNull(response.data().accountAmounts());

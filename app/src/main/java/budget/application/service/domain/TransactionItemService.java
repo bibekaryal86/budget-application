@@ -1,6 +1,8 @@
 package budget.application.service.domain;
 
 import budget.application.common.Exceptions;
+import budget.application.db.dao.AccountDao;
+import budget.application.db.dao.CategoryDao;
 import budget.application.db.dao.DaoFactory;
 import budget.application.db.dao.TransactionItemDao;
 import budget.application.db.util.TransactionManager;
@@ -9,7 +11,7 @@ import budget.application.model.dto.TransactionItemResponse;
 import budget.application.model.entity.Account;
 import budget.application.model.entity.Category;
 import budget.application.model.entity.TransactionItem;
-import budget.application.service.util.ResponseMetadataUtils;
+import budget.application.service.util.ResponseUtils;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseMetadata;
 import java.math.BigDecimal;
 import java.sql.Connection;
@@ -25,18 +27,18 @@ public class TransactionItemService {
 
   private final TransactionManager transactionManager;
   private final DaoFactory<TransactionItemDao> transactionItemDaoFactory;
-  private final CategoryService categoryService;
-  private final AccountService accountService;
+  private final DaoFactory<CategoryDao> categoryDaoFactory;
+  private final DaoFactory<AccountDao> accountDaoFactory;
 
   public TransactionItemService(
       DataSource dataSource,
       DaoFactory<TransactionItemDao> transactionItemDaoFactory,
-      CategoryService categoryService,
-      AccountService accountService) {
+      DaoFactory<CategoryDao> categoryDaoFactory,
+      DaoFactory<AccountDao> accountDaoFactory) {
     this.transactionManager = new TransactionManager(dataSource);
     this.transactionItemDaoFactory = transactionItemDaoFactory;
-    this.categoryService = categoryService;
-    this.accountService = accountService;
+    this.categoryDaoFactory = categoryDaoFactory;
+    this.accountDaoFactory = accountDaoFactory;
   }
 
   public TransactionItemResponse create(TransactionItemRequest transactionItemRequest)
@@ -71,7 +73,7 @@ public class TransactionItemService {
     List<TransactionItemResponse.TransactionItem> transactionItems =
         transactionItemDao.readTransactionItems(List.of(id));
     return new TransactionItemResponse(
-        transactionItems, ResponseMetadataUtils.defaultInsertResponseMetadata());
+        transactionItems, ResponseUtils.defaultInsertResponseMetadata());
   }
 
   public List<TransactionItem> createItems(
@@ -181,7 +183,7 @@ public class TransactionItemService {
     TransactionItemResponse.TransactionItem transactionItem =
         transactionItemDao.readTransactionItems(List.of(id)).getFirst();
     return new TransactionItemResponse(
-        List.of(transactionItem), ResponseMetadataUtils.defaultUpdateResponseMetadata());
+        List.of(transactionItem), ResponseUtils.defaultUpdateResponseMetadata());
   }
 
   public TransactionItemResponse delete(List<UUID> ids) throws SQLException {
@@ -204,7 +206,7 @@ public class TransactionItemService {
 
     int deleteCount = transactionItemDao.delete(ids);
     return new TransactionItemResponse(
-        List.of(), ResponseMetadataUtils.defaultDeleteResponseMetadata(deleteCount));
+        List.of(), ResponseUtils.defaultDeleteResponseMetadata(deleteCount));
   }
 
   public int deleteByTransactionIds(List<UUID> transactionIds, Connection connection)
@@ -236,10 +238,12 @@ public class TransactionItemService {
           "Transaction item amount cannot be null or negative...");
     }
 
+    CategoryDao categoryDao = categoryDaoFactory.create(connection);
+    AccountDao accountDao = accountDaoFactory.create(connection);
+
     List<Category> categoryList =
-        categoryService.readNoEx(List.of(transactionItemRequest.categoryId()), connection);
-    List<Account> accountList =
-        accountService.readNoEx(List.of(transactionItemRequest.accountId()), connection);
+        categoryDao.readNoEx(List.of(transactionItemRequest.categoryId()));
+    List<Account> accountList = accountDao.readNoEx(List.of(transactionItemRequest.accountId()));
 
     Category category =
         categoryList.stream()

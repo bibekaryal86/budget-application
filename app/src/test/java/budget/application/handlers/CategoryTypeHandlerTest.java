@@ -5,7 +5,7 @@ import budget.application.model.dto.CategoryTypeRequest;
 import budget.application.model.dto.CategoryTypeResponse;
 import budget.application.server.util.ApiPaths;
 import budget.application.server.util.JsonUtils;
-import budget.application.service.util.ResponseMetadataUtils;
+import budget.application.service.util.ResponseUtils;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseWithMetadata;
 import java.net.http.HttpResponse;
 import java.util.UUID;
@@ -24,8 +24,7 @@ public class CategoryTypeHandlerTest extends IntegrationBaseTest {
     CategoryTypeResponse response = JsonUtils.fromJson(resp.body(), CategoryTypeResponse.class);
     Assertions.assertEquals(1, response.data().size());
     Assertions.assertEquals(req.name().toUpperCase(), response.data().getFirst().name());
-    Assertions.assertEquals(
-        ResponseMetadataUtils.defaultInsertResponseMetadata(), response.metadata());
+    Assertions.assertEquals(ResponseUtils.defaultInsertResponseMetadata(), response.metadata());
     final String id = response.data().getFirst().id().toString();
 
     // READ ALL
@@ -47,16 +46,14 @@ public class CategoryTypeHandlerTest extends IntegrationBaseTest {
     response = JsonUtils.fromJson(resp.body(), CategoryTypeResponse.class);
     Assertions.assertEquals(1, response.data().size());
     Assertions.assertEquals(req.name().toUpperCase(), response.data().getFirst().name());
-    Assertions.assertEquals(
-        ResponseMetadataUtils.defaultUpdateResponseMetadata(), response.metadata());
+    Assertions.assertEquals(ResponseUtils.defaultUpdateResponseMetadata(), response.metadata());
 
     // DELETE
     resp = httpDelete(ApiPaths.CATEGORY_TYPES_V1_WITH_ID + id, Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());
     response = JsonUtils.fromJson(resp.body(), CategoryTypeResponse.class);
     Assertions.assertEquals(0, response.data().size());
-    Assertions.assertEquals(
-        ResponseMetadataUtils.defaultDeleteResponseMetadata(1), response.metadata());
+    Assertions.assertEquals(ResponseUtils.defaultDeleteResponseMetadata(1), response.metadata());
 
     resp = httpGet(ApiPaths.CATEGORY_TYPES_V1_WITH_ID + id, Boolean.TRUE);
     Assertions.assertEquals(404, resp.statusCode());
