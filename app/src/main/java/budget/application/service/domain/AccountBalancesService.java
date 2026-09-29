@@ -65,6 +65,17 @@ public class AccountBalancesService {
         });
   }
 
+  public void createAccountBalances(List<AccountBalances> accountBalances) throws SQLException {
+    log.debug("Create Account Balances: AccountBalances={}", accountBalances);
+    transactionManager.executeVoid(
+        transactionContext -> {
+          AccountBalancesDao accountBalancesDao =
+              accountBalancesDaoFactory.create(transactionContext.connection());
+          accountBalancesDao.createAccountBalances(accountBalances);
+          log.debug("Created [{}] Account Balances", accountBalances.size());
+        });
+  }
+
   public InsightsResponse.AccountSummaries readAccountBalances(
       RequestParams.AccountSummaryParams requestParams) throws SQLException {
     log.debug("Read Account Balances: RequestParams=[{}]", requestParams);
@@ -96,6 +107,16 @@ public class AccountBalancesService {
 
     return new InsightsResponse.AccountSummaries(
         calculateNetWorth(accountBalanceSummaries), ResponseMetadata.emptyResponseMetadata());
+  }
+
+  public Map<UUID, Boolean> checkAccountBalanceExists(List<UUID> accountIds) throws SQLException {
+    log.debug("Check Account Balance Exists: AccountIds=[{}]", accountIds);
+    return transactionManager.execute(
+        transactionContext -> {
+          AccountBalancesDao accountBalancesDao =
+              accountBalancesDaoFactory.create(transactionContext.connection());
+          return accountBalancesDao.readAccountBalancesExist(accountIds);
+        });
   }
 
   public void updateAccountBalances(

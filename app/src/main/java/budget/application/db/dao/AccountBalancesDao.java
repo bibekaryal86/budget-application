@@ -233,6 +233,45 @@ public class AccountBalancesDao extends BaseDao<AccountBalances> {
     return beginningBalanceMap;
   }
 
+  public Map<UUID, Boolean> readAccountBalancesExist(List<UUID> accountIds) throws SQLException {
+    log.debug("Read account balances exist: AccountIds=[{}]", accountIds);
+
+    boolean hasAccountIds = !CommonUtilities.isEmpty(accountIds);
+
+    List<Object> params = new ArrayList<>();
+    params.add(hasAccountIds);
+    params.add(hasAccountIds ? accountIds.toArray(new UUID[0]) : null);
+
+    String sql =
+        """
+                    SELECT DISTINCT
+                      ab.account_id
+                    FROM
+                      account_balances ab
+                    WHERE
+                      (? = FALSE OR ab.account_id = ANY(?))
+                """;
+
+    Map<UUID, Boolean> existsMap = new LinkedHashMap<>();
+
+    if (hasAccountIds) {
+      accountIds.forEach(accountId -> existsMap.put(accountId, Boolean.FALSE));
+    }
+
+    try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+      DaoUtils.bindParams(preparedStatement, params, Boolean.TRUE);
+
+      try (ResultSet resultSet = preparedStatement.executeQuery()) {
+        while (resultSet.next()) {
+          UUID accountId = resultSet.getObject("account_id", UUID.class);
+          existsMap.put(accountId, Boolean.TRUE);
+        }
+      }
+    }
+
+    return existsMap;
+  }
+
   public int updateAccountBalances(
       LocalDate yearMonth, String notes, Map<UUID, BigDecimal> accountBalanceUpdates)
       throws SQLException {

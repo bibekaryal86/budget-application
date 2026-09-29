@@ -146,22 +146,9 @@ public class AccountService {
                   null,
                   null);
           Account accountOut = accountDao.update(accountIn);
-
-          AccountBalancesDao accountBalancesDao =
-              accountBalancesDaoFactory.create(transactionContext.connection());
-          Map<UUID, List<AccountResponse.AccountBalanceHistory>> accountBalanceHistory =
-              accountBalancesDao.readAccountBalancesHistory(List.of(id));
-
-          // add current month account balance history to the end of the list
-          accountBalanceHistory
-              .computeIfAbsent(id, k -> new ArrayList<>())
-              .add(
-                  new AccountResponse.AccountBalanceHistory(
-                      DaoUtils.getYearMonth(LocalDate.now()), accountOut.accountBalance()));
-
           return ResponseUtils.getAccountResponse(
               List.of(accountOut),
-              accountBalanceHistory,
+              Map.of(),
               ResponseUtils.defaultUpdateResponseMetadata());
         });
   }

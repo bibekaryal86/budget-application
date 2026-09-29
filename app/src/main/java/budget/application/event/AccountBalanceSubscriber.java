@@ -6,11 +6,14 @@ import budget.application.model.dto.AccountResponse;
 import budget.application.model.dto.CategoryResponse;
 import budget.application.model.dto.TransactionItemResponse;
 import budget.application.model.dto.TransactionResponse;
+import budget.application.model.entity.AccountBalances;
 import budget.application.service.domain.AccountBalancesService;
 import budget.application.service.domain.AccountService;
 import java.math.BigDecimal;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -227,6 +230,7 @@ public final class AccountBalanceSubscriber implements TransactionEventSubscribe
     try {
       boolean isCurrentMonthEvent = isCurrentMonthTransactionEvent(transaction.txnDate());
       if (isCurrentMonthEvent) {
+        createFirstAccountBalances(transaction, accountBalanceUpdates);
         return;
       }
 
@@ -235,6 +239,29 @@ public final class AccountBalanceSubscriber implements TransactionEventSubscribe
           yearMonth, transaction.id().toString(), accountBalanceUpdates);
     } catch (Exception e) {
       log.error("Error updated previous account balances: Transaction=[{}],", transaction, e);
+    }
+  }
+
+  private void createFirstAccountBalances(
+      TransactionResponse.Transaction transaction, Map<UUID, BigDecimal> accountBalanceUpdates)
+      throws SQLException {
+    LocalDate yearMonth = transaction.txnDate().toLocalDate().withDayOfMonth(1);
+    Map<UUID, Boolean> accountBalanceExist =
+        accountBalancesService.checkAccountBalanceExists(
+            accountBalanceUpdates.keySet().stream().toList());
+
+    List<AccountBalances> accountBalancesToCreate = new ArrayList<>();
+    for (UUID accountId : accountBalanceUpdates.keySet()) {
+      Boolean accountBalanceExistForAccount = accountBalanceExist.get(accountId);
+      if (accountBalanceExistForAccount == null || !accountBalanceExistForAccount) {
+        accountBalancesToCreate.add(
+            new AccountBalances(
+                null, accountId, yearMonth, accountBalanceUpdates.get(accountId), "", null, null));
+      }
+    }
+
+    if (!accountBalancesToCreate.isEmpty()) {
+      accountBalancesService.createAccountBalances(accountBalancesToCreate);
     }
   }
 
