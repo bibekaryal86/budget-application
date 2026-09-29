@@ -77,16 +77,33 @@ public class AccountService {
 
           AccountBalancesDao accountBalancesDao =
               accountBalancesDaoFactory.create(transactionContext.connection());
+          // get account balances history
           Map<UUID, List<AccountResponse.AccountBalanceHistory>> accountBalanceHistoryMap =
               accountBalancesDao.readAccountBalancesHistory(ids);
-
+          // get account beginning balances
+          Map<UUID, AccountResponse.AccountBalanceHistory> accountBeginningBalancesMap =
+              accountBalancesDao.readAccountBeginningBalances(ids);
+          // get current account balances
           String currentYearMonth = DaoUtils.getYearMonth(LocalDate.now());
+
           for (Account account : accountList) {
-            accountBalanceHistoryMap
-                .computeIfAbsent(account.id(), _ -> new ArrayList<>())
-                .add(
-                    new AccountResponse.AccountBalanceHistory(
-                        currentYearMonth, account.accountBalance()));
+            List<AccountResponse.AccountBalanceHistory> history =
+                accountBalanceHistoryMap.computeIfAbsent(account.id(), _ -> new ArrayList<>());
+
+            // add beginning balance as the first element of the list
+            AccountResponse.AccountBalanceHistory beginning =
+                accountBeginningBalancesMap.get(account.id());
+            if (beginning != null
+                && (history.isEmpty()
+                    || !history.getFirst().yearMonth().equals(beginning.yearMonth()))) {
+              history.addFirst(beginning);
+            }
+
+            // add the current month account balance history to the end of the list
+            history.removeIf(h -> h.yearMonth().equals(currentYearMonth));
+            history.add(
+                new AccountResponse.AccountBalanceHistory(
+                    currentYearMonth, account.accountBalance()));
           }
 
           return ResponseUtils.getAccountResponse(

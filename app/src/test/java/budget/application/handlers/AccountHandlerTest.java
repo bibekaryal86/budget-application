@@ -50,6 +50,7 @@ public class AccountHandlerTest extends IntegrationBaseTest {
     Assertions.assertEquals(req.name().toUpperCase().trim(), response.data().getFirst().name());
     Assertions.assertEquals(new BigDecimal("0.00"), response.data().getFirst().accountBalance());
     Assertions.assertEquals(ResponseUtils.defaultUpdateResponseMetadata(), response.metadata());
+    Assertions.assertTrue(response.data().getFirst().accountBalanceHistories().isEmpty());
 
     // DELETE
     resp = httpDelete(ApiPaths.ACCOUNTS_V1_WITH_ID + id, Boolean.TRUE);
