@@ -253,7 +253,7 @@ public final class AccountBalanceSubscriber implements TransactionEventSubscribe
         "Create first account balances: Transaction=[{}], AccountBalanceUpdates={}",
         transaction,
         accountBalanceUpdates);
-    LocalDate yearMonth = transaction.txnDate().toLocalDate().withDayOfMonth(1);
+    LocalDate yearMonth = transaction.txnDate().toLocalDate().minusMonths(1).withDayOfMonth(1);
     Map<UUID, Boolean> accountBalanceExist =
         accountBalancesService.checkAccountBalanceExists(
             accountBalanceUpdates.keySet().stream().toList());
