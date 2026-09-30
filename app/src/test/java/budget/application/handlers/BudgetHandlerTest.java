@@ -5,7 +5,7 @@ import budget.application.model.dto.BudgetRequest;
 import budget.application.model.dto.BudgetResponse;
 import budget.application.server.util.ApiPaths;
 import budget.application.server.util.JsonUtils;
-import budget.application.service.util.ResponseMetadataUtils;
+import budget.application.service.util.ResponseUtils;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseWithMetadata;
 import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 import java.math.BigDecimal;
@@ -42,8 +42,7 @@ public class BudgetHandlerTest extends IntegrationBaseTest {
     Assertions.assertEquals(req.categoryId(), response.data().getFirst().category().id());
     Assertions.assertEquals(req.amount(), response.data().getFirst().amount());
     Assertions.assertTrue(CommonUtilities.isEmpty(response.data().getFirst().notes()));
-    Assertions.assertEquals(
-        ResponseMetadataUtils.defaultInsertResponseMetadata(), response.metadata());
+    Assertions.assertEquals(ResponseUtils.defaultInsertResponseMetadata(), response.metadata());
     final String id = response.data().getFirst().id().toString();
 
     // READ ALL
@@ -73,16 +72,14 @@ public class BudgetHandlerTest extends IntegrationBaseTest {
     Assertions.assertEquals(req.categoryId(), response.data().getFirst().category().id());
     Assertions.assertEquals(req.amount(), response.data().getFirst().amount());
     Assertions.assertFalse(CommonUtilities.isEmpty(response.data().getFirst().notes()));
-    Assertions.assertEquals(
-        ResponseMetadataUtils.defaultUpdateResponseMetadata(), response.metadata());
+    Assertions.assertEquals(ResponseUtils.defaultUpdateResponseMetadata(), response.metadata());
 
     // DELETE
     resp = httpDelete(ApiPaths.BUDGETS_V1_WITH_ID + id, Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());
     response = JsonUtils.fromJson(resp.body(), BudgetResponse.class);
     Assertions.assertEquals(0, response.data().size());
-    Assertions.assertEquals(
-        ResponseMetadataUtils.defaultDeleteResponseMetadata(1), response.metadata());
+    Assertions.assertEquals(ResponseUtils.defaultDeleteResponseMetadata(1), response.metadata());
 
     resp = httpGet(ApiPaths.BUDGETS_V1_WITH_ID + id, Boolean.TRUE);
     Assertions.assertEquals(404, resp.statusCode());

@@ -2,13 +2,14 @@ package budget.application.service.domain;
 
 import budget.application.common.Exceptions;
 import budget.application.db.dao.CategoryDao;
+import budget.application.db.dao.CategoryTypeDao;
 import budget.application.db.dao.DaoFactory;
 import budget.application.db.util.TransactionManager;
 import budget.application.model.dto.CategoryRequest;
 import budget.application.model.dto.CategoryResponse;
 import budget.application.model.entity.Category;
 import budget.application.model.entity.CategoryType;
-import budget.application.service.util.ResponseMetadataUtils;
+import budget.application.service.util.ResponseUtils;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseMetadata;
 import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 import java.sql.Connection;
@@ -24,15 +25,15 @@ public class CategoryService {
 
   private final TransactionManager transactionManager;
   private final DaoFactory<CategoryDao> categoryDaoFactory;
-  private final CategoryTypeService categoryTypeService;
+  private final DaoFactory<CategoryTypeDao> categoryTypeDaoFactory;
 
   public CategoryService(
       DataSource dataSource,
       DaoFactory<CategoryDao> categoryDaoFactory,
-      CategoryTypeService categoryTypeService) {
+      DaoFactory<CategoryTypeDao> categoryTypeDaoFactory) {
     this.transactionManager = new TransactionManager(dataSource);
     this.categoryDaoFactory = categoryDaoFactory;
-    this.categoryTypeService = categoryTypeService;
+    this.categoryTypeDaoFactory = categoryTypeDaoFactory;
   }
 
   public CategoryResponse create(CategoryRequest categoryRequest) throws SQLException {
@@ -49,13 +50,8 @@ public class CategoryService {
           CategoryResponse.Category category = categoryDao.readCategories(List.of(id)).getFirst();
 
           return new CategoryResponse(
-              List.of(category), ResponseMetadataUtils.defaultInsertResponseMetadata());
+              List.of(category), ResponseUtils.defaultInsertResponseMetadata());
         });
-  }
-
-  public List<Category> readNoEx(List<UUID> ids, Connection connection) {
-    CategoryDao categoryDao = categoryDaoFactory.create(connection);
-    return categoryDao.readNoEx(ids);
   }
 
   public CategoryResponse read(List<UUID> categoryIds) throws SQLException {
@@ -91,7 +87,7 @@ public class CategoryService {
           categoryDao.update(categoryIn);
           CategoryResponse.Category category = categoryDao.readCategories(List.of(id)).getFirst();
           return new CategoryResponse(
-              List.of(category), ResponseMetadataUtils.defaultUpdateResponseMetadata());
+              List.of(category), ResponseUtils.defaultUpdateResponseMetadata());
         });
   }
 
@@ -108,7 +104,7 @@ public class CategoryService {
 
           int deleteCount = categoryDao.delete(ids);
           return new CategoryResponse(
-              List.of(), ResponseMetadataUtils.defaultDeleteResponseMetadata(deleteCount));
+              List.of(), ResponseUtils.defaultDeleteResponseMetadata(deleteCount));
         });
   }
 
@@ -123,8 +119,9 @@ public class CategoryService {
       throw new Exceptions.BadRequestException("Category name cannot be empty...");
     }
 
+    CategoryTypeDao categoryTypeDao = categoryTypeDaoFactory.create(connection);
     List<CategoryType> categoryTypeList =
-        categoryTypeService.readNoEx(List.of(categoryRequest.categoryTypeId()), connection);
+        categoryTypeDao.readNoEx(List.of(categoryRequest.categoryTypeId()));
 
     if (CommonUtilities.isEmpty(categoryTypeList)) {
       throw new Exceptions.BadRequestException("Category type does not exist...");

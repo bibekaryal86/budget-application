@@ -2,6 +2,7 @@ package budget.application.service.domain;
 
 import budget.application.common.Exceptions;
 import budget.application.db.dao.BudgetDao;
+import budget.application.db.dao.CategoryDao;
 import budget.application.db.dao.DaoFactory;
 import budget.application.db.util.TransactionManager;
 import budget.application.model.dto.BudgetRequest;
@@ -9,7 +10,7 @@ import budget.application.model.dto.BudgetResponse;
 import budget.application.model.dto.RequestParams;
 import budget.application.model.entity.Budget;
 import budget.application.model.entity.Category;
-import budget.application.service.util.ResponseMetadataUtils;
+import budget.application.service.util.ResponseUtils;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseMetadata;
 import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 import java.sql.Connection;
@@ -25,15 +26,15 @@ public class BudgetService {
 
   private final TransactionManager transactionManager;
   private final DaoFactory<BudgetDao> budgetDaoFactory;
-  private final CategoryService categoryService;
+  private final DaoFactory<CategoryDao> categoryDaoFactory;
 
   public BudgetService(
       DataSource dataSource,
       DaoFactory<BudgetDao> budgetDaoFactory,
-      CategoryService categoryService) {
+      DaoFactory<CategoryDao> categoryDaoFactory) {
     this.transactionManager = new TransactionManager(dataSource);
     this.budgetDaoFactory = budgetDaoFactory;
-    this.categoryService = categoryService;
+    this.categoryDaoFactory = categoryDaoFactory;
   }
 
   public BudgetResponse create(BudgetRequest budgetRequest) throws SQLException {
@@ -58,8 +59,7 @@ public class BudgetService {
           BudgetResponse.Budget budget =
               budgetDao.readBudgets(List.of(id), 0, 0, List.of()).getFirst();
 
-          return new BudgetResponse(
-              List.of(budget), ResponseMetadataUtils.defaultInsertResponseMetadata());
+          return new BudgetResponse(List.of(budget), ResponseUtils.defaultInsertResponseMetadata());
         });
   }
 
@@ -109,8 +109,7 @@ public class BudgetService {
           budgetDao.update(budgetIn);
           BudgetResponse.Budget budget =
               budgetDao.readBudgets(List.of(id), 0, 0, List.of()).getFirst();
-          return new BudgetResponse(
-              List.of(budget), ResponseMetadataUtils.defaultUpdateResponseMetadata());
+          return new BudgetResponse(List.of(budget), ResponseUtils.defaultUpdateResponseMetadata());
         });
   }
 
@@ -127,7 +126,7 @@ public class BudgetService {
 
           int deleteCount = budgetDao.delete(ids);
           return new BudgetResponse(
-              List.of(), ResponseMetadataUtils.defaultDeleteResponseMetadata(deleteCount));
+              List.of(), ResponseUtils.defaultDeleteResponseMetadata(deleteCount));
         });
   }
 
@@ -149,8 +148,8 @@ public class BudgetService {
       throw new Exceptions.BadRequestException("Budget amount cannot be zero or negative...");
     }
 
-    List<Category> categories =
-        categoryService.readNoEx(List.of(budgetRequest.categoryId()), connection);
+    CategoryDao categoryDao = categoryDaoFactory.create(connection);
+    List<Category> categories = categoryDao.readNoEx(List.of(budgetRequest.categoryId()));
 
     if (CommonUtilities.isEmpty(categories)) {
       throw new Exceptions.BadRequestException("Category does not exist...");

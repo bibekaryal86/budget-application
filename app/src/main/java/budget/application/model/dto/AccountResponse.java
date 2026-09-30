@@ -12,7 +12,10 @@ public record AccountResponse(List<Account> data, ResponseMetadata metadata) {
       String accountType,
       String bankName,
       BigDecimal accountBalance,
-      String status) {}
+      String status,
+      List<AccountBalanceHistory> accountBalanceHistories) {}
+
+  public record AccountBalanceHistory(String yearMonth, BigDecimal balance) {}
 
   public record AccountRefLists(List<String> data, ResponseMetadata metadata) {}
 }

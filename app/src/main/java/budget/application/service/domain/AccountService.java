@@ -2,19 +2,21 @@ package budget.application.service.domain;
 
 import budget.application.common.Constants;
 import budget.application.common.Exceptions;
+import budget.application.db.dao.AccountBalancesDao;
 import budget.application.db.dao.AccountDao;
 import budget.application.db.dao.DaoFactory;
+import budget.application.db.util.DaoUtils;
 import budget.application.db.util.TransactionManager;
 import budget.application.model.dto.AccountRequest;
 import budget.application.model.dto.AccountResponse;
 import budget.application.model.entity.Account;
-import budget.application.service.util.ResponseMetadataUtils;
+import budget.application.service.util.ResponseUtils;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseMetadata;
 import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 import java.math.BigDecimal;
-import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.Comparator;
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -27,10 +29,15 @@ public class AccountService {
 
   private final TransactionManager transactionManager;
   private final DaoFactory<AccountDao> accountDaoFactory;
+  private final DaoFactory<AccountBalancesDao> accountBalancesDaoFactory;
 
-  public AccountService(DataSource dataSource, DaoFactory<AccountDao> accountDaoFactory) {
+  public AccountService(
+      DataSource dataSource,
+      DaoFactory<AccountDao> accountDaoFactory,
+      DaoFactory<AccountBalancesDao> accountBalancesDaoFactory) {
     this.transactionManager = new TransactionManager(dataSource);
     this.accountDaoFactory = accountDaoFactory;
+    this.accountBalancesDaoFactory = accountBalancesDaoFactory;
   }
 
   public AccountResponse create(AccountRequest accountRequest) throws SQLException {
@@ -52,23 +59,9 @@ public class AccountService {
                   null);
           Account accountOut = accountDao.create(accountIn);
           log.debug("Created account: Id=[{}]", accountOut.id());
-          AccountResponse.Account account =
-              new AccountResponse.Account(
-                  accountOut.id(),
-                  accountOut.name(),
-                  accountOut.accountType(),
-                  accountOut.bankName(),
-                  accountOut.accountBalance(),
-                  accountOut.status());
-
-          return new AccountResponse(
-              List.of(account), ResponseMetadataUtils.defaultInsertResponseMetadata());
+          return ResponseUtils.getAccountResponse(
+              List.of(accountOut), Map.of(), ResponseUtils.defaultInsertResponseMetadata());
         });
-  }
-
-  public List<Account> readNoEx(List<UUID> ids, Connection connection) {
-    AccountDao accountDao = accountDaoFactory.create(connection);
-    return accountDao.readNoEx(ids);
   }
 
   public AccountResponse read(List<UUID> ids) throws SQLException {
@@ -77,25 +70,44 @@ public class AccountService {
         transactionContext -> {
           AccountDao accountDao = accountDaoFactory.create(transactionContext.connection());
           List<Account> accountList = accountDao.read(ids);
+
           if (ids.size() == 1 && accountList.isEmpty()) {
             throw new Exceptions.NotFoundException("Account", ids.getFirst().toString());
           }
 
-          List<AccountResponse.Account> accounts =
-              accountList.stream()
-                  .map(
-                      account ->
-                          new AccountResponse.Account(
-                              account.id(),
-                              account.name(),
-                              account.accountType(),
-                              account.bankName(),
-                              account.accountBalance(),
-                              account.status()))
-                  .sorted(Comparator.comparing(AccountResponse.Account::bankName))
-                  .toList();
+          AccountBalancesDao accountBalancesDao =
+              accountBalancesDaoFactory.create(transactionContext.connection());
+          // get account balances history
+          Map<UUID, List<AccountResponse.AccountBalanceHistory>> accountBalanceHistoryMap =
+              accountBalancesDao.readAccountBalancesHistory(ids);
+          // get account beginning balances
+          Map<UUID, AccountResponse.AccountBalanceHistory> accountBeginningBalancesMap =
+              accountBalancesDao.readAccountBeginningBalances(ids);
+          // get current account balances
+          String currentYearMonth = DaoUtils.getYearMonth(LocalDate.now());
 
-          return new AccountResponse(accounts, ResponseMetadata.emptyResponseMetadata());
+          for (Account account : accountList) {
+            List<AccountResponse.AccountBalanceHistory> history =
+                accountBalanceHistoryMap.computeIfAbsent(account.id(), _ -> new ArrayList<>());
+
+            // add the current account balance to the top of the list
+            history.removeIf(h -> h.yearMonth().equals(currentYearMonth));
+            history.addFirst(
+                new AccountResponse.AccountBalanceHistory(
+                    currentYearMonth, account.accountBalance()));
+
+            // add beginning balance to the top of the list
+            AccountResponse.AccountBalanceHistory beginning =
+                accountBeginningBalancesMap.get(account.id());
+            if (beginning != null
+                && (history.isEmpty()
+                    || !history.getFirst().yearMonth().equals(beginning.yearMonth()))) {
+              history.addFirst(beginning);
+            }
+          }
+
+          return ResponseUtils.getAccountResponse(
+              accountList, accountBalanceHistoryMap, ResponseMetadata.emptyResponseMetadata());
         });
   }
 
@@ -134,16 +146,9 @@ public class AccountService {
                   null,
                   null);
           Account accountOut = accountDao.update(accountIn);
-          AccountResponse.Account account =
-              new AccountResponse.Account(
-                  accountOut.id(),
-                  accountOut.name(),
-                  accountOut.accountType(),
-                  accountOut.bankName(),
-                  accountOut.accountBalance(),
-                  accountOut.status());
-          return new AccountResponse(
-              List.of(account), ResponseMetadataUtils.defaultUpdateResponseMetadata());
+
+          return ResponseUtils.getAccountResponse(
+              List.of(accountOut), Map.of(), ResponseUtils.defaultUpdateResponseMetadata());
         });
   }
 
@@ -160,7 +165,7 @@ public class AccountService {
 
           int deleteCount = accountDao.delete(ids);
           return new AccountResponse(
-              List.of(), ResponseMetadataUtils.defaultDeleteResponseMetadata(deleteCount));
+              List.of(), ResponseUtils.defaultDeleteResponseMetadata(deleteCount));
         });
   }
 

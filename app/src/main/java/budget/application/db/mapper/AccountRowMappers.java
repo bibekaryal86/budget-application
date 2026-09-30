@@ -5,6 +5,7 @@ import budget.application.model.entity.Account;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 public class AccountRowMappers {
@@ -32,7 +33,8 @@ public class AccountRowMappers {
           resultSet.getString("account_type"),
           resultSet.getString("account_bank_name"),
           resultSet.getBigDecimal("account_balance"),
-          resultSet.getString("account_status"));
+          resultSet.getString("account_status"),
+          List.of());
     }
   }
 }
