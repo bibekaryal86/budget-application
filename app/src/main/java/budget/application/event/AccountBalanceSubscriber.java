@@ -230,12 +230,14 @@ public final class AccountBalanceSubscriber implements TransactionEventSubscribe
 
   private void updatePreviousAccountBalances(
       TransactionResponse.Transaction transaction, Map<UUID, BigDecimal> accountBalanceUpdates) {
-    log.debug(
-        "Update previous account balances: Transaction=[{}], AccountBalanceUpdates={}",
-        transaction,
-        accountBalanceUpdates);
     try {
       boolean isCurrentMonthEvent = isCurrentMonthTransactionEvent(transaction.txnDate());
+      log.debug(
+          "Update previous account balances: Transaction=[{}], AccountBalanceUpdates={}, IsCurrentMonthEvent={}",
+          transaction,
+          accountBalanceUpdates,
+          isCurrentMonthEvent);
+
       if (isCurrentMonthEvent) {
         return;
       }
@@ -270,7 +272,9 @@ public final class AccountBalanceSubscriber implements TransactionEventSubscribe
       }
     }
 
-    if (!accountBalancesToCreate.isEmpty()) {
+    if (accountBalancesToCreate.isEmpty()) {
+      log.debug("No account balances to create...");
+    } else {
       accountBalancesService.createAccountBalances(accountBalancesToCreate);
     }
   }
