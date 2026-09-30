@@ -110,7 +110,7 @@ public class AccountBalancesService {
   }
 
   public Map<UUID, Boolean> checkAccountBalanceExists(List<UUID> accountIds) throws SQLException {
-    log.debug("Check Account Balance Exists: AccountIds=[{}]", accountIds);
+    log.debug("Check Account Balance Exists: AccountIds={}", accountIds);
     return transactionManager.execute(
         transactionContext -> {
           AccountBalancesDao accountBalancesDao =

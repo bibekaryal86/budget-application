@@ -156,6 +156,9 @@ public final class AccountBalanceSubscriber implements TransactionEventSubscribe
 
       accountService.updateAccountBalances(event.mdcRequestId(), accountBalanceUpdates);
 
+      // create first account balances if needed for accounts that are created new
+      createFirstAccountBalances(event.transactionResponse().getFirst(), accountBalanceUpdates);
+      // check and update account balances for previous months if needed
       updatePreviousAccountBalances(event.transactionResponse().getFirst(), accountBalanceUpdates);
     } catch (Exception e) {
       log.error(
@@ -234,7 +237,6 @@ public final class AccountBalanceSubscriber implements TransactionEventSubscribe
     try {
       boolean isCurrentMonthEvent = isCurrentMonthTransactionEvent(transaction.txnDate());
       if (isCurrentMonthEvent) {
-        createFirstAccountBalances(transaction, accountBalanceUpdates);
         return;
       }
 
