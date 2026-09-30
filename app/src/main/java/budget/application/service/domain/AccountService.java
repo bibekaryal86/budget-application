@@ -148,9 +148,7 @@ public class AccountService {
           Account accountOut = accountDao.update(accountIn);
 
           return ResponseUtils.getAccountResponse(
-              List.of(accountOut),
-              Map.of(),
-              ResponseUtils.defaultUpdateResponseMetadata());
+              List.of(accountOut), Map.of(), ResponseUtils.defaultUpdateResponseMetadata());
         });
   }
 
