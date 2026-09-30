@@ -90,7 +90,13 @@ public class AccountService {
             List<AccountResponse.AccountBalanceHistory> history =
                 accountBalanceHistoryMap.computeIfAbsent(account.id(), _ -> new ArrayList<>());
 
-            // add beginning balance as the first element of the list
+              // add the current account balance to the top of the list
+              history.removeIf(h -> h.yearMonth().equals(currentYearMonth));
+              history.addFirst(
+                      new AccountResponse.AccountBalanceHistory(
+                              currentYearMonth, account.accountBalance()));
+
+            // add beginning balance to the top of the list
             AccountResponse.AccountBalanceHistory beginning =
                 accountBeginningBalancesMap.get(account.id());
             if (beginning != null
@@ -98,12 +104,6 @@ public class AccountService {
                     || !history.getFirst().yearMonth().equals(beginning.yearMonth()))) {
               history.addFirst(beginning);
             }
-
-            // add the current month account balance history to the end of the list
-            history.removeIf(h -> h.yearMonth().equals(currentYearMonth));
-            history.add(
-                new AccountResponse.AccountBalanceHistory(
-                    currentYearMonth, account.accountBalance()));
           }
 
           return ResponseUtils.getAccountResponse(

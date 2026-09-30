@@ -159,7 +159,7 @@ public class AccountBalancesDao extends BaseDao<AccountBalances> {
                   AND (? = FALSE OR ab.account_id = ANY(?))
                 ORDER BY
                   ab.account_id ASC,
-                  ab.year_month ASC
+                  ab.year_month DESC
             """;
 
     Map<UUID, List<AccountResponse.AccountBalanceHistory>> accountBalanceHistoryMap =
