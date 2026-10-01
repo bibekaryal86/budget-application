@@ -61,7 +61,7 @@ public class InsightsDao {
                   COALESCE(SUM(CASE WHEN ct.name = 'SAVINGS' THEN ti.amount ELSE 0 END), 0) AS savings,
                   COALESCE(SUM(CASE WHEN ct.name NOT IN ('INCOME', 'SAVINGS', 'TRANSFER') THEN ti.amount ELSE 0 END), 0) AS expenses
               FROM date_intervals di
-              INNER JOIN transaction t
+              LEFT JOIN transaction t
                   ON t.txn_date >= di.interval_start
                   AND t.txn_date <= di.interval_end
               LEFT JOIN transaction_item ti
