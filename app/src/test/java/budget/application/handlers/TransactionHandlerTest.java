@@ -2,6 +2,10 @@ package budget.application.handlers;
 
 import budget.application.IntegrationBaseTest;
 import budget.application.common.Constants;
+import budget.application.model.dto.AccountResponse;
+import budget.application.model.dto.CategoryResponse;
+import budget.application.model.dto.CategoryTypeResponse;
+import budget.application.model.dto.InsightsResponse;
 import budget.application.model.dto.TransactionItemRequest;
 import budget.application.model.dto.TransactionItemResponse;
 import budget.application.model.dto.TransactionRequest;
@@ -181,14 +185,38 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
     testDataHelper.insertTransactionItem(tiId2, tId1, cId2, 50, List.of("TAG THREE", "TAG FOUR"));
     testDataHelper.insertTransactionItem(tiId3, tId2, cId2, 200, List.of("TAG FIVE", "TAG ONE"));
 
-    // TODO add check for insights
     HttpResponse<String> resp = httpGet(ApiPaths.TRANSACTIONS_V1, Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());
     TransactionResponse response = JsonUtils.fromJson(resp.body(), TransactionResponse.class);
     Assertions.assertEquals(4, response.data().transactions().size());
     Assertions.assertNotNull(response.data().cashFlowAmounts());
+    Assertions.assertEquals(
+        new InsightsResponse.CashFlowAmounts(
+            new BigDecimal(0),
+            new BigDecimal("401.01"),
+            new BigDecimal(0),
+            new BigDecimal("-401.01")),
+        response.data().cashFlowAmounts());
     Assertions.assertEquals(3, response.data().categoryAmounts().size());
+    Assertions.assertEquals(
+        new InsightsResponse.CategoryAmount(
+            new CategoryResponse.Category(
+                cId1, new CategoryTypeResponse.CategoryType(ctId1, "CT ONE"), "C ONE"),
+            new BigDecimal("50.00")),
+        response.data().categoryAmounts().getFirst());
     Assertions.assertEquals(1, response.data().accountAmounts().size());
+    Assertions.assertEquals(
+        new InsightsResponse.AccountAmount(
+            new AccountResponse.Account(
+                TEST_ID,
+                "TEST ACCOUNT",
+                "SAVINGS",
+                "TEST BANK",
+                new BigDecimal("600.00"),
+                "ACTIVE",
+                List.of()),
+            new BigDecimal("401.01")),
+        response.data().accountAmounts().getFirst());
     Assertions.assertNotNull(response.metadata().responsePageInfo());
     Assertions.assertEquals(
         new ResponseMetadata.ResponsePageInfo(
