@@ -199,11 +199,22 @@ public class TransactionHandlerTest extends IntegrationBaseTest {
         response.data().cashFlowAmounts());
     Assertions.assertEquals(3, response.data().categoryAmounts().size());
     Assertions.assertEquals(
-        new InsightsResponse.CategoryAmount(
-            new CategoryResponse.Category(
-                cId1, new CategoryTypeResponse.CategoryType(ctId1, "CT ONE"), "C ONE"),
-            new BigDecimal("50.00")),
-        response.data().categoryAmounts().getFirst());
+        List.of(
+            new InsightsResponse.CategoryAmount(
+                new CategoryResponse.Category(
+                    cId1, new CategoryTypeResponse.CategoryType(ctId1, "CT ONE"), "C ONE"),
+                new BigDecimal("50.00")),
+            new InsightsResponse.CategoryAmount(
+                new CategoryResponse.Category(
+                    cId2, new CategoryTypeResponse.CategoryType(ctId1, "CT ONE"), "C TWO"),
+                new BigDecimal("250.00")),
+            new InsightsResponse.CategoryAmount(
+                new CategoryResponse.Category(
+                    TEST_ID,
+                    new CategoryTypeResponse.CategoryType(TEST_ID, "TEST CATEGORY TYPE"),
+                    "TEST CATEGORY"),
+                new BigDecimal("101.01"))),
+        response.data().categoryAmounts());
     Assertions.assertEquals(1, response.data().accountAmounts().size());
     Assertions.assertEquals(
         new InsightsResponse.AccountAmount(
