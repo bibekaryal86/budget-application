@@ -31,6 +31,7 @@ import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -543,6 +544,7 @@ public class TransactionService {
                         .map(TransactionItemResponse.TransactionItem::amount)
                         .reduce(BigDecimal.ZERO, BigDecimal::add)))
         .filter(categoryAmount -> categoryAmount.amount().compareTo(BigDecimal.ZERO) != 0)
+        .sorted(Comparator.comparing(categoryAmount -> categoryAmount.category().name()))
         .toList();
   }
 
@@ -562,6 +564,7 @@ public class TransactionService {
                         .map(TransactionItemResponse.TransactionItem::amount)
                         .reduce(BigDecimal.ZERO, BigDecimal::add)))
         .filter(accountAmount -> accountAmount.amount().compareTo(BigDecimal.ZERO) != 0)
+        .sorted(Comparator.comparing(accountAmount -> accountAmount.account().name()))
         .toList();
   }
 }

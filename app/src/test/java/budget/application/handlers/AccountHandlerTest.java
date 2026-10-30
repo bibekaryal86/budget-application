@@ -1,6 +1,7 @@
 package budget.application.handlers;
 
 import budget.application.IntegrationBaseTest;
+import budget.application.db.util.DaoUtils;
 import budget.application.model.dto.AccountRequest;
 import budget.application.model.dto.AccountResponse;
 import budget.application.server.util.ApiPaths;
@@ -9,6 +10,7 @@ import budget.application.service.util.ResponseUtils;
 import io.github.bibekaryal86.shdsvc.dtos.ResponseWithMetadata;
 import java.math.BigDecimal;
 import java.net.http.HttpResponse;
+import java.time.LocalDate;
 import java.util.UUID;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -34,12 +36,14 @@ public class AccountHandlerTest extends IntegrationBaseTest {
     Assertions.assertEquals(200, resp.statusCode());
     response = JsonUtils.fromJson(resp.body(), AccountResponse.class);
     Assertions.assertEquals(2, response.data().size());
+    Assertions.assertFalse(response.data().getFirst().accountBalanceHistories().isEmpty());
 
     // READ ONE
     resp = httpGet(ApiPaths.ACCOUNTS_V1_WITH_ID + id, Boolean.TRUE);
     Assertions.assertEquals(200, resp.statusCode());
     response = JsonUtils.fromJson(resp.body(), AccountResponse.class);
     Assertions.assertEquals(1, response.data().size());
+    Assertions.assertFalse(response.data().getFirst().accountBalanceHistories().isEmpty());
 
     // UPDATE
     req = new AccountRequest(" Name Updated ", "CASH", "Bank Updated ", "ACTIVE");
@@ -68,6 +72,25 @@ public class AccountHandlerTest extends IntegrationBaseTest {
             .responseStatusInfo()
             .errMsg()
             .contains("[Account] Not found for"));
+  }
+
+  @Test
+  void testReadAccountsWithAccountBalances() throws Exception {
+    HttpResponse<String> resp = httpGet(ApiPaths.ACCOUNTS_V1, Boolean.TRUE);
+    Assertions.assertEquals(200, resp.statusCode());
+    AccountResponse response = JsonUtils.fromJson(resp.body(), AccountResponse.class);
+    Assertions.assertEquals(1, response.data().size());
+    Assertions.assertEquals(6, response.data().getFirst().accountBalanceHistories().size());
+
+    // beginning balance is the first entry in the list
+    Assertions.assertEquals(
+        new AccountResponse.AccountBalanceHistory("25/12", new BigDecimal("100.00")),
+        response.data().getFirst().accountBalanceHistories().get(0));
+    // current balance is the second entry in the list
+    Assertions.assertEquals(
+        new AccountResponse.AccountBalanceHistory(
+            DaoUtils.getYearMonth(LocalDate.now()), response.data().getFirst().accountBalance()),
+        response.data().getFirst().accountBalanceHistories().get(1));
   }
 
   @Test

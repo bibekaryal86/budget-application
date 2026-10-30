@@ -110,10 +110,6 @@ public class ServerUtils {
     LocalDate endDate = parseDate(decoder, "endDate");
     int totalMonths = parseInt(decoder, "totalMonths");
 
-    if (totalMonths == 0) {
-      totalMonths = 2;
-    }
-
     if (beginDate == null && endDate == null) {
       LocalDate now = LocalDate.now();
       beginDate = now.withDayOfMonth(1);

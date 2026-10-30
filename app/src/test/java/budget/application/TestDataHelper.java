@@ -1,9 +1,11 @@
 package budget.application;
 
 import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -25,9 +27,9 @@ public final class TestDataHelper {
         PreparedStatement stmt =
             c.prepareStatement(
                 """
-                           INSERT INTO category_type (id, name)
-                           VALUES (?, ?)
-                       """)) {
+                         INSERT INTO category_type (id, name)
+                         VALUES (?, ?)
+                     """)) {
 
       stmt.setObject(1, id);
       stmt.setObject(2, name);
@@ -62,9 +64,9 @@ public final class TestDataHelper {
         PreparedStatement stmt =
             c.prepareStatement(
                 """
-                             INSERT INTO category (id, category_type_id, name)
-                             VALUES (?, ?, ?)
-                         """)) {
+                         INSERT INTO category (id, category_type_id, name)
+                         VALUES (?, ?, ?)
+                     """)) {
 
       stmt.setObject(1, id);
       stmt.setObject(2, catTypeId);
@@ -95,17 +97,18 @@ public final class TestDataHelper {
     }
   }
 
-  public UUID insertAccount(UUID id, String name) throws SQLException {
+  public UUID insertAccount(UUID id, String type, String name) throws SQLException {
     try (Connection c = ds.getConnection();
         PreparedStatement stmt =
             c.prepareStatement(
                 """
-                                          INSERT INTO account (id, name, account_type, bank_name, account_balance, status)
-                                          VALUES (?, ?, 'CHECKING', 'TEST BANK', 1000.00, 'ACTIVE')
-                                      """)) {
+                        INSERT INTO account (id, name, account_type, bank_name, account_balance, status)
+                        VALUES (?, ?, ?, 'TEST BANK', 1000.00, 'ACTIVE')
+                    """)) {
 
       stmt.setObject(1, id);
       stmt.setString(2, name);
+      stmt.setString(3, type);
       stmt.executeUpdate();
     }
     return id;
@@ -132,14 +135,55 @@ public final class TestDataHelper {
     }
   }
 
+  public UUID insertAccountBalance(
+      UUID id, UUID accountId, LocalDate yearMonth, String accountBalance) throws SQLException {
+    try (Connection c = ds.getConnection();
+        PreparedStatement stmt =
+            c.prepareStatement(
+                """
+                         INSERT INTO account_balances (id, account_id, year_month, account_balance)
+                         VALUES (?, ?, ?, ?)
+                     """)) {
+
+      stmt.setObject(1, id);
+      stmt.setObject(2, accountId);
+      stmt.setObject(3, yearMonth);
+      stmt.setObject(4, new BigDecimal(accountBalance));
+      stmt.executeUpdate();
+    }
+    return id;
+  }
+
+  public void deleteAccountBalance(List<UUID> keepAccountIds) throws SQLException {
+    try (Connection c = ds.getConnection()) {
+      if (CommonUtilities.isEmpty(keepAccountIds)) {
+        try (PreparedStatement stmt = c.prepareStatement("DELETE FROM account_balances")) {
+          stmt.executeUpdate();
+        }
+        return;
+      }
+
+      String placeholders =
+          keepAccountIds.stream().map(id -> "?").collect(Collectors.joining(", "));
+      String sql = "DELETE FROM account_balances WHERE account_id NOT IN (" + placeholders + ")";
+
+      try (PreparedStatement stmt = c.prepareStatement(sql)) {
+        for (int i = 0; i < keepAccountIds.size(); i++) {
+          stmt.setObject(i + 1, keepAccountIds.get(i));
+        }
+        stmt.executeUpdate();
+      }
+    }
+  }
+
   public UUID insertBudget(UUID id, UUID catId, int month, int year) throws SQLException {
     try (Connection c = ds.getConnection();
         PreparedStatement stmt =
             c.prepareStatement(
                 """
-                                                       INSERT INTO budget (id, category_id, budget_month, budget_year, amount, notes)
-                                                       VALUES (?, ?, ?, ?, 1000.00, 'notes example')
-                                                   """)) {
+                         INSERT INTO budget (id, category_id, budget_month, budget_year, amount, notes)
+                         VALUES (?, ?, ?, ?, 1000.00, 'notes example')
+                     """)) {
 
       stmt.setObject(1, id);
       stmt.setObject(2, catId);
@@ -177,9 +221,9 @@ public final class TestDataHelper {
         PreparedStatement stmt =
             c.prepareStatement(
                 """
-                INSERT INTO transaction (id, txn_date, merchant, total_amount)
-                VALUES (?, ?, ?, ?)
-            """)) {
+                        INSERT INTO transaction (id, txn_date, merchant, total_amount)
+                        VALUES (?, ?, ?, ?)
+                    """)) {
 
       stmt.setObject(1, id);
       stmt.setObject(2, txnDate.toLocalDate());
@@ -217,9 +261,9 @@ public final class TestDataHelper {
         PreparedStatement stmt =
             c.prepareStatement(
                 """
-                INSERT INTO transaction_item (id, transaction_id, category_id, account_id, amount, tags, notes)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-            """)) {
+                        INSERT INTO transaction_item (id, transaction_id, category_id, account_id, amount, tags, notes)
+                        VALUES (?, ?, ?, ?, ?, ?, ?)
+                    """)) {
       stmt.setObject(1, id);
       stmt.setObject(2, txnId);
       stmt.setObject(3, catId);

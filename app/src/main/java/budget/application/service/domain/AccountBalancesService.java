@@ -101,7 +101,23 @@ public class AccountBalancesService {
 
               List<InsightsResponse.AccountSummary> accountSummaries =
                   accountBalancesDao.readAccountBalances(beginDate, endDate, accountIds);
-              accountSummaries.addLast(currentMonth);
+
+              // Replace the DAO's current month data with the current account data.
+              // If the DAO did not return the current month, add it to the end.
+              boolean currentMonthReplaced = false;
+
+              for (int i = 0; i < accountSummaries.size(); i++) {
+                if (accountSummaries.get(i).yearMonth().equals(currentMonth.yearMonth())) {
+                  accountSummaries.set(i, currentMonth);
+                  currentMonthReplaced = true;
+                  break;
+                }
+              }
+
+              if (!currentMonthReplaced) {
+                accountSummaries.addLast(currentMonth);
+              }
+
               return accountSummaries;
             });
 
