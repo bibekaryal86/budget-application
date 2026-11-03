@@ -73,21 +73,21 @@ public class CategoryDao extends BaseDao<Category> {
     StringBuilder sql =
         new StringBuilder(
             """
-          SELECT
-              c.id AS category_id,
-              c.name AS category_name,
-              ct.id AS category_type_id,
-              ct.name AS category_type_name
-          FROM category c
-          JOIN category_type ct
-            ON ct.id = c.category_type_id
-          """);
+            SELECT
+                c.id AS category_id,
+                c.name AS category_name,
+                ct.id AS category_type_id,
+                ct.name AS category_type_name
+            FROM category c
+            JOIN category_type ct
+              ON ct.id = c.category_type_id
+            """);
 
     List<Object> params = new ArrayList<>();
     final boolean[] whereAdded = {false};
 
     Consumer<String> addWhere =
-        (condition) -> {
+        condition -> {
           sql.append(whereAdded[0] ? " AND " : " WHERE ");
           sql.append(condition);
           whereAdded[0] = true;

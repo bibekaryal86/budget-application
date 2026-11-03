@@ -47,13 +47,12 @@ public abstract class IntegrationBaseTest {
   }
 
   private static void setSystemEnvPropertyTestData() {
-    Constants.ENV_KEY_NAMES.forEach(
-        env -> {
-          if (!(Constants.ENV_SERVER_PORT.equals(env)
-              || Constants.SPRING_PROFILES_ACTIVE.equals(env))) {
-            System.setProperty(env, env);
-          }
-        });
+    Constants.ENV_KEY_NAMES.forEach(env -> {
+      if (!(Constants.ENV_SERVER_PORT.equals(env)
+          || Constants.SPRING_PROFILES_ACTIVE.equals(env))) {
+        System.setProperty(env, env);
+      }
+    });
     System.setProperty(Constants.SPRING_PROFILES_ACTIVE, Constants.TESTING_ENV);
     System.setProperty(Constants.ENV_SERVER_PORT, Constants.ENV_PORT_DEFAULT);
   }

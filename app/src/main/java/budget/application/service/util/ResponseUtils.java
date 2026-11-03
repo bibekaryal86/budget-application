@@ -54,16 +54,15 @@ public class ResponseUtils {
       ResponseMetadata responseMetadata) {
     List<AccountResponse.Account> accounts =
         accountList.stream()
-            .map(
-                account ->
-                    new AccountResponse.Account(
-                        account.id(),
-                        account.name(),
-                        account.accountType(),
-                        account.bankName(),
-                        account.accountBalance(),
-                        account.status(),
-                        accountBalanceHistory.getOrDefault(account.id(), List.of())))
+            .map(account ->
+                new AccountResponse.Account(
+                    account.id(),
+                    account.name(),
+                    account.accountType(),
+                    account.bankName(),
+                    account.accountBalance(),
+                    account.status(),
+                    accountBalanceHistory.getOrDefault(account.id(), List.of())))
             .sorted(Comparator.comparing(AccountResponse.Account::bankName))
             .toList();
     return new AccountResponse(accounts, responseMetadata);

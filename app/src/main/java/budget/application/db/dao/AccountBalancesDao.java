@@ -84,21 +84,21 @@ public class AccountBalancesDao extends BaseDao<AccountBalances> {
 
     String sql =
         """
-            SELECT
-              ab.year_month,
-              ab.account_id,
-              ab.account_balance,
-              a.name as account_name,
-              a.account_type,
-              a.bank_name as account_bank_name,
-              a.status as account_status
-            FROM
-                account_balances ab
-                INNER JOIN account a on ab.account_id = a.id
-            WHERE
-                ab.year_month BETWEEN ? AND ? AND (? = FALSE OR ab.account_id = ANY(?))
-            ORDER BY ab.year_month ASC
-       """;
+             SELECT
+               ab.year_month,
+               ab.account_id,
+               ab.account_balance,
+               a.name as account_name,
+               a.account_type,
+               a.bank_name as account_bank_name,
+               a.status as account_status
+             FROM
+                 account_balances ab
+                 INNER JOIN account a on ab.account_id = a.id
+             WHERE
+                 ab.year_month BETWEEN ? AND ? AND (? = FALSE OR ab.account_id = ANY(?))
+             ORDER BY ab.year_month ASC
+        """;
 
     Map<String, InsightsResponse.AccountSummary> accountBalanceSummaryMap = new LinkedHashMap<>();
     try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
@@ -147,20 +147,20 @@ public class AccountBalancesDao extends BaseDao<AccountBalances> {
 
     String sql =
         """
-                SELECT
-                  ab.account_id,
-                  ab.year_month,
-                  ab.account_balance
-                FROM
-                  account_balances ab
-                WHERE
-                  ab.year_month >= ?
-                  AND ab.year_month < ?
-                  AND (? = FALSE OR ab.account_id = ANY(?))
-                ORDER BY
-                  ab.account_id ASC,
-                  ab.year_month DESC
-            """;
+            SELECT
+              ab.account_id,
+              ab.year_month,
+              ab.account_balance
+            FROM
+              account_balances ab
+            WHERE
+              ab.year_month >= ?
+              AND ab.year_month < ?
+              AND (? = FALSE OR ab.account_id = ANY(?))
+            ORDER BY
+              ab.account_id ASC,
+              ab.year_month DESC
+        """;
 
     Map<UUID, List<AccountResponse.AccountBalanceHistory>> accountBalanceHistoryMap =
         new LinkedHashMap<>();
@@ -199,18 +199,18 @@ public class AccountBalancesDao extends BaseDao<AccountBalances> {
 
     String sql =
         """
-                    SELECT DISTINCT ON (ab.account_id)
-                      ab.account_id,
-                      ab.year_month,
-                      ab.account_balance
-                    FROM
-                      account_balances ab
-                    WHERE
-                      (? = FALSE OR ab.account_id = ANY(?))
-                    ORDER BY
-                      ab.account_id ASC,
-                      ab.year_month ASC
-                """;
+            SELECT DISTINCT ON (ab.account_id)
+              ab.account_id,
+              ab.year_month,
+              ab.account_balance
+            FROM
+              account_balances ab
+            WHERE
+              (? = FALSE OR ab.account_id = ANY(?))
+            ORDER BY
+              ab.account_id ASC,
+              ab.year_month ASC
+        """;
 
     Map<UUID, AccountResponse.AccountBalanceHistory> beginningBalanceMap = new LinkedHashMap<>();
 
@@ -243,13 +243,13 @@ public class AccountBalancesDao extends BaseDao<AccountBalances> {
 
     String sql =
         """
-                    SELECT DISTINCT
-                      ab.account_id
-                    FROM
-                      account_balances ab
-                    WHERE
-                      (? = FALSE OR ab.account_id = ANY(?))
-                """;
+            SELECT DISTINCT
+              ab.account_id
+            FROM
+              account_balances ab
+            WHERE
+              (? = FALSE OR ab.account_id = ANY(?))
+        """;
 
     Map<UUID, Boolean> existsMap = new LinkedHashMap<>();
 
@@ -276,18 +276,18 @@ public class AccountBalancesDao extends BaseDao<AccountBalances> {
       throws SQLException {
     String sql =
         """
-                WITH data(account_id, balance) AS (
-                  SELECT * FROM UNNEST(?::uuid[], ?::numeric[]))
-                  UPDATE account_balances a
-                  SET account_balance = d.balance,
-                  notes = CASE
-                            WHEN a.notes IS NULL OR a.notes = '' THEN ?
-                            ELSE a.notes || ', ' || ?
-                          END
-                  FROM data d
-                  WHERE a.account_id = d.account_id
-                  AND a.year_month = ?
-            """;
+            WITH data(account_id, balance) AS (
+              SELECT * FROM UNNEST(?::uuid[], ?::numeric[]))
+              UPDATE account_balances a
+              SET account_balance = d.balance,
+              notes = CASE
+                        WHEN a.notes IS NULL OR a.notes = '' THEN ?
+                        ELSE a.notes || ', ' || ?
+                      END
+              FROM data d
+              WHERE a.account_id = d.account_id
+              AND a.year_month = ?
+        """;
 
     boolean originalAutoCommit = connection.getAutoCommit();
     int updatedCount = 0;

@@ -34,77 +34,69 @@ public class InsightsService {
       RequestParams.CashFlowSummaryParams requestParams) throws SQLException {
     log.debug("Read cash flow summary: RequestParams=[{}]", requestParams);
 
-    return transactionManager.execute(
-        transactionContext -> {
-          InsightsDao insightsDao = insightsDaoFactory.create(transactionContext.connection());
-          List<InsightsResponse.CashFlowSummary> cashFlowSummaries =
-              insightsDao.readCashFlowSummary(
-                  requestParams.beginDate(), requestParams.endDate(), requestParams.totalMonths());
-          return new InsightsResponse.CashFlowSummaries(
-              cashFlowSummaries, ResponseMetadata.emptyResponseMetadata());
-        });
+    return transactionManager.execute(transactionContext -> {
+      InsightsDao insightsDao = insightsDaoFactory.create(transactionContext.connection());
+      List<InsightsResponse.CashFlowSummary> cashFlowSummaries =
+          insightsDao.readCashFlowSummary(
+              requestParams.beginDate(), requestParams.endDate(), requestParams.totalMonths());
+      return new InsightsResponse.CashFlowSummaries(
+          cashFlowSummaries, ResponseMetadata.emptyResponseMetadata());
+    });
   }
 
   public InsightsResponse.CategorySummaries readCategoriesSummary(
       RequestParams.CategorySummaryParams requestParams) throws SQLException {
     log.debug("Read categories summary: RequestParams=[{}]", requestParams);
 
-    return transactionManager.execute(
-        transactionContext -> {
-          InsightsDao insightsDao = insightsDaoFactory.create(transactionContext.connection());
+    return transactionManager.execute(transactionContext -> {
+      InsightsDao insightsDao = insightsDaoFactory.create(transactionContext.connection());
 
-          LocalDate beginDate = requestParams.beginDate();
-          LocalDate endDate = requestParams.endDate();
-          List<UUID> categoryIds = requestParams.categoryIds();
-          List<UUID> categoryTypeIds = requestParams.categoryTypeIds();
-          int totalMonths = requestParams.totalMonths();
-          int topExpenses = requestParams.topExpenses();
+      LocalDate beginDate = requestParams.beginDate();
+      LocalDate endDate = requestParams.endDate();
+      List<UUID> categoryIds = requestParams.categoryIds();
+      List<UUID> categoryTypeIds = requestParams.categoryTypeIds();
+      int totalMonths = requestParams.totalMonths();
+      int topExpenses = requestParams.topExpenses();
 
-          List<InsightsResponse.CategorySummary> categorySummaries =
-              insightsDao.readCategorySummary(
-                  beginDate, endDate, categoryIds, categoryTypeIds, totalMonths);
+      List<InsightsResponse.CategorySummary> categorySummaries =
+          insightsDao.readCategorySummary(
+              beginDate, endDate, categoryIds, categoryTypeIds, totalMonths);
 
-          List<InsightsResponse.CategorySummary> filteredCategorySummaries = categorySummaries;
+      List<InsightsResponse.CategorySummary> filteredCategorySummaries = categorySummaries;
 
-          if (requestParams.topExpenses() > 0 && !categorySummaries.isEmpty()) {
-            InsightsResponse.CategorySummary mostRecentMonth = categorySummaries.getFirst();
+      if (requestParams.topExpenses() > 0 && !categorySummaries.isEmpty()) {
+        InsightsResponse.CategorySummary mostRecentMonth = categorySummaries.getFirst();
 
-            Set<UUID> topExpenseCategoryIds =
-                mostRecentMonth.categoryAmounts().stream()
-                    .filter(
-                        ca ->
-                            !Constants.NO_EXPENSE_CATEGORY_TYPES.contains(
-                                ca.category().categoryType().name()))
-                    .sorted(
-                        Comparator.comparing(InsightsResponse.CategoryAmount::amount).reversed())
-                    .limit(topExpenses)
-                    .map(ca -> ca.category().id())
-                    .collect(Collectors.toSet());
+        Set<UUID> topExpenseCategoryIds =
+            mostRecentMonth.categoryAmounts().stream()
+                .filter(ca ->
+                    !Constants.NO_EXPENSE_CATEGORY_TYPES.contains(
+                        ca.category().categoryType().name()))
+                .sorted(Comparator.comparing(InsightsResponse.CategoryAmount::amount).reversed())
+                .limit(topExpenses)
+                .map(ca -> ca.category().id())
+                .collect(Collectors.toSet());
 
-            filteredCategorySummaries =
-                categorySummaries.stream()
-                    .map(
-                        summary ->
-                            new InsightsResponse.CategorySummary(
-                                summary.yearMonth(),
-                                summary.categoryAmounts().stream()
-                                    .filter(
-                                        ca -> topExpenseCategoryIds.contains(ca.category().id()))
-                                    .filter(
-                                        ca ->
-                                            topExpenses == Constants.MAX_CONTENT_LENGTH
-                                                ? Boolean.TRUE
-                                                : ca.amount().compareTo(BigDecimal.ZERO) > 0)
-                                    .sorted(
-                                        Comparator.comparing(
-                                                InsightsResponse.CategoryAmount::amount)
-                                            .reversed())
-                                    .toList()))
-                    .toList();
-          }
+        filteredCategorySummaries =
+            categorySummaries.stream()
+                .map(summary ->
+                    new InsightsResponse.CategorySummary(
+                        summary.yearMonth(),
+                        summary.categoryAmounts().stream()
+                            .filter(ca -> topExpenseCategoryIds.contains(ca.category().id()))
+                            .filter(ca ->
+                                topExpenses == Constants.MAX_CONTENT_LENGTH
+                                    ? Boolean.TRUE
+                                    : ca.amount().compareTo(BigDecimal.ZERO) > 0)
+                            .sorted(
+                                Comparator.comparing(InsightsResponse.CategoryAmount::amount)
+                                    .reversed())
+                            .toList()))
+                .toList();
+      }
 
-          return new InsightsResponse.CategorySummaries(
-              filteredCategorySummaries, ResponseMetadata.emptyResponseMetadata());
-        });
+      return new InsightsResponse.CategorySummaries(
+          filteredCategorySummaries, ResponseMetadata.emptyResponseMetadata());
+    });
   }
 }

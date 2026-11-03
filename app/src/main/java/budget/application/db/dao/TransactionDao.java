@@ -107,42 +107,42 @@ public class TransactionDao extends BaseDao<Transaction> {
     StringBuilder sql =
         new StringBuilder(
             """
-                SELECT
-                    t.id           AS txn_id,
-                    t.txn_date     AS txn_date,
-                    t.merchant     AS txn_merchant,
-                    t.total_amount AS txn_total_amount,
-                    ti.id          AS item_id,
-                    ti.amount      AS item_amount,
-                    ti.tags        AS item_tags,
-                    ti.notes       AS item_notes,
-                    c.id           AS category_id,
-                    c.name         AS category_name,
-                    ct.id          AS category_type_id,
-                    ct.name        AS category_type_name,
-                    a.id           AS account_id,
-                    a.name         AS account_name,
-                    a.account_type AS account_type,
-                    a.bank_name    AS account_bank_name,
-                    a.account_balance AS account_balance,
-                    a.status       AS account_status
-                FROM transaction t
-                LEFT JOIN transaction_item ti
-                       ON ti.transaction_id = t.id
-                LEFT JOIN category c
-                       ON c.id = ti.category_id
-                LEFT JOIN category_type ct
-                       ON ct.id = c.category_type_id
-                LEFT JOIN account a
-                    ON ti.account_id = a.id
-                """);
+            SELECT
+                t.id           AS txn_id,
+                t.txn_date     AS txn_date,
+                t.merchant     AS txn_merchant,
+                t.total_amount AS txn_total_amount,
+                ti.id          AS item_id,
+                ti.amount      AS item_amount,
+                ti.tags        AS item_tags,
+                ti.notes       AS item_notes,
+                c.id           AS category_id,
+                c.name         AS category_name,
+                ct.id          AS category_type_id,
+                ct.name        AS category_type_name,
+                a.id           AS account_id,
+                a.name         AS account_name,
+                a.account_type AS account_type,
+                a.bank_name    AS account_bank_name,
+                a.account_balance AS account_balance,
+                a.status       AS account_status
+            FROM transaction t
+            LEFT JOIN transaction_item ti
+                   ON ti.transaction_id = t.id
+            LEFT JOIN category c
+                   ON c.id = ti.category_id
+            LEFT JOIN category_type ct
+                   ON ct.id = c.category_type_id
+            LEFT JOIN account a
+                ON ti.account_id = a.id
+            """);
 
     StringBuilder whereClause = new StringBuilder();
     List<Object> params = new ArrayList<>();
     final boolean[] whereAdded = {false};
 
     Consumer<String> addWhere =
-        (condition) -> {
+        condition -> {
           whereClause.append(whereAdded[0] ? " AND " : " WHERE ");
           whereClause.append(condition);
           whereAdded[0] = true;
@@ -262,13 +262,13 @@ public class TransactionDao extends BaseDao<Transaction> {
   private int countAll(StringBuilder whereClause, List<Object> params) throws SQLException {
     String countSql =
         """
-              SELECT COUNT(DISTINCT t.id)
-              FROM transaction t
-              LEFT JOIN transaction_item ti ON ti.transaction_id = t.id
-              LEFT JOIN category c ON c.id = ti.category_id
-              LEFT JOIN category_type ct ON ct.id = c.category_type_id
-              LEFT JOIN account a ON ti.account_id = a.id
-              """
+        SELECT COUNT(DISTINCT t.id)
+        FROM transaction t
+        LEFT JOIN transaction_item ti ON ti.transaction_id = t.id
+        LEFT JOIN category c ON c.id = ti.category_id
+        LEFT JOIN category_type ct ON ct.id = c.category_type_id
+        LEFT JOIN account a ON ti.account_id = a.id
+        """
             + whereClause;
 
     try (PreparedStatement preparedStatement = connection.prepareStatement(countSql)) {
