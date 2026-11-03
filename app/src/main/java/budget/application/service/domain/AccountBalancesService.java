@@ -40,40 +40,37 @@ public class AccountBalancesService {
 
   public void createAccountBalances() throws SQLException {
     log.debug("Create Account Balances: YearMonth={}", LocalDate.now());
-    transactionManager.executeVoid(
-        transactionContext -> {
-          AccountDao accountDao = accountDaoFactory.create(transactionContext.connection());
-          List<Account> accounts = accountDao.readNoEx(List.of());
-          List<AccountBalances> accountBalances =
-              accounts.stream()
-                  .map(
-                      account ->
-                          new AccountBalances(
-                              null,
-                              account.id(),
-                              LocalDate.now().withDayOfMonth(1),
-                              account.accountBalance(),
-                              "",
-                              null,
-                              null))
-                  .toList();
+    transactionManager.executeVoid(transactionContext -> {
+      AccountDao accountDao = accountDaoFactory.create(transactionContext.connection());
+      List<Account> accounts = accountDao.readNoEx(List.of());
+      List<AccountBalances> accountBalances =
+          accounts.stream()
+              .map(account ->
+                  new AccountBalances(
+                      null,
+                      account.id(),
+                      LocalDate.now().withDayOfMonth(1),
+                      account.accountBalance(),
+                      "",
+                      null,
+                      null))
+              .toList();
 
-          AccountBalancesDao accountBalancesDao =
-              accountBalancesDaoFactory.create(transactionContext.connection());
-          accountBalancesDao.createAccountBalances(accountBalances);
-          log.debug("Created [{}] Account Balances", accountBalances.size());
-        });
+      AccountBalancesDao accountBalancesDao =
+          accountBalancesDaoFactory.create(transactionContext.connection());
+      accountBalancesDao.createAccountBalances(accountBalances);
+      log.debug("Created [{}] Account Balances", accountBalances.size());
+    });
   }
 
   public void createAccountBalances(List<AccountBalances> accountBalances) throws SQLException {
     log.debug("Create Account Balances: AccountBalances={}", accountBalances);
-    transactionManager.executeVoid(
-        transactionContext -> {
-          AccountBalancesDao accountBalancesDao =
-              accountBalancesDaoFactory.create(transactionContext.connection());
-          accountBalancesDao.createAccountBalances(accountBalances);
-          log.debug("Created [{}] Account Balances", accountBalances.size());
-        });
+    transactionManager.executeVoid(transactionContext -> {
+      AccountBalancesDao accountBalancesDao =
+          accountBalancesDaoFactory.create(transactionContext.connection());
+      accountBalancesDao.createAccountBalances(accountBalances);
+      log.debug("Created [{}] Account Balances", accountBalances.size());
+    });
   }
 
   public InsightsResponse.AccountSummaries readAccountBalances(
@@ -84,42 +81,41 @@ public class AccountBalancesService {
     List<UUID> accountIds = requestParams.accountIds();
 
     List<InsightsResponse.AccountSummary> accountBalanceSummaries =
-        transactionManager.execute(
-            transactionContext -> {
-              AccountBalancesDao accountBalancesDao =
-                  accountBalancesDaoFactory.create(transactionContext.connection());
+        transactionManager.execute(transactionContext -> {
+          AccountBalancesDao accountBalancesDao =
+              accountBalancesDaoFactory.create(transactionContext.connection());
 
-              // get current month data
-              AccountDao accountDao = accountDaoFactory.create(transactionContext.connection());
-              List<Account> accounts = accountDao.read(accountIds);
-              AccountResponse accountResponse =
-                  ResponseUtils.getAccountResponse(
-                      accounts, Map.of(), ResponseMetadata.emptyResponseMetadata());
-              InsightsResponse.AccountSummary currentMonth =
-                  new InsightsResponse.AccountSummary(
-                      DaoUtils.getYearMonth(LocalDate.now()), Map.of(), accountResponse.data());
+          // get current month data
+          AccountDao accountDao = accountDaoFactory.create(transactionContext.connection());
+          List<Account> accounts = accountDao.read(accountIds);
+          AccountResponse accountResponse =
+              ResponseUtils.getAccountResponse(
+                  accounts, Map.of(), ResponseMetadata.emptyResponseMetadata());
+          InsightsResponse.AccountSummary currentMonth =
+              new InsightsResponse.AccountSummary(
+                  DaoUtils.getYearMonth(LocalDate.now()), Map.of(), accountResponse.data());
 
-              List<InsightsResponse.AccountSummary> accountSummaries =
-                  accountBalancesDao.readAccountBalances(beginDate, endDate, accountIds);
+          List<InsightsResponse.AccountSummary> accountSummaries =
+              accountBalancesDao.readAccountBalances(beginDate, endDate, accountIds);
 
-              // Replace the DAO's current month data with the current account data.
-              // If the DAO did not return the current month, add it to the end.
-              boolean currentMonthReplaced = false;
+          // Replace the DAO's current month data with the current account data.
+          // If the DAO did not return the current month, add it to the end.
+          boolean currentMonthReplaced = false;
 
-              for (int i = 0; i < accountSummaries.size(); i++) {
-                if (accountSummaries.get(i).yearMonth().equals(currentMonth.yearMonth())) {
-                  accountSummaries.set(i, currentMonth);
-                  currentMonthReplaced = true;
-                  break;
-                }
-              }
+          for (int i = 0; i < accountSummaries.size(); i++) {
+            if (accountSummaries.get(i).yearMonth().equals(currentMonth.yearMonth())) {
+              accountSummaries.set(i, currentMonth);
+              currentMonthReplaced = true;
+              break;
+            }
+          }
 
-              if (!currentMonthReplaced) {
-                accountSummaries.addLast(currentMonth);
-              }
+          if (!currentMonthReplaced) {
+            accountSummaries.addLast(currentMonth);
+          }
 
-              return accountSummaries;
-            });
+          return accountSummaries;
+        });
 
     return new InsightsResponse.AccountSummaries(
         calculateNetWorth(accountBalanceSummaries), ResponseMetadata.emptyResponseMetadata());
@@ -127,12 +123,11 @@ public class AccountBalancesService {
 
   public Map<UUID, Boolean> checkAccountBalanceExists(List<UUID> accountIds) throws SQLException {
     log.debug("Check Account Balance Exists: AccountIds={}", accountIds);
-    return transactionManager.execute(
-        transactionContext -> {
-          AccountBalancesDao accountBalancesDao =
-              accountBalancesDaoFactory.create(transactionContext.connection());
-          return accountBalancesDao.readAccountBalancesExist(accountIds);
-        });
+    return transactionManager.execute(transactionContext -> {
+      AccountBalancesDao accountBalancesDao =
+          accountBalancesDaoFactory.create(transactionContext.connection());
+      return accountBalancesDao.readAccountBalancesExist(accountIds);
+    });
   }
 
   public void updateAccountBalances(
@@ -143,23 +138,20 @@ public class AccountBalancesService {
         yearMonth,
         notes,
         accountBalanceUpdates);
-    transactionManager.executeVoid(
-        transactionContext -> {
-          AccountBalancesDao accountBalancesDao =
-              accountBalancesDaoFactory.create(transactionContext.connection());
-          int rowsUpdated =
-              accountBalancesDao.updateAccountBalances(yearMonth, notes, accountBalanceUpdates);
-          log.debug("Updated [{}] Account Balances", rowsUpdated);
-        });
+    transactionManager.executeVoid(transactionContext -> {
+      AccountBalancesDao accountBalancesDao =
+          accountBalancesDaoFactory.create(transactionContext.connection());
+      int rowsUpdated =
+          accountBalancesDao.updateAccountBalances(yearMonth, notes, accountBalanceUpdates);
+      log.debug("Updated [{}] Account Balances", rowsUpdated);
+    });
   }
 
   private List<InsightsResponse.AccountSummary> calculateNetWorth(
       List<InsightsResponse.AccountSummary> accountSummaries) {
     return accountSummaries.stream()
-        .map(
-            summary ->
-                InsightsResponse.AccountSummary.withNetWorth(
-                    summary.yearMonth(), summary.accounts()))
+        .map(summary ->
+            InsightsResponse.AccountSummary.withNetWorth(summary.yearMonth(), summary.accounts()))
         .toList();
   }
 }

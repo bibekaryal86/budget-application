@@ -85,43 +85,40 @@ public class TransactionItemService {
         "Create transaction items: TransactionId=[{}], TransactionItemRequests=[{}]",
         transactionId,
         transactionItemRequests);
-    transactionItemRequests.forEach(
-        transactionRequest ->
-            validateTransactionItem(transactionRequest, Boolean.TRUE, connection));
+    transactionItemRequests.forEach(transactionRequest ->
+        validateTransactionItem(transactionRequest, Boolean.TRUE, connection));
     TransactionItemDao transactionItemDao = transactionItemDaoFactory.create(connection);
     List<TransactionItem> transactionItemsIn =
         transactionItemRequests.stream()
-            .map(
-                item ->
-                    new TransactionItem(
-                        null,
-                        transactionId,
-                        item.categoryId(),
-                        item.accountId(),
-                        item.amount(),
-                        item.tags(),
-                        item.notes()))
+            .map(item ->
+                new TransactionItem(
+                    null,
+                    transactionId,
+                    item.categoryId(),
+                    item.accountId(),
+                    item.amount(),
+                    item.tags(),
+                    item.notes()))
             .toList();
     return transactionItemDao.createItems(transactionItemsIn);
   }
 
   public TransactionItemResponse read(List<UUID> transactionItemIds) throws SQLException {
     log.debug("Read transaction items: Ids={}", transactionItemIds);
-    return transactionManager.execute(
-        transactionContext -> {
-          TransactionItemDao transactionItemDao =
-              transactionItemDaoFactory.create(transactionContext.connection());
-          List<TransactionItemResponse.TransactionItem> transactionItems =
-              transactionItemDao.readTransactionItems(transactionItemIds);
+    return transactionManager.execute(transactionContext -> {
+      TransactionItemDao transactionItemDao =
+          transactionItemDaoFactory.create(transactionContext.connection());
+      List<TransactionItemResponse.TransactionItem> transactionItems =
+          transactionItemDao.readTransactionItems(transactionItemIds);
 
-          if (transactionItemIds.size() == 1 && transactionItems.isEmpty()) {
-            throw new Exceptions.NotFoundException(
-                "TransactionItem", transactionItemIds.getFirst().toString());
-          }
+      if (transactionItemIds.size() == 1 && transactionItems.isEmpty()) {
+        throw new Exceptions.NotFoundException(
+            "TransactionItem", transactionItemIds.getFirst().toString());
+      }
 
-          return new TransactionItemResponse(
-              transactionItems, ResponseMetadata.emptyResponseMetadata());
-        });
+      return new TransactionItemResponse(
+          transactionItems, ResponseMetadata.emptyResponseMetadata());
+    });
   }
 
   public List<TransactionItem> readByTransactionIds(
@@ -133,14 +130,13 @@ public class TransactionItemService {
 
   public TransactionItemResponse.TransactionItemTags readTransactionItemTags() throws SQLException {
     log.debug("Read transaction item tags...");
-    return transactionManager.execute(
-        transactionContext -> {
-          TransactionItemDao transactionItemDao =
-              transactionItemDaoFactory.create(transactionContext.connection());
-          List<String> transactionItemTags = transactionItemDao.readAllTags();
-          return new TransactionItemResponse.TransactionItemTags(
-              transactionItemTags, ResponseMetadata.emptyResponseMetadata());
-        });
+    return transactionManager.execute(transactionContext -> {
+      TransactionItemDao transactionItemDao =
+          transactionItemDaoFactory.create(transactionContext.connection());
+      List<String> transactionItemTags = transactionItemDao.readAllTags();
+      return new TransactionItemResponse.TransactionItemTags(
+          transactionItemTags, ResponseMetadata.emptyResponseMetadata());
+    });
   }
 
   public TransactionItemResponse update(UUID id, TransactionItemRequest transactionItemRequest)
@@ -157,9 +153,8 @@ public class TransactionItemService {
         transactionItemRequest);
 
     if (connection == null) {
-      return transactionManager.execute(
-          transactionContext ->
-              update(id, transactionItemRequest, transactionContext.connection()));
+      return transactionManager.execute(transactionContext ->
+          update(id, transactionItemRequest, transactionContext.connection()));
     }
 
     TransactionItemDao transactionItemDao = transactionItemDaoFactory.create(connection);

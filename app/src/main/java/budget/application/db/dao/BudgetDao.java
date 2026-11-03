@@ -81,28 +81,28 @@ public class BudgetDao extends BaseDao<Budget> {
     StringBuilder sql =
         new StringBuilder(
             """
-                        SELECT
-                            b.id           AS budget_id,
-                            b.budget_month     AS budget_month,
-                            b.budget_year     AS budget_year,
-                            b.amount AS budget_amount,
-                            b.notes        AS budget_notes,
-                            c.id           AS category_id,
-                            c.name         AS category_name,
-                            ct.id          AS category_type_id,
-                            ct.name        AS category_type_name
-                        FROM budget b
-                        JOIN category c
-                             ON c.id = b.category_id
-                        JOIN category_type ct
-                             ON ct.id = c.category_type_id
-                        """);
+            SELECT
+                b.id           AS budget_id,
+                b.budget_month     AS budget_month,
+                b.budget_year     AS budget_year,
+                b.amount AS budget_amount,
+                b.notes        AS budget_notes,
+                c.id           AS category_id,
+                c.name         AS category_name,
+                ct.id          AS category_type_id,
+                ct.name        AS category_type_name
+            FROM budget b
+            JOIN category c
+                 ON c.id = b.category_id
+            JOIN category_type ct
+                 ON ct.id = c.category_type_id
+            """);
 
     List<Object> params = new ArrayList<>();
     final boolean[] whereAdded = {false};
 
     Consumer<String> addWhere =
-        (condition) -> {
+        condition -> {
           sql.append(whereAdded[0] ? " AND " : " WHERE ");
           sql.append(condition);
           whereAdded[0] = true;

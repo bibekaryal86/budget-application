@@ -40,39 +40,39 @@ public class InsightsDao {
 
     String sql =
         """
-              WITH RECURSIVE date_intervals AS (
-                -- Start with the end date's month as the first interval
-                SELECT
-                  DATE_TRUNC('month', ?::date)::date AS interval_start,
-                  (DATE_TRUNC('month', ?::date) + INTERVAL '1 month' - INTERVAL '1 day')::date AS interval_end,
-                  1 AS month_offset
-                UNION ALL
-                SELECT
-                  (DATE_TRUNC('month', interval_start) - INTERVAL '1 month')::date,
-                  (DATE_TRUNC('month', interval_start) - INTERVAL '1 day')::date,
-                  month_offset + 1
-                FROM date_intervals
-                WHERE month_offset < ?
-              )
+            WITH RECURSIVE date_intervals AS (
+              -- Start with the end date's month as the first interval
               SELECT
-                  di.interval_start AS begin_date,
-                  di.interval_end AS end_date,
-                  COALESCE(SUM(CASE WHEN ct.name = 'INCOME' THEN ti.amount ELSE 0 END), 0) AS incomes,
-                  COALESCE(SUM(CASE WHEN ct.name = 'SAVINGS' THEN ti.amount ELSE 0 END), 0) AS savings,
-                  COALESCE(SUM(CASE WHEN ct.name NOT IN ('INCOME', 'SAVINGS', 'TRANSFER') THEN ti.amount ELSE 0 END), 0) AS expenses
-              FROM date_intervals di
-              LEFT JOIN transaction t
-                  ON t.txn_date >= di.interval_start
-                  AND t.txn_date <= di.interval_end
-              LEFT JOIN transaction_item ti
-                  ON ti.transaction_id = t.id
-              LEFT JOIN category c
-                  ON ti.category_id = c.id
-              LEFT JOIN category_type ct
-                  ON c.category_type_id = ct.id
-              GROUP BY di.interval_start, di.interval_end
-              ORDER BY di.interval_start ASC;
-          """;
+                DATE_TRUNC('month', ?::date)::date AS interval_start,
+                (DATE_TRUNC('month', ?::date) + INTERVAL '1 month' - INTERVAL '1 day')::date AS interval_end,
+                1 AS month_offset
+              UNION ALL
+              SELECT
+                (DATE_TRUNC('month', interval_start) - INTERVAL '1 month')::date,
+                (DATE_TRUNC('month', interval_start) - INTERVAL '1 day')::date,
+                month_offset + 1
+              FROM date_intervals
+              WHERE month_offset < ?
+            )
+            SELECT
+                di.interval_start AS begin_date,
+                di.interval_end AS end_date,
+                COALESCE(SUM(CASE WHEN ct.name = 'INCOME' THEN ti.amount ELSE 0 END), 0) AS incomes,
+                COALESCE(SUM(CASE WHEN ct.name = 'SAVINGS' THEN ti.amount ELSE 0 END), 0) AS savings,
+                COALESCE(SUM(CASE WHEN ct.name NOT IN ('INCOME', 'SAVINGS', 'TRANSFER') THEN ti.amount ELSE 0 END), 0) AS expenses
+            FROM date_intervals di
+            LEFT JOIN transaction t
+                ON t.txn_date >= di.interval_start
+                AND t.txn_date <= di.interval_end
+            LEFT JOIN transaction_item ti
+                ON ti.transaction_id = t.id
+            LEFT JOIN category c
+                ON ti.category_id = c.id
+            LEFT JOIN category_type ct
+                ON c.category_type_id = ct.id
+            GROUP BY di.interval_start, di.interval_end
+            ORDER BY di.interval_start ASC;
+        """;
 
     List<Object> params = new ArrayList<>();
     params.add(endDate);

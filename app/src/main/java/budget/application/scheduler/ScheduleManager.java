@@ -24,12 +24,11 @@ public class ScheduleManager {
       TransactionService transactionService,
       AccountBalancesService accountBalancesService) {
     this.scheduledExecutorService =
-        Executors.newSingleThreadScheduledExecutor(
-            r -> {
-              Thread t = new Thread(r, "scheduler-main");
-              t.setDaemon(false);
-              return t;
-            });
+        Executors.newSingleThreadScheduledExecutor(r -> {
+          Thread t = new Thread(r, "scheduler-main");
+          t.setDaemon(false);
+          return t;
+        });
 
     this.dailyTransactionReconScheduler =
         new DailyTransactionReconScheduler(transactionService, scheduledExecutorService);

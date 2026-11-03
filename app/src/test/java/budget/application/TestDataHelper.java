@@ -27,9 +27,9 @@ public final class TestDataHelper {
         PreparedStatement stmt =
             c.prepareStatement(
                 """
-                         INSERT INTO category_type (id, name)
-                         VALUES (?, ?)
-                     """)) {
+                    INSERT INTO category_type (id, name)
+                    VALUES (?, ?)
+                """)) {
 
       stmt.setObject(1, id);
       stmt.setObject(2, name);
@@ -64,9 +64,9 @@ public final class TestDataHelper {
         PreparedStatement stmt =
             c.prepareStatement(
                 """
-                         INSERT INTO category (id, category_type_id, name)
-                         VALUES (?, ?, ?)
-                     """)) {
+                    INSERT INTO category (id, category_type_id, name)
+                    VALUES (?, ?, ?)
+                """)) {
 
       stmt.setObject(1, id);
       stmt.setObject(2, catTypeId);
@@ -102,9 +102,9 @@ public final class TestDataHelper {
         PreparedStatement stmt =
             c.prepareStatement(
                 """
-                        INSERT INTO account (id, name, account_type, bank_name, account_balance, status)
-                        VALUES (?, ?, ?, 'TEST BANK', 1000.00, 'ACTIVE')
-                    """)) {
+                    INSERT INTO account (id, name, account_type, bank_name, account_balance, status)
+                    VALUES (?, ?, ?, 'TEST BANK', 1000.00, 'ACTIVE')
+                """)) {
 
       stmt.setObject(1, id);
       stmt.setString(2, name);
@@ -141,9 +141,9 @@ public final class TestDataHelper {
         PreparedStatement stmt =
             c.prepareStatement(
                 """
-                         INSERT INTO account_balances (id, account_id, year_month, account_balance)
-                         VALUES (?, ?, ?, ?)
-                     """)) {
+                    INSERT INTO account_balances (id, account_id, year_month, account_balance)
+                    VALUES (?, ?, ?, ?)
+                """)) {
 
       stmt.setObject(1, id);
       stmt.setObject(2, accountId);
@@ -181,9 +181,9 @@ public final class TestDataHelper {
         PreparedStatement stmt =
             c.prepareStatement(
                 """
-                         INSERT INTO budget (id, category_id, budget_month, budget_year, amount, notes)
-                         VALUES (?, ?, ?, ?, 1000.00, 'notes example')
-                     """)) {
+                    INSERT INTO budget (id, category_id, budget_month, budget_year, amount, notes)
+                    VALUES (?, ?, ?, ?, 1000.00, 'notes example')
+                """)) {
 
       stmt.setObject(1, id);
       stmt.setObject(2, catId);
@@ -221,9 +221,9 @@ public final class TestDataHelper {
         PreparedStatement stmt =
             c.prepareStatement(
                 """
-                        INSERT INTO transaction (id, txn_date, merchant, total_amount)
-                        VALUES (?, ?, ?, ?)
-                    """)) {
+                    INSERT INTO transaction (id, txn_date, merchant, total_amount)
+                    VALUES (?, ?, ?, ?)
+                """)) {
 
       stmt.setObject(1, id);
       stmt.setObject(2, txnDate.toLocalDate());
@@ -261,9 +261,9 @@ public final class TestDataHelper {
         PreparedStatement stmt =
             c.prepareStatement(
                 """
-                        INSERT INTO transaction_item (id, transaction_id, category_id, account_id, amount, tags, notes)
-                        VALUES (?, ?, ?, ?, ?, ?, ?)
-                    """)) {
+                    INSERT INTO transaction_item (id, transaction_id, category_id, account_id, amount, tags, notes)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                """)) {
       stmt.setObject(1, id);
       stmt.setObject(2, txnId);
       stmt.setObject(3, catId);

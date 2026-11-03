@@ -42,131 +42,125 @@ public class AccountService {
 
   public AccountResponse create(AccountRequest accountRequest) throws SQLException {
     log.debug("Create account: AccountRequest=[{}]", accountRequest);
-    return transactionManager.execute(
-        transactionContext -> {
-          AccountDao accountDao = accountDaoFactory.create(transactionContext.connection());
-          validateAccount(accountRequest);
+    return transactionManager.execute(transactionContext -> {
+      AccountDao accountDao = accountDaoFactory.create(transactionContext.connection());
+      validateAccount(accountRequest);
 
-          Account accountIn =
-              new Account(
-                  null,
-                  accountRequest.name(),
-                  accountRequest.accountType(),
-                  accountRequest.bankName(),
-                  null,
-                  accountRequest.status(),
-                  null,
-                  null);
-          Account accountOut = accountDao.create(accountIn);
-          log.debug("Created account: Id=[{}]", accountOut.id());
-          return ResponseUtils.getAccountResponse(
-              List.of(accountOut), Map.of(), ResponseUtils.defaultInsertResponseMetadata());
-        });
+      Account accountIn =
+          new Account(
+              null,
+              accountRequest.name(),
+              accountRequest.accountType(),
+              accountRequest.bankName(),
+              null,
+              accountRequest.status(),
+              null,
+              null);
+      Account accountOut = accountDao.create(accountIn);
+      log.debug("Created account: Id=[{}]", accountOut.id());
+      return ResponseUtils.getAccountResponse(
+          List.of(accountOut), Map.of(), ResponseUtils.defaultInsertResponseMetadata());
+    });
   }
 
   public AccountResponse read(List<UUID> ids) throws SQLException {
     log.debug("Read accounts: Ids={}", ids);
-    return transactionManager.execute(
-        transactionContext -> {
-          AccountDao accountDao = accountDaoFactory.create(transactionContext.connection());
-          List<Account> accountList = accountDao.read(ids);
+    return transactionManager.execute(transactionContext -> {
+      AccountDao accountDao = accountDaoFactory.create(transactionContext.connection());
+      List<Account> accountList = accountDao.read(ids);
 
-          if (ids.size() == 1 && accountList.isEmpty()) {
-            throw new Exceptions.NotFoundException("Account", ids.getFirst().toString());
-          }
+      if (ids.size() == 1 && accountList.isEmpty()) {
+        throw new Exceptions.NotFoundException("Account", ids.getFirst().toString());
+      }
 
-          AccountBalancesDao accountBalancesDao =
-              accountBalancesDaoFactory.create(transactionContext.connection());
-          // get account balances history
-          Map<UUID, List<AccountResponse.AccountBalanceHistory>> accountBalanceHistoryMap =
-              accountBalancesDao.readAccountBalancesHistory(ids);
-          // get account beginning balances
-          Map<UUID, AccountResponse.AccountBalanceHistory> accountBeginningBalancesMap =
-              accountBalancesDao.readAccountBeginningBalances(ids);
-          // get current account balances
-          String currentYearMonth = DaoUtils.getYearMonth(LocalDate.now());
+      AccountBalancesDao accountBalancesDao =
+          accountBalancesDaoFactory.create(transactionContext.connection());
+      // get account balances history
+      Map<UUID, List<AccountResponse.AccountBalanceHistory>> accountBalanceHistoryMap =
+          accountBalancesDao.readAccountBalancesHistory(ids);
+      // get account beginning balances
+      Map<UUID, AccountResponse.AccountBalanceHistory> accountBeginningBalancesMap =
+          accountBalancesDao.readAccountBeginningBalances(ids);
+      // get current account balances
+      String currentYearMonth = DaoUtils.getYearMonth(LocalDate.now());
 
-          for (Account account : accountList) {
-            List<AccountResponse.AccountBalanceHistory> history =
-                accountBalanceHistoryMap.computeIfAbsent(account.id(), _ -> new ArrayList<>());
+      for (Account account : accountList) {
+        List<AccountResponse.AccountBalanceHistory> history =
+            accountBalanceHistoryMap.computeIfAbsent(account.id(), _ -> new ArrayList<>());
 
-            // add the current account balance to the top of the list
-            history.removeIf(h -> h.yearMonth().equals(currentYearMonth));
-            history.addFirst(
-                new AccountResponse.AccountBalanceHistory(
-                    currentYearMonth, account.accountBalance()));
+        // add the current account balance to the top of the list
+        history.removeIf(h -> h.yearMonth().equals(currentYearMonth));
+        history.addFirst(
+            new AccountResponse.AccountBalanceHistory(currentYearMonth, account.accountBalance()));
 
-            // add beginning balance to the top of the list
-            AccountResponse.AccountBalanceHistory beginning =
-                accountBeginningBalancesMap.get(account.id());
-            if (beginning != null
-                && (history.isEmpty()
-                    || !history.getFirst().yearMonth().equals(beginning.yearMonth()))) {
-              history.addFirst(beginning);
-            }
-          }
+        // add beginning balance to the top of the list
+        AccountResponse.AccountBalanceHistory beginning =
+            accountBeginningBalancesMap.get(account.id());
+        if (beginning != null
+            && (history.isEmpty()
+                || !history.getFirst().yearMonth().equals(beginning.yearMonth()))) {
+          history.addFirst(beginning);
+        }
+      }
 
-          return ResponseUtils.getAccountResponse(
-              accountList, accountBalanceHistoryMap, ResponseMetadata.emptyResponseMetadata());
-        });
+      return ResponseUtils.getAccountResponse(
+          accountList, accountBalanceHistoryMap, ResponseMetadata.emptyResponseMetadata());
+    });
   }
 
   public AccountResponse.AccountRefLists readAccountBanks() throws SQLException {
     log.debug("Read account banks");
-    return transactionManager.execute(
-        transactionContext -> {
-          AccountDao accountDao = accountDaoFactory.create(transactionContext.connection());
+    return transactionManager.execute(transactionContext -> {
+      AccountDao accountDao = accountDaoFactory.create(transactionContext.connection());
 
-          List<String> bankNames = accountDao.readAllBanks();
-          return new AccountResponse.AccountRefLists(
-              bankNames, ResponseMetadata.emptyResponseMetadata());
-        });
+      List<String> bankNames = accountDao.readAllBanks();
+      return new AccountResponse.AccountRefLists(
+          bankNames, ResponseMetadata.emptyResponseMetadata());
+    });
   }
 
   public AccountResponse update(UUID id, AccountRequest accountRequest) throws SQLException {
     log.debug("Update account: Id=[{}], AccountRequest=[{}]", id, accountRequest);
-    return transactionManager.execute(
-        transactionContext -> {
-          AccountDao accountDao = accountDaoFactory.create(transactionContext.connection());
-          validateAccount(accountRequest);
+    return transactionManager.execute(transactionContext -> {
+      AccountDao accountDao = accountDaoFactory.create(transactionContext.connection());
+      validateAccount(accountRequest);
 
-          List<Account> accountList = accountDao.read(List.of(id));
-          if (accountList.isEmpty()) {
-            throw new Exceptions.NotFoundException("Account", id.toString());
-          }
+      List<Account> accountList = accountDao.read(List.of(id));
+      if (accountList.isEmpty()) {
+        throw new Exceptions.NotFoundException("Account", id.toString());
+      }
 
-          Account accountIn =
-              new Account(
-                  id,
-                  accountRequest.name(),
-                  accountRequest.accountType(),
-                  accountRequest.bankName(),
-                  null,
-                  accountRequest.status(),
-                  null,
-                  null);
-          Account accountOut = accountDao.update(accountIn);
+      Account accountIn =
+          new Account(
+              id,
+              accountRequest.name(),
+              accountRequest.accountType(),
+              accountRequest.bankName(),
+              null,
+              accountRequest.status(),
+              null,
+              null);
+      Account accountOut = accountDao.update(accountIn);
 
-          return ResponseUtils.getAccountResponse(
-              List.of(accountOut), Map.of(), ResponseUtils.defaultUpdateResponseMetadata());
-        });
+      return ResponseUtils.getAccountResponse(
+          List.of(accountOut), Map.of(), ResponseUtils.defaultUpdateResponseMetadata());
+    });
   }
 
   public AccountResponse delete(List<UUID> ids) throws SQLException {
     log.info("Delete accounts: Ids=[{}]", ids);
-    return transactionManager.execute(
-        transactionContext -> {
-          AccountDao accountDao = accountDaoFactory.create(transactionContext.connection());
+    return transactionManager.execute(transactionContext -> {
+      AccountDao accountDao = accountDaoFactory.create(transactionContext.connection());
 
-          List<Account> accountList = accountDao.read(ids);
-          if (ids.size() == 1 && accountList.isEmpty()) {
-            throw new Exceptions.NotFoundException("Account", ids.getFirst().toString());
-          }
+      List<Account> accountList = accountDao.read(ids);
+      if (ids.size() == 1 && accountList.isEmpty()) {
+        throw new Exceptions.NotFoundException("Account", ids.getFirst().toString());
+      }
 
-          int deleteCount = accountDao.delete(ids);
-          return new AccountResponse(
-              List.of(), ResponseUtils.defaultDeleteResponseMetadata(deleteCount));
-        });
+      int deleteCount = accountDao.delete(ids);
+      return new AccountResponse(
+          List.of(), ResponseUtils.defaultDeleteResponseMetadata(deleteCount));
+    });
   }
 
   public void updateAccountBalances(
@@ -175,12 +169,11 @@ public class AccountService {
         "[{}] Update account balance: AccountBalanceUpdates={}",
         mdcRequestId,
         accountBalanceUpdates);
-    transactionManager.executeVoid(
-        transactionContext -> {
-          AccountDao accountDao = accountDaoFactory.create(transactionContext.connection());
-          int rowsUpdated = accountDao.updateAccountBalances(accountBalanceUpdates);
-          log.info("[{}] Updated [{}] account balances", mdcRequestId, rowsUpdated);
-        });
+    transactionManager.executeVoid(transactionContext -> {
+      AccountDao accountDao = accountDaoFactory.create(transactionContext.connection());
+      int rowsUpdated = accountDao.updateAccountBalances(accountBalanceUpdates);
+      log.info("[{}] Updated [{}] account balances", mdcRequestId, rowsUpdated);
+    });
   }
 
   private void validateAccount(AccountRequest accountRequest) {
